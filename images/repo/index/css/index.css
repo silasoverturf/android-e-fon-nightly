@@ -1,0 +1,72 @@
+html
+{
+	background-color: #FFFFFF;
+}
+
+#page
+{
+	z-index: 1;
+	width: 960px;
+	min-height: 390px;
+	padding-bottom: 55px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#u77
+{
+	z-index: 2;
+	position: relative;
+	width: 980px;
+	margin-right: -980px;
+	margin-top: 13px;
+	left: -7px;
+}
+
+#u77_img
+{
+	display: block;
+	vertical-align: top;
+}
+
+#u85
+{
+	z-index: 4;
+	width: 229px;
+	position: relative;
+	margin-right: -229px;
+	margin-top: 153px;
+	left: 105px;
+}
+
+#u103
+{
+	z-index: 6;
+	width: 229px;
+	position: relative;
+	margin-right: -229px;
+	margin-top: 153px;
+	left: 626px;
+}
+
+#u109
+{
+	z-index: 8;
+	width: 229px;
+	position: relative;
+	margin-right: -229px;
+	margin-top: 153px;
+	left: 366px;
+}
+
+#u85_img,#u103_img,#u109_img
+{
+	vertical-align: top;
+}
+
+body
+{
+	padding-top: 36px;
+	padding-bottom: 36px;
+}
+

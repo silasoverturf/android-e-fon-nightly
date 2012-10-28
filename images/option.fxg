@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graphic version="2.0" xmlns="http://ns.adobe.com/fxg/2008" xmlns:d="http://ns.adobe.com/fxg/2008/dt" xmlns:fc="http://ns.adobe.com/flashcatalyst/2009"  viewHeight= "49" viewWidth= "327">
+	<Library>
+	</Library>
+
+	<Group d:userLabel="Layer_1" d:type="layer">
+		<Rect x="0" y="0" width="327" height="48.5" alpha="0.6" blendMode="normal" radiusX="0" radiusY="0">
+			<fill>
+				<SolidColor color="#ececec"/>
+			</fill>
+		</Rect>
+		<RichText x="5" y="16" fontFamily="Roboto" fontSize="18" fontStyle="normal" fontWeight="normal" kerning="off" blendMode="normal" whiteSpaceCollapse="preserve" alpha="1">
+			<content>
+				<p fontFamily="Roboto" fontSize="18">Single line item pressed</p>
+			</content>
+		</RichText>
+		<Line xFrom="278" yFrom="13" xTo="278" yTo="36" alpha="0.10196078431372549" blendMode="normal" d:userLabel="Line">
+			<stroke>
+				<SolidColorStroke color="#000000" weight="1" caps="none"/>
+			</stroke>
+		</Line>
+		<Group d:userLabel="Group_1" alpha="0.8">
+			<Path winding="evenOdd" data="M 312 31 C 312 30 312 30 312 30 C 312 30 312 30 312 30 C 312 30 312 30 312 30 L 307 26 C 307 26 307 26 307 26 C 307 26 306 26 306 26 C 306 26 306 26 306 26 C 306 26 306 26 306 26 C 306 26 306 26 306 26 C 306 27 306 27 305 27 C 305 28 305 29 304 30 C 303 30 301 28 298 26 C 296 24 295 22 295 21 C 296 20 297 20 297 19 C 298 19 298 19 298 19 C 298 19 298 19 298 19 C 298 19 298 19 298 19 C 298 19 298 19 298 19 C 299 18 299 18 299 18 C 299 18 299 18 299 18 L 295 13 C 295 13 295 13 295 13 C 295 13 295 13 295 13 C 295 12 294 12 294 13 C 292 14 289 16 290 18 C 290 20 293 25 296 29 C 300 32 305 35 307 35 C 309 35 311 33 312 31 C 312 31 312 31 312 31 Z " blendMode="normal" alpha="1">
+				<fill>
+					<SolidColor color="#ffffff"/>
+				</fill>
+			</Path>
+			<Path winding="nonZero" data="M 317 40 L 285 40 L 285 8 L 317 8 L 317 40 Z " blendMode="normal" alpha="1">
+			</Path>
+		</Group>
+	</Group>
+</Graphic>

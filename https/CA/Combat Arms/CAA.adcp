@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project projectVersion="3.0" fileVersion="1">
+	<general>
+		<previewDevice deviceID="2091"></previewDevice>
+	</general>
+	<devices>
+		<device deviceID="2091" name="Apple iPhone 4"></device>
+	</devices>
+	<Tasks>
+		<adat:task guid="5cff2c68-96b3-11dc-8314-0800200c9a66" configureBeforeExecute="false" version="1">
+			<general>
+				<title value="$$$/Bluetooth/Title=Send to Bluetooth Device"></title>
+			</general>
+			<dialog height="340.000000" width="635.000000">
+				<container id="" enabled="true" sizex="scale" width="595" height="153" layout="horizontal">
+					<listBox id="devices" enabled="true" sizex="scale" width="485" height="153" selectable="true" path="">
+						<columns>
+							<column dataField="selected" columnText="$$$/Bluetooth/UI/SendTo=Send To" width="70"></column>
+							<column dataField="name" columnText="$$$/Bluetooth/UI/Devices=Devices" width="285"></column>
+							<column dataField="type" columnText="$$$/Bluetooth/UI/Type=Type" width="95"></column>
+						</columns>
+						<items></items>
+					</listBox>
+					<button id="rescan" enabled="true" onClick="doRescan" sizex="right" width="110" height="37">
+						<label value="$$$/Bluetooth/UI/Search=Search"></label>
+					</button>
+				</container>
+				<container id="" enabled="true" sizex="scale" width="595" height="120" layout="horizontal">
+					<fileList id="files" enabled="true" sizex="scale" width="485" height="120" selectable="false" icon="path">
+						<columns>
+							<column dataField="filename" columnText="$$$/Bluetooth/UI/FilesToSend=Files to Send" width="120"></column>
+							<column dataField="path" columnText="$$$/Bluetooth/UI/Path=Path" width="330"></column>
+						</columns>
+						<items></items>
+					</fileList>
+					<container id="" enabled="true" sizex="right" width="110" height="74" layout="vertical">
+						<button id="btnAddFile" enabled="true" onClick="doAddFile" sizex="left" width="110" height="37">
+							<label value="$$$/Bluetooth/UI/AddFile=Add..."></label>
+						</button>
+						<button id="btnRemove" enabled="true" onClick="doRemoveFile" sizex="left" width="110" height="37">
+							<label value="$$$/Bluetooth/UI/RemoveFile=Remove"></label>
+						</button>
+					</container>
+				</container>
+			</dialog>
+		</adat:task>
+		<adat:task guid="5cff2c68-96b3-11dc-8314-0800200c9a68" configureBeforeExecute="false" version="1">
+			<general>
+				<title value="$$$/SendTo/Title/CopyFileTo=Copy File To"></title>
+			</general>
+			<dialog height="253.000000" width="635.000000">
+				<container id="" enabled="true" sizex="scale" width="600" height="37" layout="horizontal">
+					<staticText id="" enabled="true" sizex="left" width="100" height="37" alignment="right">
+						<label value="$$$/SendTo/UI/Destination=Copy To:"></label>
+					</staticText>
+					<textField id="target" enabled="true" sizex="scale" width="390" height="37">
+						<text value=""></text>
+					</textField>
+					<button id="" enabled="true" onClick="doSelectTargetFolder" sizex="right" width="110" height="37">
+						<label value="$$$/SendTo/UI/Button/Browse=Browse..."></label>
+					</button>
+				</container>
+				<container id="" enabled="true" sizex="scale" width="600" height="120" layout="horizontal">
+					<fileList id="files" enabled="true" sizex="scale" width="490" height="120" onSelectionChanged="onSelectionChanged" selectable="false" icon="path">
+						<columns>
+							<column dataField="filename" columnText="$$$/SendTo/UI/FilesToCopy=Files to Copy" width="120"></column>
+							<column dataField="path" columnText="$$$/SendTo/UI/Path=Path" width="330"></column>
+						</columns>
+						<items></items>
+					</fileList>
+					<container id="" enabled="true" sizex="right" width="110" height="74" layout="vertical">
+						<button id="" enabled="true" onClick="doAddFile" sizex="left" width="110" height="37">
+							<label value="$$$/SendTo/UI/AddFile=Add..."></label>
+						</button>
+						<button id="btnRemove" enabled="true" onClick="doRemoveFile" sizex="left" width="110" height="37">
+							<label value="$$$/SendTo/UI/RemoveFile=Remove"></label>
+						</button>
+					</container>
+				</container>
+			</dialog>
+		</adat:task>
+		<adat:task guid="5cff2c68-96b3-11dc-8314-0800200c9a67" configureBeforeExecute="false" version="1">
+			<general>
+				<title value="$$$/FTP/Title=Send to FTP Server"></title>
+			</general>
+			<dialog height="305.000000" width="635.000000">
+				<container id="" enabled="true" sizex="scale" width="490" height="37" layout="horizontal">
+					<staticText id="" enabled="true" sizex="left" width="100" height="37" alignment="right">
+						<label value="$$$/FTP/UI/Address=FTP Address:"></label>
+					</staticText>
+					<textField id="url" enabled="true" sizex="scale" width="390" height="37">
+						<text value=""></text>
+					</textField>
+				</container>
+				<container id="" enabled="true" sizex="scale" width="490" height="37" layout="horizontal">
+					<staticText id="" enabled="true" sizex="left" width="100" height="37" alignment="right">
+						<label value="$$$/FTP/UI/UserID=User ID:"></label>
+					</staticText>
+					<textField id="username" enabled="true" sizex="scale" width="390" height="37">
+						<text value=""></text>
+					</textField>
+				</container>
+				<container id="" enabled="true" sizex="scale" width="490" height="37" layout="horizontal">
+					<staticText id="" enabled="true" sizex="left" width="100" height="37" alignment="right">
+						<label value="$$$/FTP/UI/Password=Password:"></label>
+					</staticText>
+					<passwordField id="password" enabled="true" sizex="scale" width="390" height="37">
+						<text value=""></text>
+					</passwordField>
+				</container>
+				<container id="" enabled="true" sizex="scale" width="172" height="37" layout="horizontal">
+					<staticText id="" enabled="true" sizex="left" width="100" height="37" alignment="right">
+						<label value="$$$/FTP/UI/Port=Port:"></label>
+					</staticText>
+					<textField id="port" enabled="true" sizex="scale" width="72" height="37">
+						<text value="21"></text>
+					</textField>
+				</container>
+				<container id="" enabled="true" sizex="scale" width="595" height="120" layout="horizontal">
+					<fileList id="files" enabled="true" sizex="scale" width="485" height="120" selectable="false" icon="path">
+						<columns>
+							<column dataField="filename" columnText="$$$/FTP/UI/FilesToUpload=Files to Upload" width="120"></column>
+							<column dataField="path" columnText="$$$/FTP/UI/Path=Path" width="330"></column>
+						</columns>
+						<items></items>
+					</fileList>
+					<container id="" enabled="true" sizex="right" width="110" height="74" layout="vertical">
+						<button id="" enabled="true" onClick="doAddFile" sizex="left" width="110" height="37">
+							<label value="$$$/FTP/UI/AddFile=Add..."></label>
+						</button>
+						<button id="btnRemove" enabled="true" onClick="doRemoveFile" sizex="left" width="110" height="37">
+							<label value="$$$/FTP/UI/RemoveFile=Remove"></label>
+						</button>
+					</container>
+				</container>
+			</dialog>
+		</adat:task>
+	</Tasks>
+</project>

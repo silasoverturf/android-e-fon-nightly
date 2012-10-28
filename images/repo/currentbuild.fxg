@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graphic version="2.0" xmlns="http://ns.adobe.com/fxg/2008" xmlns:d="http://ns.adobe.com/fxg/2008/dt" xmlns:fc="http://ns.adobe.com/flashcatalyst/2009"  viewHeight= "229" viewWidth= "229">
+	<Library>
+
+	<Definition name="Symbol">
+		<Group d:userLabel="Symbol">
+			<Group d:type="layer" d:layerType="page" d:userLabel="State_1" d:pageWidth="230" d:pageHeight="230">
+				<Group d:userLabel="Layer_1" d:type="layer">
+					<BitmapImage source="@Embed('/currentbuild.assets/Image_0.png')" x="-16" y="-28" blendMode="normal">
+					</BitmapImage>
+				</Group>
+			</Group>
+		</Group>
+	</Definition>
+	</Library>
+
+	<Group d:userLabel="Layer_1" d:type="layer">
+		<Rect x="16" y="12" width="196.5" height="197" alpha="1" blendMode="normal" radiusX="3" radiusY="3">
+			<fill>
+				<SolidColor color="#f5f5f5"/>
+			</fill>
+			<filters>
+				<DropShadowFilter angle="90" color="#000000" distance="2" alpha="0.45" quality="2" blurX="8" blurY="8"/>
+			</filters>
+		</Rect>
+		<RichText x="39" y="137" fontFamily="Roboto" fontSize="26" fontStyle="normal" fontWeight="normal" kerning="off" blendMode="normal" whiteSpaceCollapse="preserve" alpha="1">
+			<content>
+				<p fontFamily="Roboto" fontSize="26">Current Build</p>
+			</content>
+		</RichText>
+		<RichText x="97" y="173" fontFamily="Roboto" fontSize="26" fontStyle="normal" fontWeight="normal" kerning="off" blendMode="normal" whiteSpaceCollapse="preserve" alpha="1">
+			<content>
+				<p fontFamily="Roboto" fontSize="26">0.1</p>
+			</content>
+		</RichText>
+					<BitmapImage source="@Embed('/currentbuild.assets/Image_1.png')" x="99" y="50" d:userLabel="Symbol">
+					</BitmapImage>
+				</Group>
+</Graphic>
