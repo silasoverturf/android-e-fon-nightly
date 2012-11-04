@@ -29,6 +29,7 @@
 		private var userID_local:String;
 		private var password_local:String;
 
+		public var i:Number;
 		//session vars
 		private var j_session:URLVariables;
 		private var j_send:URLRequest;
@@ -45,7 +46,7 @@
 
 		private var testingArray:Array;
 
-		private var timeRedir:Array = [1,1,0445751337,11];//=[active, choice, destination delay,];
+		private var timeRedir:Array = [];//=[active, choice, destination delay,];
 		private var busyRedir:Array = [1, 1, 0445751000];;// =[active, choice, destination];
 		private var unregRedir:Array = [1, 1, 0445751000];;// =[active, choice, destination];
 		//private var selectedPhoneNumberId:Number;
@@ -65,11 +66,12 @@
 
 		//redir
 		private var delay:RegExp = /<inputtype="text"name="delay1"size="5"value="[0-9]{1,4}"/g;
-		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(Normal|Busy|Backup)\(\)("checked="checked"|)/g;
+		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(?:Normal|Busy|Backup)\(\)(?:"checked="checked"|)/g;
 		
 		//global extraction
 		var numberExtraction:RegExp = /[0-9]+(?:\.[0-9]*)?/gim;
 		var valueExtraction:RegExp = /value="[0-9]{1,4}"/;
+		var bloatStripper:RegExp;
 
 		public function build1()
 		{
@@ -193,17 +195,15 @@
 				//redirectionData = redirectionData.replace(regExp,".");
 				TweenMax.to(main, 0.5, {motionBlur:true, delay:0.3,alpha:1, y:"-500", ease:Cubic.easeInOut});
 				TweenMax.to(loading, 0.5, {alpha:0, y:-200, ease:Cubic.easeInOut});
-				var pattern:RegExp = /\w*sh\w*/gi;
-				var str:String = "She sells seashells by the seashore";
 				var result:Array = choiceSniffer.exec(redirectionData);
 
 				while (result != null)
 				{
-					trace(result.index, "\t", choiceSniffer.lastIndex, "\t", result);
-					trace("checker")
+					timeRedir.push(result);
+					trace(result);
 					result = choiceSniffer.exec(redirectionData);
 				}
-				//trace(redirectionData);
+				trace(timeRedir);
 			}
 		}
 
