@@ -1,14 +1,14 @@
 ﻿package 
 {
 	/*Welcome to the source!
-		          ____          
+	              ____          
 	  ___        / __/___  ____ 
 	 / _ \______/ /_/ __ \/ __ \
 	/  __/_____/ __/ /_/ / / / /
 	\___/     /_/  \____/_/ /_/ 
 	
 	The code is divided into 3 main modules.
-
+	
 	1. UX Layot and management
 	2. Localization and parsing of HTML
 	3. Variable management and POST translation
@@ -42,10 +42,10 @@
 		//local redirection vars <-
 		private var selectedNumber:String;
 		private var numberID:String;
-		
+
 		private var testingArray:Array;
 
-		private var timeRedir:Array = [1, 1, 0445751337, 11];//=[active, choice, destination delay,];
+		private var timeRedir:Array = [1,1,0445751337,11];//=[active, choice, destination delay,];
 		private var busyRedir:Array = [1, 1, 0445751000];;// =[active, choice, destination];
 		private var unregRedir:Array = [1, 1, 0445751000];;// =[active, choice, destination];
 		//private var selectedPhoneNumberId:Number;
@@ -58,15 +58,15 @@
 		//regular expresions
 		private var rex:RegExp = /[\s\r\n]*/gim;
 		private var regExp:RegExp = /<[^>]+>/g;
-		
+
 		//selected number vars
 		private var optionValue:RegExp = /optionvalue="[0-9]{4,8}"/;
 		private var selectedValue:RegExp = /selected="selected">[0-9]{10}/;
 
 		//redir
-		private var delay:RegExp =  /<inputtype="text"name="delay1"size="5"value="[0-9]{1,4}"/g
-		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice1"value="[0-9]{0,4}"onclick="controlRedirNormal\(\)("|"checked="checked")>/g
-
+		private var delay:RegExp = /<inputtype="text"name="delay1"size="5"value="[0-9]{1,4}"/g;
+		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(Normal|Busy|Backup)\(\)("checked="checked"|)/g;
+		
 		//global extraction
 		var numberExtraction:RegExp = /[0-9]+(?:\.[0-9]*)?/gim;
 		var valueExtraction:RegExp = /value="[0-9]{1,4}"/;
@@ -184,8 +184,7 @@
 			{
 				redirectionData = redirectionData.replace(rex,"");
 
-				trace(redirectionData);
-				testingArray = numberExtraction.exec(redirectionData);
+				//trace(redirectionData);
 				//numberID = numberExtraction.exec(numberID);
 
 				//selectedNumber = selectedValue.exec(redirectionData);
@@ -194,7 +193,17 @@
 				//redirectionData = redirectionData.replace(regExp,".");
 				TweenMax.to(main, 0.5, {motionBlur:true, delay:0.3,alpha:1, y:"-500", ease:Cubic.easeInOut});
 				TweenMax.to(loading, 0.5, {alpha:0, y:-200, ease:Cubic.easeInOut});
-				trace(testingArray);
+				var pattern:RegExp = /\w*sh\w*/gi;
+				var str:String = "She sells seashells by the seashore";
+				var result:Array = choiceSniffer.exec(redirectionData);
+
+				while (result != null)
+				{
+					trace(result.index, "\t", choiceSniffer.lastIndex, "\t", result);
+					trace("checker")
+					result = choiceSniffer.exec(redirectionData);
+				}
+				//trace(redirectionData);
 			}
 		}
 
@@ -213,24 +222,24 @@
 				r_send.method = URLRequestMethod.POST;
 				r_send.data = r_vars;
 
-				r_loader = new URLLoader;
+				r_loader = new URLLoader  ;
 
-				r_vars.featureId1 = 0
-				r_vars.featureId2 = 0
-				r_vars.featureId3 = 0
-				r_vars.featureId4 = 0
-				r_vars.featureIdBackuprouting = 0
-				r_vars.featureIdAnonSuppression = 0
+				r_vars.featureId1 = 0;
+				r_vars.featureId2 = 0;
+				r_vars.featureId3 = 0;
+				r_vars.featureId4 = 0;
+				r_vars.featureIdBackuprouting = 0;
+				r_vars.featureIdAnonSuppression = 0;
 				r_vars.reload = 
-				r_vars.selectedPhoneNumberId = 50288
-				r_vars._uml_normal1 = visible
-				r_vars._uml_busy = visible
-				r_vars._uml_backuprouting = visible
-				r_vars._uml_anonSuppression = visible
-				r_vars._uml_manualStatus = visible
-				r_vars._manualStatusPrivate = visible
-				r_vars._uml_calOof = visible
-				r_vars._uml_calBusy = visible
+				r_vars.selectedPhoneNumberId = 50288;
+				r_vars._uml_normal1 = visible;
+				r_vars._uml_busy = visible;
+				r_vars._uml_backuprouting = visible;
+				r_vars._uml_anonSuppression = visible;
+				r_vars._uml_manualStatus = visible;
+				r_vars._manualStatusPrivate = visible;
+				r_vars._uml_calOof = visible;
+				r_vars._uml_calBusy = visible;
 				trace(r_vars);
 
 				//r_loader.load(r_send);
