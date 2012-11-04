@@ -29,7 +29,7 @@
 		private var userID_local:String;
 		private var password_local:String;
 
-		public var i:Number;
+		public var i:Number = 0;
 		//session vars
 		private var j_session:URLVariables;
 		private var j_send:URLRequest;
@@ -47,8 +47,9 @@
 		private var testingArray:Array;
 
 		private var timeRedir:Array = [];//=[active, choice, destination delay,];
-		private var busyRedir:Array = [1, 1, 0445751000];;// =[active, choice, destination];
-		private var unregRedir:Array = [1, 1, 0445751000];;// =[active, choice, destination];
+		private var busyRedir:Array = [];// =[active, choice, destination];
+		private var unregRedir:Array = [];// =[active, choice, destination];
+		private var dumpRedir:Array = [];
 		//private var selectedPhoneNumberId:Number;
 
 		//redirection post vars
@@ -71,7 +72,7 @@
 		//global extraction
 		var numberExtraction:RegExp = /[0-9]+(?:\.[0-9]*)?/gim;
 		var valueExtraction:RegExp = /value="[0-9]{1,4}"/;
-		var bloatStripper:RegExp;
+		var bloatStripper:RegExp = /<inputtype="radio"name="choice(?:[1-3])"value="(?:[1-3])"onclick="controlRedir(?:Normal|Busy|Backup)\(\)/gi;
 
 		public function build1()
 		{
@@ -109,16 +110,6 @@
 			loading.y = stage.stageHeight * 0.3;
 			loading.scaleX = stage.stageWidth / 320;
 			loading.scaleY = stage.stageHeight / 480;
-			/*help.scaleX = stage.stageWidth / 320;
-			help.scaleY = stage.stageHeight / 480;
-			help.x = stage.stageWidth - help.width * 0.7;
-			help.y = stage.stageHeight - help.height * 0.7;
-			
-			helpMc.scaleX = stage.stageWidth / 320;
-			helpMc.scaleY = stage.stageHeight / 480;
-			helpMc.x = stage.stageWidth * 0.5;
-			helpMc.y = stage.stageHeight;
-			*/
 
 			//intro
 			TweenMax.from(header, 0.5, {delay:0.5, alpha:0, y:"+20", ease:Strong.easeInOut});
@@ -129,9 +120,7 @@
 			//initial listeners;
 			loginBtn.addEventListener(MouseEvent.CLICK, transmit);
 
-
-			//change menu;
-
+			//change menu
 			//transmit
 		}
 
@@ -199,11 +188,34 @@
 
 				while (result != null)
 				{
-					timeRedir.push(result);
-					trace(result);
+					if(i >= 0 && i <= 2){
+						dumpRedir.push(result);
+						trace("time")
+						i=i+1
+					}
+					
+					if(i >= 3 && i <= 4){
+						dumpRedir.push(result);
+						trace("busy")
+						i=i+1
+					}
+					
+					if(i >= 5 && i <= 6){
+						dumpRedir.push(result);
+						trace("unreg")
+						i=i+1
+					}
+					
+					
+					//trace(result);
 					result = choiceSniffer.exec(redirectionData);
 				}
-				trace(timeRedir);
+				trace("dump", dumpRedir);
+				trace("time", timeRedir);
+				trace("busy", busyRedir);
+				trace("unreg", unregRedir);
+				dumpRedir = dumpRedir.replace(bloatStripper,"chocolate");
+				trace(dumpRedir);
 			}
 		}
 
