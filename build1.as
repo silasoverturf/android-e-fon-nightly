@@ -1,19 +1,5 @@
 ﻿package 
 {
-	/*Welcome to the source!
-	              ____          
-	  ___        / __/___  ____ 
-	 / _ \______/ /_/ __ \/ __ \
-	/  __/_____/ __/ /_/ / / / /
-	\___/     /_/  \____/_/ /_/ 
-	
-	The code is divided into 3 main modules.
-	
-	1. UX Layot and management
-	2. Localization and parsing of HTML
-	3. Variable management and POST translation
-	*/
-
 	import com.greensock.*;
 	import com.greensock.easing.*;
 	import flash.events.MouseEvent;
@@ -30,6 +16,8 @@
 		private var password_local:String;
 
 		public var i:Number = 0;
+		public var i2:Number = 0;
+
 		//session vars
 		private var j_session:URLVariables;
 		private var j_send:URLRequest;
@@ -44,7 +32,7 @@
 		private var selectedNumber:String;
 		private var numberID:String;
 
-		private var testingArray:Array;
+		private var testingArray:Array = ["testing"];
 
 		private var timeRedir:Array = [];//=[active, choice, destination delay,];
 		private var busyRedir:Array = [];// =[active, choice, destination];
@@ -68,7 +56,7 @@
 		//redir
 		private var delay:RegExp = /<inputtype="text"name="delay1"size="5"value="[0-9]{1,4}"/g;
 		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(?:Normal|Busy|Backup)\(\)(?:"checked="checked"|)/g;
-		
+
 		//global extraction
 		var numberExtraction:RegExp = /[0-9]+(?:\.[0-9]*)?/gim;
 		var valueExtraction:RegExp = /value="[0-9]{1,4}"/;
@@ -175,38 +163,35 @@
 			{
 				redirectionData = redirectionData.replace(rex,"");
 
-				//trace(redirectionData);
-				//numberID = numberExtraction.exec(numberID);
 
-				//selectedNumber = selectedValue.exec(redirectionData);
-				//selectedNumber = numberExtraction.exec(selectedNumber);
-
-				//redirectionData = redirectionData.replace(regExp,".");
 				TweenMax.to(main, 0.5, {motionBlur:true, delay:0.3,alpha:1, y:"-500", ease:Cubic.easeInOut});
 				TweenMax.to(loading, 0.5, {alpha:0, y:-200, ease:Cubic.easeInOut});
 				var result:Array = choiceSniffer.exec(redirectionData);
 
 				while (result != null)
 				{
-					if(i >= 0 && i <= 2){
+					if (i >= 0 && i <= 2)
+					{
 						dumpRedir.push(result);
-						trace("time")
-						i=i+1
+						trace("time");
+						i = i + 1;
 					}
-					
-					if(i >= 3 && i <= 4){
+
+					if (i >= 3 && i <= 4)
+					{
 						dumpRedir.push(result);
-						trace("busy")
-						i=i+1
+						trace("busy");
+						i = i + 1;
 					}
-					
-					if(i >= 5 && i <= 6){
+
+					if (i >= 5 && i <= 6)
+					{
 						dumpRedir.push(result);
-						trace("unreg")
-						i=i+1
+						trace("unreg");
+						i = i + 1;
 					}
-					
-					
+
+
 					//trace(result);
 					result = choiceSniffer.exec(redirectionData);
 				}
@@ -214,7 +199,13 @@
 				trace("time", timeRedir);
 				trace("busy", busyRedir);
 				trace("unreg", unregRedir);
-				dumpRedir = dumpRedir.replace(bloatStripper,"chocolate");
+				
+				for each (var dumpVar in dumpRedir)
+				{
+					trace(dumpRedir);
+					i2 = i2 + 1;
+				}
+				dumpRedir[0] = dumpRedir[0].replace("1", "chocolate");
 				trace(dumpRedir);
 			}
 		}
