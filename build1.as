@@ -7,7 +7,9 @@
 	import flash.display.*;
 	import flash.net.*;
 	import flash.events.Event;
-
+	
+	trace("classes imported");
+	
 	public class build1 extends MovieClip
 	{
 		////variable defenition
@@ -62,6 +64,7 @@
 		var valueExtraction:RegExp = /value="[0-9]{1,4}"/;
 		var bloatStripper:RegExp = /<inputtype="radio"name="choice(?:[1-3])"value="(?:[1-3])"onclick="controlRedir(?:Normal|Busy|Backup)\(\)/gi;
 
+		trace("vars built");
 		public function build1()
 		{
 			//naming
@@ -110,11 +113,14 @@
 
 			//change menu
 			//transmit
+			trace("UI built");
+			trace("ready for login");
 		}
 
 
 		private function transmit(event:MouseEvent):void
 		{
+			
 			loginBtn.removeEventListener(MouseEvent.CLICK, transmit);
 			main.saveBtn.addEventListener(MouseEvent.CLICK, transmitRedir);
 			TweenMax.to(header, 0.5, {alpha:0, y:"-500", ease:Strong.easeInOut});
@@ -142,9 +148,11 @@
 			j_session.j_password = password_local;
 
 			j_loader.load(j_send);
-
+				
+			trace("logging in");
 			function completeHandler(event:Event):void
 			{
+				trace("log in complete, getting redirection");
 				redirectionLoader = new URLLoader();
 				redirectionURLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");
 
@@ -162,7 +170,7 @@
 			function parse(event:Event = null):void
 			{
 				redirectionData = redirectionData.replace(rex,"");
-
+				trace("parsing redirection");
 
 				TweenMax.to(main, 0.5, {motionBlur:true, delay:0.3,alpha:1, y:"-500", ease:Cubic.easeInOut});
 				TweenMax.to(loading, 0.5, {alpha:0, y:-200, ease:Cubic.easeInOut});
