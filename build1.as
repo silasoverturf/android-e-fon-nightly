@@ -7,9 +7,9 @@
 	import flash.display.*;
 	import flash.net.*;
 	import flash.events.Event;
-	
+
 	trace("classes imported");
-	
+
 	public class build1 extends MovieClip
 	{
 		////variable defenition
@@ -19,6 +19,7 @@
 
 		public var i:Number = 0;
 		public var i2:Number = 0;
+		public var i3:Number = 0;
 
 		//session vars
 		private var j_session:URLVariables;
@@ -36,10 +37,11 @@
 
 		private var testingArray:Array = ["testing"];
 
-		private var timeRedir:Array = [];//=[active, choice, destination delay,];
-		private var busyRedir:Array = [];// =[active, choice, destination];
-		private var unregRedir:Array = [];// =[active, choice, destination];
+		private var timeRedir:Array = [0,0];//=[active, choice, destination delay,];
+		private var busyRedir:Array = [0,0];// =[active, choice, destination];
+		private var unregRedir:Array = [0,0];// =[active, choice, destination];
 		private var dumpRedir:Array = [];
+		private var dumpContainer:String;
 		//private var selectedPhoneNumberId:Number;
 
 		//redirection post vars
@@ -56,13 +58,13 @@
 		private var selectedValue:RegExp = /selected="selected">[0-9]{10}/;
 
 		//redir
-		private var delay:RegExp = /<inputtype="text"name="delay1"size="5"value="[0-9]{1,4}"/g;
+		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="[0-9]{3,12}/g;
 		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(?:Normal|Busy|Backup)\(\)(?:"checked="checked"|)/g;
 
 		//global extraction
 		var numberExtraction:RegExp = /[0-9]+(?:\.[0-9]*)?/gim;
 		var valueExtraction:RegExp = /value="[0-9]{1,4}"/;
-		var bloatStripper:RegExp = /<inputtype="radio"name="choice(?:[1-3])"value="(?:[1-3])"onclick="controlRedir(?:Normal|Busy|Backup)\(\)/gi;
+		var bloatStripper:RegExp = /(?:phone1|phone3|backupNumber)"value="/g;
 
 		trace("vars built");
 		public function build1()
@@ -109,7 +111,7 @@
 			TweenMax.to(main, 0, {alpha:0, y:"+500"});
 
 			//initial listeners;
-			loginBtn.addEventListener(MouseEvent.CLICK, transmit);
+			stage.addEventListener(MouseEvent.CLICK, transmit);
 
 			//change menu
 			//transmit
@@ -120,7 +122,7 @@
 
 		private function transmit(event:MouseEvent):void
 		{
-			
+
 			loginBtn.removeEventListener(MouseEvent.CLICK, transmit);
 			main.saveBtn.addEventListener(MouseEvent.CLICK, transmitRedir);
 			TweenMax.to(header, 0.5, {alpha:0, y:"-500", ease:Strong.easeInOut});
@@ -148,7 +150,7 @@
 			j_session.j_password = password_local;
 
 			j_loader.load(j_send);
-				
+
 			trace("logging in");
 			function completeHandler(event:Event):void
 			{
@@ -167,55 +169,133 @@
 				redirectionLoader.load(redirectionURLRequest);
 			}
 
-			function parse(event:Event = null):void
+		}
+
+		private function parse(event:Event = null):void
+		{
+			redirectionData = redirectionData.replace(rex,"");
+			trace("parsing redirection");
+
+			TweenMax.to(main, 0.5, {motionBlur:true, delay:0.3,alpha:1, y:"-500", ease:Cubic.easeInOut});
+			TweenMax.to(loading, 0.5, {alpha:0, y:-200, ease:Cubic.easeInOut});
+			var result:Array = choiceSniffer.exec(redirectionData);
+
+			while (result != null)
 			{
-				redirectionData = redirectionData.replace(rex,"");
-				trace("parsing redirection");
-
-				TweenMax.to(main, 0.5, {motionBlur:true, delay:0.3,alpha:1, y:"-500", ease:Cubic.easeInOut});
-				TweenMax.to(loading, 0.5, {alpha:0, y:-200, ease:Cubic.easeInOut});
-				var result:Array = choiceSniffer.exec(redirectionData);
-
-				while (result != null)
-				{
-					if (i >= 0 && i <= 2)
-					{
-						dumpRedir.push(result);
-						trace("time");
-						i = i + 1;
-					}
-
-					if (i >= 3 && i <= 4)
-					{
-						dumpRedir.push(result);
-						trace("busy");
-						i = i + 1;
-					}
-
-					if (i >= 5 && i <= 6)
-					{
-						dumpRedir.push(result);
-						trace("unreg");
-						i = i + 1;
-					}
-
-
-					//trace(result);
-					result = choiceSniffer.exec(redirectionData);
-				}
-				trace("dump", dumpRedir);
-				trace("time", timeRedir);
-				trace("busy", busyRedir);
-				trace("unreg", unregRedir);
-				
-				for each (var dumpVar in dumpRedir)
-				{
-					trace(dumpRedir);
-					i2 = i2 + 1;
-				}
-				dumpRedir[0] = dumpRedir[0].replace("1", "chocolate");
-				trace(dumpRedir);
+				dumpRedir.push(result);
+				result = choiceSniffer.exec(redirectionData);
 			}
+
+			for each (var dumpVar in dumpRedir)
+			{
+				dumpContainer = dumpRedir[i2];
+				if (dumpContainer.search("checked") != -1)
+				{
+					if (i2 == 0)
+					{
+						timeRedir = [1,1];
+					}
+
+					if (i2 == 1)
+					{
+						timeRedir = [1,2];
+					}
+
+					if (i2 == 2)
+					{
+						timeRedir = [1,3];
+					}
+
+					if (i2 == 3)
+					{
+						busyRedir = [1,1];
+					}
+
+					if (i2 == 4)
+					{
+						busyRedir = [1,2];
+					}
+
+					if (i2 == 5)
+					{
+						unregRedir = [1,1];
+					}
+
+					if (i2 == 6)
+					{
+						unregRedir = [1,2];
+					}
+				}
+				i2 = i2 + 1;
+			}
+			trace(timeRedir, busyRedir, unregRedir);
+			trace(redirectionData);
+
+
+			result = [];
+			dumpRedir = [];
+			result = delaySniffer.exec(redirectionData);
+
+			while (result != null)
+			{
+				dumpRedir.push(result);
+				result = delaySniffer.exec(redirectionData);
+			}
+
+			for each (var delayVar in dumpRedir)
+			{
+				trace(delayVar);
+				dumpContainer = dumpRedir[i3];
+				dumpContainer = dumpContainer.replace(bloatStripper,"");
+				dumpRedir[i3] = dumpContainer;
+				if (i3 == 0)
+				{
+					timeRedir[2] = dumpContainer;
+				}
+
+				if (i3 == 1)
+				{
+					busyRedir[2] = dumpContainer;
+				}
+
+				if (i3 == 2)
+				{
+					unregRedir[2] = dumpContainer;
+				}
+				i3 = i3 + 1;
+			}
+			trace(timeRedir, busyRedir, unregRedir);
+			UIflush();
+		}
+
+		private function UIflush(event:Event = null):void
+		{
+			if(timeRedir[0] == 1){
+				main.timeCheck.gotoAndStop(1);
+			}
+			
+			if(timeRedir[0] == 0){
+				main.timeCheck.gotoAndStop(2);
+			}
+			
+			if(busyRedir[0] == 1){
+				main.timeCheck.gotoAndStop(1);
+			}
+			
+			if(busyRedir[0] == 0){
+				main.busyCheck.gotoAndStop(2);
+			}
+			
+			if(unregRedir[0] == 1){
+				main.unregCheck.gotoAndStop(1);
+			}
+			
+			if(unregRedir[0] == 0){
+				main.unregCheck.gotoAndStop(2);
+			}
+			main.timeText.text = "Nach zeit umleiten auf " + timeRedir[2];
+			main.busyText.text = "Falls besetzt umleiten auf " + busyRedir[2];
+			main.unregText.text = "Falls Endgeräte nicht erreichbar umleiten auf " + unregRedir[2];
 		}
 
 		private function transmitRedir(event:MouseEvent):void
