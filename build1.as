@@ -114,7 +114,7 @@
 			TweenMax.to(main, 0, {alpha:0, y:"+500"});
 
 			//initial listeners;
-			stage.addEventListener(MouseEvent.CLICK, transmit);
+			loginBtn.addEventListener(MouseEvent.CLICK, transmit);
 
 			//change menu
 			//transmit
@@ -132,7 +132,7 @@
 			TweenMax.to(login, 0.5, {alpha:0, delay:0.1, y:"-500", ease:Cubic.easeInOut});
 			TweenMax.to(loginBtn, 0.5, {alpha:0, delay:0.2, y:"-500", ease:Cubic.easeInOut});
 			TweenMax.to(loading, 0.5, {alpha:1, ease:Cubic.easeInOut});
-			TweenMax.to(loading.loading, 0.75, {rotation:"-360", ease:Cubic.easeInOut, repeat:10});
+			TweenMax.to(loading.loading, 0.75, {rotation:"-360", ease:Cubic.easeInOut, repeat:-1});
 
 			userID_local = login.userid_txt.text;
 			password_local = login.password_txt.text;
@@ -231,10 +231,7 @@
 				}
 				i2 = i2 + 1;
 			}
-			trace(timeRedir, busyRedir, unregRedir);
-			trace(redirectionData);
-
-
+		
 			result = [];
 			dumpRedir = [];
 			result = delaySniffer.exec(redirectionData);
@@ -247,7 +244,6 @@
 
 			for each (var delayVar in dumpRedir)
 			{
-				trace(delayVar);
 				dumpContainer = dumpRedir[i3];
 				dumpContainer = dumpContainer.replace(bloatStripper,"");
 				dumpRedir[i3] = dumpContainer;
@@ -268,8 +264,7 @@
 				i3 = i3 + 1;
 			}
 			timeDelay = numberSniffer.exec(redirectionData);
-			timeDelay = timeDelay.replace(numberStripper, "");
-			trace(timeDelay);
+			timeRedir.push(timeDelay.replace(numberStripper, ""));
 			trace(timeRedir, busyRedir, unregRedir);
 			UIflush();
 		}
