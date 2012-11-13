@@ -42,6 +42,7 @@
 		private var unregRedir:Array = [0,0];// =[active, choice, destination];
 		private var dumpRedir:Array = [];
 		private var dumpContainer:String;
+		private var timeDelay:String;
 		//private var selectedPhoneNumberId:Number;
 
 		//redirection post vars
@@ -60,11 +61,13 @@
 		//redir
 		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="[0-9]{3,12}/g;
 		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(?:Normal|Busy|Backup)\(\)(?:"checked="checked"|)/g;
-
+		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{1,2}/;
+		private var numberStripper:RegExp = /name="delay1"size="5"value="/;
+		
 		//global extraction
-		var numberExtraction:RegExp = /[0-9]+(?:\.[0-9]*)?/gim;
-		var valueExtraction:RegExp = /value="[0-9]{1,4}"/;
-		var bloatStripper:RegExp = /(?:phone1|phone3|backupNumber)"value="/g;
+		private var numberExtraction:RegExp = /[0-9]+(?:\.[0-9]*)?/gim;
+		private var valueExtraction:RegExp = /value="[0-9]{1,4}"/;
+		private var bloatStripper:RegExp = /(?:phone1|phone3|backupNumber)"value="/g;
 
 		trace("vars built");
 		public function build1()
@@ -264,36 +267,45 @@
 				}
 				i3 = i3 + 1;
 			}
+			timeDelay = numberSniffer.exec(redirectionData);
+			timeDelay = timeDelay.replace(numberStripper, "");
+			trace(timeDelay);
 			trace(timeRedir, busyRedir, unregRedir);
 			UIflush();
 		}
 
 		private function UIflush(event:Event = null):void
 		{
-			if(timeRedir[0] == 1){
+			if (timeRedir[0] == 1)
+			{
 				main.timeCheck.gotoAndStop(1);
 			}
-			
-			if(timeRedir[0] == 0){
+
+			if (timeRedir[0] == 0)
+			{
 				main.timeCheck.gotoAndStop(2);
 			}
-			
-			if(busyRedir[0] == 1){
+
+			if (busyRedir[0] == 1)
+			{
 				main.timeCheck.gotoAndStop(1);
 			}
-			
-			if(busyRedir[0] == 0){
+
+			if (busyRedir[0] == 0)
+			{
 				main.busyCheck.gotoAndStop(2);
 			}
-			
-			if(unregRedir[0] == 1){
+
+			if (unregRedir[0] == 1)
+			{
 				main.unregCheck.gotoAndStop(1);
 			}
-			
-			if(unregRedir[0] == 0){
+
+			if (unregRedir[0] == 0)
+			{
 				main.unregCheck.gotoAndStop(2);
 			}
-			main.timeText.text = "Nach zeit umleiten auf " + timeRedir[2];
+			main.timeText.text = "Nach " + timeDelay + "s umleiten auf " + timeRedir[2];
 			main.busyText.text = "Falls besetzt umleiten auf " + busyRedir[2];
 			main.unregText.text = "Falls Endgeräte nicht erreichbar umleiten auf " + unregRedir[2];
 		}
