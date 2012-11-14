@@ -20,7 +20,10 @@
 		public var i:Number = 0;
 		public var i2:Number = 0;
 		public var i3:Number = 0;
-
+		
+		//white space remover
+		private var rex:RegExp = /[\s\r\n]*/gim;
+		
 		//session vars
 		private var j_session:URLVariables;
 		private var j_send:URLRequest;
@@ -49,31 +52,24 @@
 		private var r_vars:URLVariables;
 		private var r_send:URLRequest;
 		private var r_loader:URLLoader;
-
-		//regular expresions
-		private var rex:RegExp = /[\s\r\n]*/gim;
-		private var regExp:RegExp = /<[^>]+>/g;
-
-		//selected number vars
+		
+		//redir regular expressions
 		private var optionValue:RegExp = /optionvalue="[0-9]{4,8}"/;
 		private var selectedValue:RegExp = /selected="selected">[0-9]{10}/;
-
-		//redir
+		
 		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="[0-9]{3,12}/g;
 		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(?:Normal|Busy|Backup)\(\)(?:"checked="checked"|)/g;
 		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{1,2}/;
-		private var numberStripper:RegExp = /name="delay1"size="5"value="/;
 		
-		//global extraction
-		private var numberExtraction:RegExp = /[0-9]+(?:\.[0-9]*)?/gim;
-		private var valueExtraction:RegExp = /value="[0-9]{1,4}"/;
+		private var numberStripper:RegExp = /name="delay1"size="5"value="/;
 		private var bloatStripper:RegExp = /(?:phone1|phone3|backupNumber)"value="/g;
 
 		trace("vars built");
+		
 		public function build1()
 		{
 			//naming
-			main.saveBtn.btn_txt.text = "Speichern";
+			//main.saveBtn.btn_txt.text = "Speichern";
 
 			//placement
 			stage.align = StageAlign.TOP_LEFT;
@@ -194,40 +190,13 @@
 				dumpContainer = dumpRedir[i2];
 				if (dumpContainer.search("checked") != -1)
 				{
-					if (i2 == 0)
-					{
-						timeRedir = [1,1];
-					}
-
-					if (i2 == 1)
-					{
-						timeRedir = [1,2];
-					}
-
-					if (i2 == 2)
-					{
-						timeRedir = [1,3];
-					}
-
-					if (i2 == 3)
-					{
-						busyRedir = [1,1];
-					}
-
-					if (i2 == 4)
-					{
-						busyRedir = [1,2];
-					}
-
-					if (i2 == 5)
-					{
-						unregRedir = [1,1];
-					}
-
-					if (i2 == 6)
-					{
-						unregRedir = [1,2];
-					}
+					if (i2 == 0){timeRedir = [1,1];}
+					if (i2 == 1){timeRedir = [1,2];}
+					if (i2 == 2){timeRedir = [1,3];}
+					if (i2 == 3){busyRedir = [1,1];}
+					if (i2 == 4){busyRedir = [1,2];}
+					if (i2 == 5){unregRedir = [1,1];}
+					if (i2 == 6){unregRedir = [1,2];}
 				}
 				i2 = i2 + 1;
 			}
@@ -271,36 +240,14 @@
 
 		private function UIflush(event:Event = null):void
 		{
-			if (timeRedir[0] == 1)
-			{
-				main.timeCheck.gotoAndStop(1);
-			}
-
-			if (timeRedir[0] == 0)
-			{
-				main.timeCheck.gotoAndStop(2);
-			}
-
-			if (busyRedir[0] == 1)
-			{
-				main.timeCheck.gotoAndStop(1);
-			}
-
-			if (busyRedir[0] == 0)
-			{
-				main.busyCheck.gotoAndStop(2);
-			}
-
-			if (unregRedir[0] == 1)
-			{
-				main.unregCheck.gotoAndStop(1);
-			}
-
-			if (unregRedir[0] == 0)
-			{
-				main.unregCheck.gotoAndStop(2);
-			}
-			main.timeText.text = "Nach " + timeDelay + "s umleiten auf " + timeRedir[2];
+			if (timeRedir[0] == 1){main.timeCheck.gotoAndStop(1);}
+			if (timeRedir[0] == 0){main.timeCheck.gotoAndStop(2);}
+			if (busyRedir[0] == 1){main.timeCheck.gotoAndStop(1);}
+			if (busyRedir[0] == 0){main.busyCheck.gotoAndStop(2);}
+			if (unregRedir[0] == 1){main.unregCheck.gotoAndStop(1);}
+			if (unregRedir[0] == 0){main.unregCheck.gotoAndStop(2);}
+			
+			main.timeText.text = "Nach " + timeRedir[3] + "s umleiten auf " + timeRedir[2];
 			main.busyText.text = "Falls besetzt umleiten auf " + busyRedir[2];
 			main.unregText.text = "Falls Endgeräte nicht erreichbar umleiten auf " + unregRedir[2];
 		}
