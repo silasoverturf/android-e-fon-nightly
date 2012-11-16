@@ -6,7 +6,7 @@ The portal connection is currently achieved with HTTP and TLS. The conventional 
 
 The build1.fla and build.as are the main Flash documents and program class. The build.apk is the final Android ready build. It can be download and manually installed on your Android device, as long as the "Installation of apps from unknown sources" is checked. This setting can usually be found in the settings > security > device administration. The build1.swf is used for desktop based testing. The build1-app.xml file is used from defining app permissions.
 
-#Comment to nightly
+###Comment to nightly
 As this is the nightly repo the code may be sloppy, commented and not minifed. The compiled .apk will come with an assortiment of crashes, bugs and general nonsense.
 
 ##How to install on android
