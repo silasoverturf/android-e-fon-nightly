@@ -6,12 +6,18 @@
 	import flash.net.URLLoader;
 	import flash.display.*;
 	import flash.net.*;
-	import flash.events.Event;
+	import flash.events.*;
+	import flash.ui.*;
+	//import flash.events.
+	
+	import flash.utils.getTimer;
 
 	trace("classes imported");
 
 	public class build1 extends MovieClip
 	{
+		Multitouch.inputMode=MultitouchInputMode.TOUCH_POINT;
+
 		////variable defenition
 		//local vars
 		private var userID_local:String;
@@ -24,6 +30,8 @@
 		//white space remover
 		private var rex:RegExp = /[\s\r\n]*/gim;
 		
+		private var duration:uint = getTimer();
+         
 		//session vars
 		private var j_session:URLVariables;
 		private var j_send:URLRequest;
@@ -43,6 +51,8 @@
 		private var timeRedir:Array = [0,0];//=[active, choice, destination delay,];
 		private var busyRedir:Array = [0,0];// =[active, choice, destination];
 		private var unregRedir:Array = [0,0];// =[active, choice, destination];
+		private var redirChoice:Array = ["","","",];// [timeChoice, busyChoice, unregChoice]
+		
 		private var dumpRedir:Array = [];
 		private var dumpContainer:String;
 		private var timeDelay:String;
@@ -70,14 +80,17 @@
 		{
 			//naming
 			//main.saveBtn.btn_txt.text = "Speichern";
-
+  
 			//placement
 			stage.align = StageAlign.TOP_LEFT;
 			stage.scaleMode = StageScaleMode.NO_SCALE;
-
+			
 			bg.width = stage.stageWidth;
 			bg.height = stage.stageHeight;
-
+			
+			main.unregContainer.Text.y = 5;
+			main.unregContainer.Text.height = 40;
+			
 			header.x = stage.stageWidth / 2;
 			header.y = stage.stageHeight * 0.19;
 			header.scaleX = stage.stageWidth / 320;
@@ -104,22 +117,31 @@
 			loading.scaleY = stage.stageHeight / 480;
 
 			//intro
-			TweenMax.from(header, 0.5, {delay:0.5, alpha:0, y:"+20", ease:Strong.easeInOut});
-			TweenMax.from(login, 0.5, {delay:0.8, alpha:0, ease:Cubic.easeInOut});
-			TweenMax.from(loginBtn, 0.5, {delay:1.1, alpha:0, ease:Cubic.easeInOut});
+			//TweenMax.from(header, 0.5, {delay:0.5, alpha:0, y:"+20", ease:Strong.easeInOut});
+			//TweenMax.from(login, 0.5, {delay:0.8, alpha:0, ease:Cubic.easeInOut});
+			//TweenMax.from(loginBtn, 0.5, {delay:1.1, alpha:0, ease:Cubic.easeInOut});
 			TweenMax.to(main, 0, {alpha:0, y:"+500"});
 
 			//initial listeners;
-			loginBtn.addEventListener(MouseEvent.CLICK, transmit);
+			//loginBtn.addEventListener(MouseEvent.CLICK, transmit);
+			loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
+			main.timeContainer.addEventListener(MouseEvent.CLICK, tempHandler);
 
 			//change menu
 			//transmit
-			trace("UI built");
-			trace("ready for login");
+			trace("UI built", duration);
+			trace("ready for login", duration);
+		}
+		
+		private function tempHandler(event:MouseEvent):void
+		{
+			TweenMax.to(main.timeContainer.selecter, 0.2, {y:"+50", ease:Cubic.easeInOut});
+			TweenMax.to(main.busyContainer, 0.2, {y:"+50", ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer, 0.2, {y:"+50", ease:Cubic.easeInOut});
+			trace("clicked");
 		}
 
-
-		private function transmit(event:MouseEvent):void
+		private function transmit(event:TouchEvent):void
 		{
 
 			loginBtn.removeEventListener(MouseEvent.CLICK, transmit);
@@ -150,10 +172,10 @@
 
 			j_loader.load(j_send);
 
-			trace("logging in");
+			trace("logging in" , duration);
 			function completeHandler(event:Event):void
 			{
-				trace("log in complete, getting redirection");
+				trace("log in complete, getting redirection", duration);
 				redirectionLoader = new URLLoader();
 				redirectionURLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");
 
@@ -173,7 +195,7 @@
 		private function parse(event:Event = null):void
 		{
 			redirectionData = redirectionData.replace(rex,"");
-			trace("parsing redirection");
+			trace("parsing redirection", duration);
 
 			TweenMax.to(main, 0.5, {motionBlur:true, delay:0.3,alpha:1, y:"-500", ease:Cubic.easeInOut});
 			TweenMax.to(loading, 0.5, {alpha:0, y:-200, ease:Cubic.easeInOut});
@@ -240,16 +262,27 @@
 
 		private function UIflush(event:Event = null):void
 		{
-			if (timeRedir[0] == 1){main.timeCheck.gotoAndStop(1);}
-			if (timeRedir[0] == 0){main.timeCheck.gotoAndStop(2);}
-			if (busyRedir[0] == 1){main.timeCheck.gotoAndStop(1);}
-			if (busyRedir[0] == 0){main.busyCheck.gotoAndStop(2);}
-			if (unregRedir[0] == 1){main.unregCheck.gotoAndStop(1);}
-			if (unregRedir[0] == 0){main.unregCheck.gotoAndStop(2);}
+			if (timeRedir[0] == 1){main.timeContainer.Check.gotoAndStop(1);}
+			if (timeRedir[0] == 0){main.timeContainer.Check.gotoAndStop(2);}
+			if (busyRedir[0] == 1){main.busyContainer.Check.gotoAndStop(1);}
+			if (busyRedir[0] == 0){main.busyContainer.Check.gotoAndStop(2);}
+			if (unregRedir[0] == 1){main.unregContainer.Check.gotoAndStop(1);}
+			if (unregRedir[0] == 0){main.unregContainer.Check.gotoAndStop(2);}
 			
-			main.timeText.text = "Nach " + timeRedir[3] + "s umleiten auf " + timeRedir[2];
-			main.busyText.text = "Falls besetzt umleiten auf " + busyRedir[2];
-			main.unregText.text = "Falls Endgeräte nicht erreichbar umleiten auf " + unregRedir[2];
+			if (timeRedir[1] == 1){redirChoice[0] = timeRedir[2]}
+			if (timeRedir[1] == 2){redirChoice[0] = "Voicemail"}
+			if (timeRedir[1] == 3){redirChoice[0] = "Fax2Mail"}
+			
+			if (busyRedir[1] == 1){redirChoice[1] = busyRedir[2]}
+			if (busyRedir[1] == 2){redirChoice[1] = "Voicemail"}
+			
+			if (unregRedir[1] == 1){redirChoice[2] = unregRedir[2]}
+			if (unregRedir[1] == 2){redirChoice[2] = "Voicemail"}
+			
+			main.timeContainer.Text.text = "Nach " + timeRedir[3] + "s umleiten auf " + redirChoice[0];
+			main.busyContainer.Text.text = "Falls besetzt umleiten auf " + redirChoice[1];
+			main.unregContainer.Text.text = "Falls Endgeräte nicht erreichbar umleiten auf " + redirChoice[2];
+			trace(redirChoice[1]);
 		}
 
 		private function transmitRedir(event:MouseEvent):void
