@@ -2,7 +2,7 @@
 {
 	import com.greensock.*;
 	import com.greensock.easing.*;
-	import flash.events.MouseEvent;
+	import flash.events.TouchEvent;
 	import flash.net.URLLoader;
 	import flash.display.*;
 	import flash.net.*;
@@ -120,35 +120,62 @@
 			//TweenMax.from(header, 0.5, {delay:0.5, alpha:0, y:"+20", ease:Strong.easeInOut});
 			//TweenMax.from(login, 0.5, {delay:0.8, alpha:0, ease:Cubic.easeInOut});
 			//TweenMax.from(loginBtn, 0.5, {delay:1.1, alpha:0, ease:Cubic.easeInOut});
-			TweenMax.to(main, 0, {alpha:0, y:"+500"});
+			TweenMax.to(main, 0, {alpha:0, y:"+1000"});
 
 			//initial listeners;
-			//loginBtn.addEventListener(MouseEvent.CLICK, transmit);
+			//loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
 			loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
-			main.timeContainer.addEventListener(MouseEvent.CLICK, tempHandler);
+			main.timeContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler);
+			main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler2);
+			main.unregContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler3);
 
 			//change menu
 			//transmit
-			trace("UI built", duration);
-			trace("ready for login", duration);
+			trace("UI built");
+			trace("ready for login");
 		}
 		
-		private function tempHandler(event:MouseEvent):void
+		private function tempHandler(event:TouchEvent):void
 		{
-			TweenMax.to(main.timeContainer.selecter, 0.2, {y:"+50", ease:Cubic.easeInOut});
-			TweenMax.to(main.busyContainer, 0.2, {y:"+50", ease:Cubic.easeInOut});
-			TweenMax.to(main.unregContainer, 0.2, {y:"+50", ease:Cubic.easeInOut});
+			TweenMax.to(main.timeContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
+			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
+			
+			TweenMax.to(main.busyContainer, 0.2, {y:50, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer, 0.2, {y:100, ease:Cubic.easeInOut});
+			trace("clicked");
+		}
+		
+		private function tempHandler2(event:TouchEvent):void
+		{
+			TweenMax.to(main.timeContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
+			TweenMax.to(main.busyContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
+			
+			TweenMax.to(main.busyContainer, 0.2, {y:0, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer, 0.2, {y:100, ease:Cubic.easeInOut});
+			trace("clicked");
+		}
+		
+		private function tempHandler3(event:TouchEvent):void
+		{
+			TweenMax.to(main.timeContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
+			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
+			
+			TweenMax.to(main.busyContainer, 0.2, {y:0, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer, 0.2, {y:50, ease:Cubic.easeInOut});
 			trace("clicked");
 		}
 
 		private function transmit(event:TouchEvent):void
 		{
 
-			loginBtn.removeEventListener(MouseEvent.CLICK, transmit);
-			main.saveBtn.addEventListener(MouseEvent.CLICK, transmitRedir);
-			TweenMax.to(header, 0.5, {alpha:0, y:"-500", ease:Strong.easeInOut});
-			TweenMax.to(login, 0.5, {alpha:0, delay:0.1, y:"-500", ease:Cubic.easeInOut});
-			TweenMax.to(loginBtn, 0.5, {alpha:0, delay:0.2, y:"-500", ease:Cubic.easeInOut});
+			loginBtn.removeEventListener(TouchEvent.TOUCH_TAP, transmit);
+			main.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, transmitRedir);
+			TweenMax.to(header, 0.5, {alpha:1, y:-500, ease:Strong.easeInOut});
+			TweenMax.to(login, 0.5, {alpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
+			TweenMax.to(loginBtn, 0.5, {alpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
 			TweenMax.to(loading, 0.5, {alpha:1, ease:Cubic.easeInOut});
 			TweenMax.to(loading.loading, 0.75, {rotation:"-360", ease:Cubic.easeInOut, repeat:-1});
 
@@ -172,10 +199,10 @@
 
 			j_loader.load(j_send);
 
-			trace("logging in" , duration);
+			trace("logging in" );
 			function completeHandler(event:Event):void
 			{
-				trace("log in complete, getting redirection", duration);
+				trace("log in complete, getting redirection");
 				redirectionLoader = new URLLoader();
 				redirectionURLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");
 
@@ -195,9 +222,9 @@
 		private function parse(event:Event = null):void
 		{
 			redirectionData = redirectionData.replace(rex,"");
-			trace("parsing redirection", duration);
+			trace("parsing redirection");
 
-			TweenMax.to(main, 0.5, {motionBlur:true, delay:0.3,alpha:1, y:"-500", ease:Cubic.easeInOut});
+			TweenMax.to(main, 0.5, {motionBlur:true, delay:0.3,alpha:1, y:"-1000", ease:Cubic.easeInOut});
 			TweenMax.to(loading, 0.5, {alpha:0, y:-200, ease:Cubic.easeInOut});
 			var result:Array = choiceSniffer.exec(redirectionData);
 
@@ -285,7 +312,7 @@
 			trace(redirChoice[1]);
 		}
 
-		private function transmitRedir(event:MouseEvent):void
+		private function transmitRedir(event:TouchEvent):void
 		{
 			j_loader.load(j_send);
 
