@@ -1,5 +1,6 @@
 ﻿package 
 {
+	//import
 	import com.greensock.*;
 	import com.greensock.easing.*;
 	import flash.events.TouchEvent;
@@ -8,21 +9,21 @@
 	import flash.net.*;
 	import flash.events.*;
 	import flash.ui.*;
-	//import flash.events.
 	
-	import flash.utils.getTimer;
-
 	trace("classes imported");
 
 	public class build1 extends MovieClip
 	{
+		//set multitouch mode for TouchEvents
 		Multitouch.inputMode=MultitouchInputMode.TOUCH_POINT;
 
 		////variable defenition
-		//local vars
+		
+		//local session vars
 		private var userID_local:String;
 		private var password_local:String;
 
+		//counters
 		public var i:Number = 0;
 		public var i2:Number = 0;
 		public var i3:Number = 0;
@@ -30,8 +31,6 @@
 		//white space remover
 		private var rex:RegExp = /[\s\r\n]*/gim;
 		
-		private var duration:uint = getTimer();
-         
 		//session vars
 		private var j_session:URLVariables;
 		private var j_send:URLRequest;
@@ -78,24 +77,29 @@
 		
 		public function build1()
 		{
-			//naming
-			//main.saveBtn.btn_txt.text = "Speichern";
+			main.saveBtn.btn_txt.text = "Speichern";
   
-			//placement
+			//stage aligment
 			stage.align = StageAlign.TOP_LEFT;
 			stage.scaleMode = StageScaleMode.NO_SCALE;
+			
+			//bg setup
+			main.timeContainer.gotoAndStop(2);
+			main.busyContainer.gotoAndStop(4);
+			main.unregContainer.gotoAndStop(6);
 			
 			bg.width = stage.stageWidth;
 			bg.height = stage.stageHeight;
 			
-			main.unregContainer.Text.y = 5;
-			main.unregContainer.Text.height = 40;
+			//main.unregContainer.Text.y = 5;
+			//main.unregContainer.Text.height = 40;
 			
+			//mc placement and scaling
 			header.x = stage.stageWidth / 2;
 			header.y = stage.stageHeight * 0.19;
 			header.scaleX = stage.stageWidth / 320;
 			header.scaleY = stage.stageHeight / 480;
-
+			
 			login.x = stage.stageWidth / 2;
 			login.y = stage.stageHeight * 0.5;
 			login.scaleX = stage.stageWidth / 320;
@@ -116,14 +120,10 @@
 			loading.scaleX = stage.stageWidth / 320;
 			loading.scaleY = stage.stageHeight / 480;
 
-			//intro
-			//TweenMax.from(header, 0.5, {delay:0.5, alpha:0, y:"+20", ease:Strong.easeInOut});
-			//TweenMax.from(login, 0.5, {delay:0.8, alpha:0, ease:Cubic.easeInOut});
-			//TweenMax.from(loginBtn, 0.5, {delay:1.1, alpha:0, ease:Cubic.easeInOut});
+			//hide main
 			TweenMax.to(main, 0, {alpha:0, y:"+1000"});
 
 			//initial listeners;
-			//loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
 			loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
 			main.timeContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler);
 			main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler2);
@@ -296,20 +296,21 @@
 			if (unregRedir[0] == 1){main.unregContainer.Check.gotoAndStop(1);}
 			if (unregRedir[0] == 0){main.unregContainer.Check.gotoAndStop(2);}
 			
-			if (timeRedir[1] == 1){redirChoice[0] = timeRedir[2]}
-			if (timeRedir[1] == 2){redirChoice[0] = "Voicemail"}
-			if (timeRedir[1] == 3){redirChoice[0] = "Fax2Mail"}
+			if (timeRedir[1] == 1){main.timeContainer.gotoAndStop(2);main.timeContainer.destination.text = timeRedir[2];main.timeContainer.Delay.text = timeRedir[3];}
+			if (timeRedir[1] == 2){main.timeContainer.gotoAndStop(3);main.timeContainer.destination.text = "s umleiten auf Voicemail";main.timeContainer.Delay.text = timeRedir[3];}
+			if (timeRedir[1] == 3){main.timeContainer.gotoAndStop(3);main.timeContainer.destination.text = "s umleiten auf Fax2Mail";main.timeContainer.Delay.text = timeRedir[3];}
 			
-			if (busyRedir[1] == 1){redirChoice[1] = busyRedir[2]}
-			if (busyRedir[1] == 2){redirChoice[1] = "Voicemail"}
+			if (busyRedir[1] == 1){main.busyContainer.gotoAndStop(4);main.busyContainer.destination.text = busyRedir[2];}
+			if (busyRedir[1] == 2){main.busyContainer.gotoAndStop(5);main.busyContainer.destination.text = "Falls besetzt umleiten auf Voicemail";}
 			
-			if (unregRedir[1] == 1){redirChoice[2] = unregRedir[2]}
-			if (unregRedir[1] == 2){redirChoice[2] = "Voicemail"}
+			if (unregRedir[1] == 1){main.unregContainer.gotoAndStop(6);main.unregContainer.destination.text = unregRedir[2];}
+			if (unregRedir[1] == 2){main.unregContainer.gotoAndStop(7);main.unregContainer.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
 			
-			main.timeContainer.Text.text = "Nach " + timeRedir[3] + "s umleiten auf " + redirChoice[0];
-			main.busyContainer.Text.text = "Falls besetzt umleiten auf " + redirChoice[1];
-			main.unregContainer.Text.text = "Falls Endgeräte nicht erreichbar umleiten auf " + redirChoice[2];
+			//main.timeContainer.Text.text = "Nach " + timeRedir[3] + "s umleiten auf " + redirChoice[0];
+			//main.busyContainer.Text.text = "Falls besetzt umleiten auf " + redirChoice[1];
+			//main.unregContainer.Text.text = "Falls Endgeräte nicht erreichbar umleiten auf " + redirChoice[2];
 			trace(redirChoice[1]);
+			
 		}
 
 		private function transmitRedir(event:TouchEvent):void
@@ -346,7 +347,7 @@
 				r_vars._uml_calOof = visible;
 				r_vars._uml_calBusy = visible;
 				trace(r_vars);
-
+				
 				//r_loader.load(r_send);
 			}
 		}
