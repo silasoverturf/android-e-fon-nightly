@@ -128,11 +128,37 @@
 			main.timeContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler);
 			main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler2);
 			main.unregContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler3);
-
+			
+			main.timeContainer.selecter.addEventListener(TouchEvent.TOUCH_TAP, targetTest);
+			main.busyContainer.selecter.addEventListener(TouchEvent.TOUCH_TAP, targetTest2);
+			main.unregContainer.selecter.addEventListener(TouchEvent.TOUCH_TAP, targetTest3);
+			
+			
 			//change menu
 			//transmit
 			trace("UI built");
 			trace("ready for login");
+		}
+			
+			
+			//if (unregRedir[1] == 1){main.unregContainer.gotoAndStop(6);main.unregContainer.destination.text = unregRedir[2];}
+			//if (unregRedir[1] == 2){main.unregContainer.gotoAndStop(7);main.unregContainer.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
+		private function targetTest(event:TouchEvent):void
+		{
+			if(event.target.name == "phoneIcon"){trace(event.target.name);main.timeContainer.gotoAndStop(2);main.timeContainer.destination.text = "";main.timeContainer.Delay.text = "";};
+			if(event.target.name == "voicemailIcon"){trace(event.target.name);main.timeContainer.gotoAndStop(3);main.timeContainer.destination.text = "s umleiten auf Voicemail";main.timeContainer.Delay.text = "";};
+		}
+		
+		private function targetTest2(event:TouchEvent):void
+		{
+			if(event.target.name == "phoneIcon"){main.busyContainer.gotoAndStop(4);main.busyContainer.destination.text = "";};
+			if(event.target.name == "voicemailIcon"){main.busyContainer.gotoAndStop(5);main.busyContainer.destination.text = "Falls besetzt umleiten auf Voicemail";};
+		}
+		
+		private function targetTest3(event:TouchEvent):void
+		{
+			if(event.target.name == "phoneIcon"){};
+			if(event.target.name == "voicemailIcon"){};
 		}
 		
 		private function tempHandler(event:TouchEvent):void
@@ -143,7 +169,6 @@
 			
 			TweenMax.to(main.busyContainer, 0.2, {y:50, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer, 0.2, {y:100, ease:Cubic.easeInOut});
-			trace("clicked");
 		}
 		
 		private function tempHandler2(event:TouchEvent):void
@@ -154,7 +179,6 @@
 			
 			TweenMax.to(main.busyContainer, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer, 0.2, {y:100, ease:Cubic.easeInOut});
-			trace("clicked");
 		}
 		
 		private function tempHandler3(event:TouchEvent):void
@@ -165,7 +189,6 @@
 			
 			TweenMax.to(main.busyContainer, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer, 0.2, {y:50, ease:Cubic.easeInOut});
-			trace("clicked");
 		}
 
 		private function transmit(event:TouchEvent):void
