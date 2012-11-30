@@ -16,8 +16,6 @@
 	{
 		//set multitouch mode for TouchEvents
 		Multitouch.inputMode=MultitouchInputMode.TOUCH_POINT;
-
-		////variable defenition
 		
 		//local session vars
 		private var userID_local:String;
@@ -46,15 +44,17 @@
 		private var numberID:String;
 
 		private var testingArray:Array = ["testing"];
-
+		
+		//localized redirection vars
 		private var timeRedir:Array = [0,0];//=[active, choice, destination delay,];
 		private var busyRedir:Array = [0,0];// =[active, choice, destination];
 		private var unregRedir:Array = [0,0];// =[active, choice, destination];
 		private var redirChoice:Array = ["","","",];// [timeChoice, busyChoice, unregChoice]
+		private var timeDelay:String;
 		
+		//intermediate transport vars
 		private var dumpRedir:Array = [];
 		private var dumpContainer:String;
-		private var timeDelay:String;
 		//private var selectedPhoneNumberId:Number;
 
 		//redirection post vars
@@ -77,6 +77,7 @@
 		
 		public function build1()
 		{
+			//rename save btn
 			main.saveBtn.btn_txt.text = "Speichern";
   
 			//stage aligment
@@ -133,16 +134,11 @@
 			main.busyContainer.selecter.addEventListener(TouchEvent.TOUCH_TAP, targetTest2);
 			main.unregContainer.selecter.addEventListener(TouchEvent.TOUCH_TAP, targetTest3);
 			
-			
-			//change menu
-			//transmit
 			trace("UI built");
 			trace("ready for login");
 		}
-			
-			
-			//if (unregRedir[1] == 1){main.unregContainer.gotoAndStop(6);main.unregContainer.destination.text = unregRedir[2];}
-			//if (unregRedir[1] == 2){main.unregContainer.gotoAndStop(7);main.unregContainer.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
+		
+		//targetTest,2,3 temporary handlers until testing is done
 		private function targetTest(event:TouchEvent):void
 		{
 			if(event.target.name == "phoneIcon"){trace(event.target.name);main.timeContainer.gotoAndStop(2);main.timeContainer.destination.text = "";main.timeContainer.Delay.text = "";};
@@ -161,6 +157,7 @@
 			if(event.target.name == "voicemailIcon"){};
 		}
 		
+		//tempHandlers,2,3 temporary handlers until testing is done
 		private function tempHandler(event:TouchEvent):void
 		{
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
@@ -191,9 +188,10 @@
 			TweenMax.to(main.unregContainer, 0.2, {y:50, ease:Cubic.easeInOut});
 		}
 
+		//handle listeners, builds j_session, posts and requests redirection.html
 		private function transmit(event:TouchEvent):void
 		{
-
+			//UI management
 			loginBtn.removeEventListener(TouchEvent.TOUCH_TAP, transmit);
 			main.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, transmitRedir);
 			TweenMax.to(header, 0.5, {alpha:1, y:-500, ease:Strong.easeInOut});
@@ -202,6 +200,7 @@
 			TweenMax.to(loading, 0.5, {alpha:1, ease:Cubic.easeInOut});
 			TweenMax.to(loading.loading, 0.75, {rotation:"-360", ease:Cubic.easeInOut, repeat:-1});
 
+			//flush local j_session w/ text fields
 			userID_local = login.userid_txt.text;
 			password_local = login.password_txt.text;
 
@@ -214,15 +213,19 @@
 			j_send.data = j_session;
 
 			j_loader = new URLLoader  ;
-
+			
+			//add listener so redirection.html can be requested on complete
 			j_loader.addEventListener(Event.COMPLETE, completeHandler);
-
+			
+			//build server j_session
 			j_session.j_username = userID_local;
 			j_session.j_password = password_local;
 
 			j_loader.load(j_send);
 
 			trace("logging in" );
+			
+			//get redirection.html, oncomplete parse
 			function completeHandler(event:Event):void
 			{
 				trace("log in complete, getting redirection");
@@ -242,21 +245,25 @@
 
 		}
 
+		//manual parsing of .html
 		private function parse(event:Event = null):void
 		{
 			redirectionData = redirectionData.replace(rex,"");
 			trace("parsing redirection");
-
+			
+			//UI management
 			TweenMax.to(main, 0.5, {motionBlur:true, delay:0.3,alpha:1, y:"-1000", ease:Cubic.easeInOut});
 			TweenMax.to(loading, 0.5, {alpha:0, y:-200, ease:Cubic.easeInOut});
 			var result:Array = choiceSniffer.exec(redirectionData);
-
+			
+			//gets all choices with choiceSniffer
 			while (result != null)
 			{
 				dumpRedir.push(result);
 				result = choiceSniffer.exec(redirectionData);
 			}
-
+			
+			//dumps to appropriate localized arrary
 			for each (var dumpVar in dumpRedir)
 			{
 				dumpContainer = dumpRedir[i2];
@@ -276,32 +283,25 @@
 			result = [];
 			dumpRedir = [];
 			result = delaySniffer.exec(redirectionData);
-
+			
+			//gets delay with delaySniffer
 			while (result != null)
 			{
 				dumpRedir.push(result);
 				result = delaySniffer.exec(redirectionData);
 			}
-
+			
+			//clean up
 			for each (var delayVar in dumpRedir)
 			{
 				dumpContainer = dumpRedir[i3];
 				dumpContainer = dumpContainer.replace(bloatStripper,"");
 				dumpRedir[i3] = dumpContainer;
-				if (i3 == 0)
-				{
-					timeRedir[2] = dumpContainer;
-				}
-
-				if (i3 == 1)
-				{
-					busyRedir[2] = dumpContainer;
-				}
-
-				if (i3 == 2)
-				{
-					unregRedir[2] = dumpContainer;
-				}
+				
+				if (i3 == 0){timeRedir[2] = dumpContainer;}
+				if (i3 == 1){busyRedir[2] = dumpContainer;}
+				if (i3 == 2){unregRedir[2] = dumpContainer;}
+				
 				i3 = i3 + 1;
 			}
 			timeDelay = numberSniffer.exec(redirectionData);
@@ -309,9 +309,11 @@
 			trace(timeRedir, busyRedir, unregRedir);
 			UIflush();
 		}
-
+		
+		//UI flushing
 		private function UIflush(event:Event = null):void
 		{
+			//checks
 			if (timeRedir[0] == 1){main.timeContainer.Check.gotoAndStop(1);}
 			if (timeRedir[0] == 0){main.timeContainer.Check.gotoAndStop(2);}
 			if (busyRedir[0] == 1){main.busyContainer.Check.gotoAndStop(1);}
@@ -319,23 +321,23 @@
 			if (unregRedir[0] == 1){main.unregContainer.Check.gotoAndStop(1);}
 			if (unregRedir[0] == 0){main.unregContainer.Check.gotoAndStop(2);}
 			
+			//timeRedir flush
 			if (timeRedir[1] == 1){main.timeContainer.gotoAndStop(2);main.timeContainer.destination.text = timeRedir[2];main.timeContainer.Delay.text = timeRedir[3];}
 			if (timeRedir[1] == 2){main.timeContainer.gotoAndStop(3);main.timeContainer.destination.text = "s umleiten auf Voicemail";main.timeContainer.Delay.text = timeRedir[3];}
 			if (timeRedir[1] == 3){main.timeContainer.gotoAndStop(3);main.timeContainer.destination.text = "s umleiten auf Fax2Mail";main.timeContainer.Delay.text = timeRedir[3];}
 			
+			//busyRedir flush
 			if (busyRedir[1] == 1){main.busyContainer.gotoAndStop(4);main.busyContainer.destination.text = busyRedir[2];}
 			if (busyRedir[1] == 2){main.busyContainer.gotoAndStop(5);main.busyContainer.destination.text = "Falls besetzt umleiten auf Voicemail";}
 			
+			//unregRedir flush
 			if (unregRedir[1] == 1){main.unregContainer.gotoAndStop(6);main.unregContainer.destination.text = unregRedir[2];}
 			if (unregRedir[1] == 2){main.unregContainer.gotoAndStop(7);main.unregContainer.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
 			
-			//main.timeContainer.Text.text = "Nach " + timeRedir[3] + "s umleiten auf " + redirChoice[0];
-			//main.busyContainer.Text.text = "Falls besetzt umleiten auf " + redirChoice[1];
-			//main.unregContainer.Text.text = "Falls Endgeräte nicht erreichbar umleiten auf " + redirChoice[2];
 			trace(redirChoice[1]);
-			
 		}
 
+		//r_vars posting, !!work in progress
 		private function transmitRedir(event:TouchEvent):void
 		{
 			j_loader.load(j_send);
@@ -344,7 +346,6 @@
 
 			function transmitRedir2(event:Event):void
 			{
-
 				r_vars = new URLVariables();
 				r_send = new URLRequest("https://web.e-fon.ch/portal/redirection.html");
 
