@@ -85,9 +85,9 @@
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			
 			//bg setup
-			main.timeContainer.gotoAndStop(2);
-			main.busyContainer.gotoAndStop(4);
-			main.unregContainer.gotoAndStop(6);
+			main.timeContainer.switcher.gotoAndStop(2);
+			main.busyContainer.switcher.gotoAndStop(4);
+			main.unregContainer.switcher.gotoAndStop(6);
 			
 			bg.width = stage.stageWidth;
 			bg.height = stage.stageHeight;
@@ -122,7 +122,7 @@
 			loading.scaleY = stage.stageHeight / 480;
 
 			//hide main
-			TweenMax.to(main, 0, {alpha:0, y:"+1000"});
+			TweenMax.to(main, 0, {autoAlpha:0, y:"+1000"});
 
 			//initial listeners;
 			loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
@@ -130,9 +130,9 @@
 			main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler2);
 			main.unregContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler3);
 			
-			main.timeContainer.selecter.addEventListener(TouchEvent.TOUCH_TAP, targetTest);
-			main.busyContainer.selecter.addEventListener(TouchEvent.TOUCH_TAP, targetTest2);
-			main.unregContainer.selecter.addEventListener(TouchEvent.TOUCH_TAP, targetTest3);
+			main.timeContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest);
+			main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest2);
+			main.unregContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest3);
 			
 			trace("UI built");
 			trace("ready for login");
@@ -141,18 +141,21 @@
 		//targetTest,2,3 temporary handlers until testing is done
 		private function targetTest(event:TouchEvent):void
 		{
-			if(event.target.name == "phoneIcon"){trace(event.target.name);main.timeContainer.gotoAndStop(2);main.timeContainer.destination.text = "";main.timeContainer.Delay.text = "";};
-			if(event.target.name == "voicemailIcon"){trace(event.target.name);main.timeContainer.gotoAndStop(3);main.timeContainer.destination.text = "s umleiten auf Voicemail";main.timeContainer.Delay.text = "";};
+			trace("target", event.target.name);
+			if(event.target.name == "phoneIcon"){trace(event.target.name);main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = "";main.timeContainer.switcher.Delay.text = "";};
+			if(event.target.name == "voicemailIcon"){trace(event.target.name);main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";main.timeContainer.switcher.Delay.text = "";};
 		}
 		
 		private function targetTest2(event:TouchEvent):void
 		{
-			if(event.target.name == "phoneIcon"){main.busyContainer.gotoAndStop(4);main.busyContainer.destination.text = "";};
-			if(event.target.name == "voicemailIcon"){main.busyContainer.gotoAndStop(5);main.busyContainer.destination.text = "Falls besetzt umleiten auf Voicemail";};
+			trace("target", event.target.name);
+			if(event.target.name == "phoneIcon"){main.busyContainer.switcher.gotoAndStop(4);main.busyContainer.switcher.destination.text = "";};
+			if(event.target.name == "voicemailIcon"){main.busyContainer.switcher.gotoAndStop(5);main.busyContainer.switcher.destination.text = "Falls besetzt umleiten auf Voicemail";};
 		}
 		
 		private function targetTest3(event:TouchEvent):void
 		{
+			trace("target", event.target.name);
 			if(event.target.name == "phoneIcon"){};
 			if(event.target.name == "voicemailIcon"){};
 		}
@@ -160,6 +163,7 @@
 		//tempHandlers,2,3 temporary handlers until testing is done
 		private function tempHandler(event:TouchEvent):void
 		{
+			trace("time", event.target.name);
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
@@ -194,10 +198,10 @@
 			//UI management
 			loginBtn.removeEventListener(TouchEvent.TOUCH_TAP, transmit);
 			main.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, transmitRedir);
-			TweenMax.to(header, 0.5, {alpha:1, y:-500, ease:Strong.easeInOut});
-			TweenMax.to(login, 0.5, {alpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
-			TweenMax.to(loginBtn, 0.5, {alpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
-			TweenMax.to(loading, 0.5, {alpha:1, ease:Cubic.easeInOut});
+			TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
+			TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
+			TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
+			TweenMax.to(loading, 0.5, {autoAlpha:1, ease:Cubic.easeInOut});
 			TweenMax.to(loading.loading, 0.75, {rotation:"-360", ease:Cubic.easeInOut, repeat:-1});
 
 			//flush local j_session w/ text fields
@@ -252,8 +256,8 @@
 			trace("parsing redirection");
 			
 			//UI management
-			TweenMax.to(main, 0.5, {motionBlur:true, delay:0.3,alpha:1, y:"-1000", ease:Cubic.easeInOut});
-			TweenMax.to(loading, 0.5, {alpha:0, y:-200, ease:Cubic.easeInOut});
+			TweenMax.to(main, 0.5, {motionBlur:true, delay:0.3,autoAlpha:1, y:"-1000", ease:Cubic.easeInOut});
+			TweenMax.to(loading, 0.5, {autoAlpha:0, y:-200, ease:Cubic.easeInOut});
 			var result:Array = choiceSniffer.exec(redirectionData);
 			
 			//gets all choices with choiceSniffer
@@ -322,17 +326,17 @@
 			if (unregRedir[0] == 0){main.unregContainer.Check.gotoAndStop(2);}
 			
 			//timeRedir flush
-			if (timeRedir[1] == 1){main.timeContainer.gotoAndStop(2);main.timeContainer.destination.text = timeRedir[2];main.timeContainer.Delay.text = timeRedir[3];}
-			if (timeRedir[1] == 2){main.timeContainer.gotoAndStop(3);main.timeContainer.destination.text = "s umleiten auf Voicemail";main.timeContainer.Delay.text = timeRedir[3];}
-			if (timeRedir[1] == 3){main.timeContainer.gotoAndStop(3);main.timeContainer.destination.text = "s umleiten auf Fax2Mail";main.timeContainer.Delay.text = timeRedir[3];}
+			if (timeRedir[1] == 1){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = timeRedir[2];main.timeContainer.switcher.Delay.text = timeRedir[3];}
+			if (timeRedir[1] == 2){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";main.timeContainer.switcher.Delay.text = timeRedir[3];}
+			if (timeRedir[1] == 3){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Fax2Mail";main.timeContainer.switcher.Delay.text = timeRedir[3];}
 			
 			//busyRedir flush
-			if (busyRedir[1] == 1){main.busyContainer.gotoAndStop(4);main.busyContainer.destination.text = busyRedir[2];}
-			if (busyRedir[1] == 2){main.busyContainer.gotoAndStop(5);main.busyContainer.destination.text = "Falls besetzt umleiten auf Voicemail";}
+			if (busyRedir[1] == 1){main.busyContainer.switcher.gotoAndStop(4);main.busyContainer.switcher.destination.text = busyRedir[2];}
+			if (busyRedir[1] == 2){main.busyContainer.switcher.gotoAndStop(5);main.busyContainer.switcher.destination.text = "Falls besetzt umleiten auf Voicemail";}
 			
 			//unregRedir flush
-			if (unregRedir[1] == 1){main.unregContainer.gotoAndStop(6);main.unregContainer.destination.text = unregRedir[2];}
-			if (unregRedir[1] == 2){main.unregContainer.gotoAndStop(7);main.unregContainer.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
+			if (unregRedir[1] == 1){main.unregContainer.switcher.gotoAndStop(6);main.unregContainer.switcher.destination.text = unregRedir[2];}
+			if (unregRedir[1] == 2){main.unregContainer.switcher.gotoAndStop(7);main.unregContainer.switcher.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
 			
 			trace(redirChoice[1]);
 		}
