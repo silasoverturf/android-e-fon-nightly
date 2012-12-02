@@ -46,7 +46,7 @@
 		private var testingArray:Array = ["testing"];
 		
 		//localized redirection vars
-		private var timeRedir:Array = [0,0];//=[active, choice, destination delay,];
+		private var timeRedir:Array = [0,0];//=[active, choice, destination, delay];
 		private var busyRedir:Array = [0,0];// =[active, choice, destination];
 		private var unregRedir:Array = [0,0];// =[active, choice, destination];
 		private var redirChoice:Array = ["","","",];// [timeChoice, busyChoice, unregChoice]
@@ -60,7 +60,7 @@
 		//redirection post vars
 		private var r_vars:URLVariables;
 		private var r_send:URLRequest;
-		private var r_loader:URLLoader;
+		private var r_loader:URLLoader = new URLLoader;
 		
 		//redir regular expressions
 		private var optionValue:RegExp = /optionvalue="[0-9]{4,8}"/;
@@ -141,9 +141,9 @@
 		//targetTest,2,3 temporary handlers until testing is done
 		private function targetTest(event:TouchEvent):void
 		{
-			trace("target", event.target.name);
-			if(event.target.name == "phoneIcon"){trace(event.target.name);main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = "";main.timeContainer.switcher.Delay.text = "";};
-			if(event.target.name == "voicemailIcon"){trace(event.target.name);main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";main.timeContainer.switcher.Delay.text = "";};
+			if(event.target.name == "phoneIcon"){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = "";main.timeContainer.switcher.Delay.text = "";};
+			if(event.target.name == "voicemailIcon"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";main.timeContainer.switcher.Delay.text = "";};
+			if(event.target.name == "Check"){main.timeContainer.Check.play();}
 		}
 		
 		private function targetTest2(event:TouchEvent):void
@@ -151,13 +151,15 @@
 			trace("target", event.target.name);
 			if(event.target.name == "phoneIcon"){main.busyContainer.switcher.gotoAndStop(4);main.busyContainer.switcher.destination.text = "";};
 			if(event.target.name == "voicemailIcon"){main.busyContainer.switcher.gotoAndStop(5);main.busyContainer.switcher.destination.text = "Falls besetzt umleiten auf Voicemail";};
+			if(event.target.name == "Check"){main.busyContainer.Check.play();}
 		}
 		
 		private function targetTest3(event:TouchEvent):void
 		{
 			trace("target", event.target.name);
-			if(event.target.name == "phoneIcon"){};
-			if(event.target.name == "voicemailIcon"){};
+			if(event.target.name == "phoneIcon"){main.unregContainer.switcher.gotoAndStop(6);main.unregContainer.switcher.destination.text = "";};
+			if(event.target.name == "voicemailIcon"){main.unregContainer.switcher.gotoAndStop(7);main.unregContainer.switcher.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"};
+			if(event.target.name == "Check"){main.unregContainer.Check.play();}
 		}
 		
 		//tempHandlers,2,3 temporary handlers until testing is done
@@ -311,11 +313,11 @@
 			timeDelay = numberSniffer.exec(redirectionData);
 			timeRedir.push(timeDelay.replace(numberStripper, ""));
 			trace(timeRedir, busyRedir, unregRedir);
-			UIflush();
+			VtoUI();
 		}
 		
 		//UI flushing
-		private function UIflush(event:Event = null):void
+		private function VtoUI(event:Event = null):void
 		{
 			//checks
 			if (timeRedir[0] == 1){main.timeContainer.Check.gotoAndStop(1);}
@@ -340,6 +342,71 @@
 			
 			trace(redirChoice[1]);
 		}
+		
+		private function UItoV(event:Event = null):void
+		{
+			r_vars = new URLVariables();
+			
+			r_vars._uml_normal1 = "visible";
+			r_vars._uml_busy = "visible";
+			r_vars._uml_backuprouting = "visible";
+			r_vars._uml_anonSuppression = "visible";
+			r_vars._uml_manualStatus = "visible";
+			r_vars._manualStatusPrivate = "visible";
+			r_vars._uml_calOof = "visible";
+			r_vars.reload =
+			r_vars._uml_calBusy = "visible";
+			
+			//to be defined
+			r_vars.featureId1 = "0";
+			r_vars.featureId2 = "0";
+			r_vars.featureId3 = "0";
+			r_vars.featureId4 = "0";
+			r_vars.featureIdBackuprouting = "0";
+			r_vars.featureIdAnonSuppression = "0";
+			r_vars.selectedPhoneNumberId = "50288";
+				
+			if (main.timeContainer.Check.currentFrame == 1)
+			{
+				r_vars.uml_normal1 = true;
+				r_vars.delay1 = main.timeContainer.switcher.Delay.text;
+				
+				if(main.timeContainer.switcher.currentFrame == 2){r_vars.choice1 = "1";r_vars.phone1 = main.timeContainer.switcher.destination.text}
+				if(main.timeContainer.switcher.currentFrame == 3){r_vars.choice1 = "2"}
+			}
+			
+			if (main.busyContainer.Check.currentFrame == 1)
+			{
+				r_vars.uml_busy = true
+				if(main.busyContainer.switcher.currentFrame == 4){r_vars.choice3 = "1";r_vars.phone3 = main.busyContainer.switcher.destination.text}
+				if(main.busyContainer.switcher.currentFrame == 5){r_vars.choice3 = "2"}
+			}
+			
+			if (main.unregContainer.Check.currentFrame == 1)
+			{
+				r_vars.uml_backuprouting = true
+				if(main.unregContainer.switcher.currentFrame == 6){r_vars.choiceBackuprouting = "1";r_vars.backupNumber = main.unregContainer.switcher.destination.text}
+				if(main.unregContainer.switcher.currentFrame == 7){r_vars.choiceBackuprouting = "2"}
+			}
+			
+			if (main.timeContainer.Check.currentFrame == 2){}
+			if (main.busyContainer.Check.currentFrame == 2){}
+			if (main.unregContainer.Check.currentFrame == 2){}
+			
+			trace("UItoV", r_vars);
+			//timeRedir flush
+			//if (main.timeContainer.switcher.currentFrame == 2){timeRedir[1] = 1;timeRedir[2] = main.timeContainer.switcher.destination.text;timeRedir[3] = main.timeContainer.switcher.Delay.text;}
+			//if (main.timeContainer.switcher.currentFrame == 3){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";main.timeContainer.switcher.Delay.text = timeRedir[3];}
+			//if (main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Fax2Mail"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Fax2Mail";main.timeContainer.switcher.Delay.text = timeRedir[3];}
+			
+			//busyRedir flush
+			//if (main.busyContainer.switcher.currentFrame == 4){busyRedir[1] = }
+			//if (busyRedir[1] == 2){main.busyContainer.switcher.gotoAndStop(5);main.busyContainer.switcher.destination.text = "Falls besetzt umleiten auf Voicemail";}
+			
+			//unregRedir flush
+			//if (unregRedir[1] == 1){main.unregContainer.switcher.gotoAndStop(6);main.unregContainer.switcher.destination.text = unregRedir[2];}
+			//if (unregRedir[1] == 2){main.unregContainer.switcher.gotoAndStop(7);main.unregContainer.switcher.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
+		}
 
 		//r_vars posting, !!work in progress
 		private function transmitRedir(event:TouchEvent):void
@@ -347,36 +414,17 @@
 			j_loader.load(j_send);
 
 			j_loader.addEventListener(Event.COMPLETE, transmitRedir2);
-
-			function transmitRedir2(event:Event):void
+	
+			UItoV();
+			
+			function transmitRedir2(event:Event = null):void
 			{
-				r_vars = new URLVariables();
 				r_send = new URLRequest("https://web.e-fon.ch/portal/redirection.html");
 
 				r_send.method = URLRequestMethod.POST;
 				r_send.data = r_vars;
 
-				r_loader = new URLLoader  ;
-
-				r_vars.featureId1 = 0;
-				r_vars.featureId2 = 0;
-				r_vars.featureId3 = 0;
-				r_vars.featureId4 = 0;
-				r_vars.featureIdBackuprouting = 0;
-				r_vars.featureIdAnonSuppression = 0;
-				r_vars.reload = 
-				r_vars.selectedPhoneNumberId = 50288;
-				r_vars._uml_normal1 = visible;
-				r_vars._uml_busy = visible;
-				r_vars._uml_backuprouting = visible;
-				r_vars._uml_anonSuppression = visible;
-				r_vars._uml_manualStatus = visible;
-				r_vars._manualStatusPrivate = visible;
-				r_vars._uml_calOof = visible;
-				r_vars._uml_calBusy = visible;
-				trace(r_vars);
-				
-				//r_loader.load(r_send);
+				r_loader.load(r_send);
 			}
 		}
 	}
