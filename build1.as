@@ -46,6 +46,7 @@
 		private var testingArray:Array = ["testing"];
 		
 		//localized redirection vars
+		private var featureArray:Array = [];//feature1, feature2, feature3, feature4, featureBackuprouting, featureAnonSuppression
 		private var timeRedir:Array = [0,0];//=[active, choice, destination, delay];
 		private var busyRedir:Array = [0,0];// =[active, choice, destination];
 		private var unregRedir:Array = [0,0];// =[active, choice, destination];
@@ -68,9 +69,13 @@
 		
 		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="[0-9]{3,12}/g;
 		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(?:Normal|Busy|Backup)\(\)(?:"checked="checked"|)/g;
-		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{1,2}/;
 		
+		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{1,2}/;
 		private var numberStripper:RegExp = /name="delay1"size="5"value="/;
+		
+		private var featureSniffer:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="[0-9]{1,10}/g;
+		private var featureStripper:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="/;
+		
 		private var bloatStripper:RegExp = /(?:phone1|phone3|backupNumber)"value="/g;
 
 		trace("vars built");
@@ -256,11 +261,13 @@
 		{
 			redirectionData = redirectionData.replace(rex,"");
 			trace("parsing redirection");
+			trace(redirectionData);
 			
 			//UI management
 			TweenMax.to(main, 0.5, {motionBlur:true, delay:0.3,autoAlpha:1, y:"-1000", ease:Cubic.easeInOut});
 			TweenMax.to(loading, 0.5, {autoAlpha:0, y:-200, ease:Cubic.easeInOut});
 			var result:Array = choiceSniffer.exec(redirectionData);
+			var result2:Array = featureSniffer.exec(redirectionData);
 			
 			//gets all choices with choiceSniffer
 			while (result != null)
@@ -313,6 +320,29 @@
 			timeDelay = numberSniffer.exec(redirectionData);
 			timeRedir.push(timeDelay.replace(numberStripper, ""));
 			trace(timeRedir, busyRedir, unregRedir);
+			
+			trace("result2");
+			result2 = featureSniffer.exec(redirectionData);
+			
+			trace("reset counter");
+			i3 = 0;
+			
+			while (result2 != null)
+			{
+				trace("while result2 != null");
+				featureArray.push(result2);
+				result2 = featureSniffer.exec(redirectionData);
+			}
+			
+			for each(var featureVar in featureArray)
+			{
+				trace("clean up");
+				dumpContainer = featureArray[i3];
+				dumpContainer = dumpContainer.replace(featureStripper,"");
+				featureArray[i3] = dumpContainer;
+			}
+			
+			trace("feature", featureArray);
 			VtoUI();
 		}
 		
