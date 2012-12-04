@@ -64,7 +64,6 @@
 		private var r_loader:URLLoader = new URLLoader;
 		
 		//redir regular expressions
-		private var optionValue:RegExp = /optionvalue="[0-9]{4,8}"/;
 		private var selectedValue:RegExp = /selected="selected">[0-9]{10}/;
 		
 		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="[0-9]{3,12}/g;
@@ -75,6 +74,9 @@
 		
 		private var featureSniffer:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="[0-9]{1,10}/g;
 		private var featureStripper:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="/;
+		
+		private var optionSniffer:RegExp = /optionvalue="[0-9]{4,8}/;
+		private var optionStripper:RegExp = /optionvalue="/;
 		
 		private var bloatStripper:RegExp = /(?:phone1|phone3|backupNumber)"value="/g;
 
@@ -321,25 +323,29 @@
 			timeRedir.push(timeDelay.replace(numberStripper, ""));
 			trace(timeRedir, busyRedir, unregRedir);
 			
-			trace("result2");
-			result2 = featureSniffer.exec(redirectionData);
+			numberID = optionSniffer.exec(redirectionData);
+			numberID = numberID.replace(optionStripper, "");
+			trace(numberID);
 			
 			trace("reset counter");
 			i3 = 0;
 			
 			while (result2 != null)
 			{
-				trace("while result2 != null");
 				featureArray.push(result2);
+				trace("feature result", result2);
 				result2 = featureSniffer.exec(redirectionData);
 			}
+			trace(featureArray);
 			
 			for each(var featureVar in featureArray)
 			{
-				trace("clean up");
+				
 				dumpContainer = featureArray[i3];
 				dumpContainer = dumpContainer.replace(featureStripper,"");
 				featureArray[i3] = dumpContainer;
+				trace(dumpContainer);
+				i3 = i3 + 1;
 			}
 			
 			trace("feature", featureArray);
@@ -388,13 +394,13 @@
 			r_vars._uml_calBusy = "visible";
 			
 			//to be defined
-			r_vars.featureId1 = "0";
-			r_vars.featureId2 = "0";
-			r_vars.featureId3 = "0";
-			r_vars.featureId4 = "0";
-			r_vars.featureIdBackuprouting = "0";
-			r_vars.featureIdAnonSuppression = "0";
-			r_vars.selectedPhoneNumberId = "50288";
+			r_vars.featureId1 = featureArray[0];
+			r_vars.featureId2 = featureArray[1];
+			r_vars.featureId3 = featureArray[2];
+			r_vars.featureId4 = featureArray[3];
+			r_vars.featureIdBackuprouting = featureArray[4];
+			r_vars.featureIdAnonSuppression = featureArray[5];
+			r_vars.selectedPhoneNumberId = numberID;
 				
 			if (main.timeContainer.Check.currentFrame == 1)
 			{
