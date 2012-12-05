@@ -1,4 +1,4 @@
-﻿package 
+package 
 {
 	//import
 	import com.greensock.*;
@@ -46,7 +46,7 @@
 		private var testingArray:Array = ["testing"];
 		
 		//localized redirection vars
-		private var featureArray:Array = [];//feature1, feature2, feature3, feature4, featureBackuprouting, featureAnonSuppression
+		private var featureArray:Array = [];//[feature1, feature2, feature3, feature4, featureBackuprouting, featureAnonSuppression]
 		private var timeRedir:Array = [0,0];//=[active, choice, destination, delay];
 		private var busyRedir:Array = [0,0];// =[active, choice, destination];
 		private var unregRedir:Array = [0,0];// =[active, choice, destination];
@@ -66,15 +66,19 @@
 		//redir regular expressions
 		private var selectedValue:RegExp = /selected="selected">[0-9]{10}/;
 		
+		//delay
 		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="[0-9]{3,12}/g;
 		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(?:Normal|Busy|Backup)\(\)(?:"checked="checked"|)/g;
 		
+		//destination
 		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{1,2}/;
 		private var numberStripper:RegExp = /name="delay1"size="5"value="/;
 		
+		//featureIDs
 		private var featureSniffer:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="[0-9]{1,10}/g;
 		private var featureStripper:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="/;
 		
+		//selected phone number
 		private var optionSniffer:RegExp = /optionvalue="[0-9]{4,8}/;
 		private var optionStripper:RegExp = /optionvalue="/;
 		
@@ -98,9 +102,6 @@
 			
 			bg.width = stage.stageWidth;
 			bg.height = stage.stageHeight;
-			
-			//main.unregContainer.Text.y = 5;
-			//main.unregContainer.Text.height = 40;
 			
 			//mc placement and scaling
 			header.x = stage.stageWidth / 2;
@@ -319,36 +320,36 @@
 				
 				i3 = i3 + 1;
 			}
+
+			//get timeDelay
 			timeDelay = numberSniffer.exec(redirectionData);
 			timeRedir.push(timeDelay.replace(numberStripper, ""));
 			trace(timeRedir, busyRedir, unregRedir);
 			
+			//get selected numberID
 			numberID = optionSniffer.exec(redirectionData);
 			numberID = numberID.replace(optionStripper, "");
 			trace(numberID);
 			
-			trace("reset counter");
+			//reset counter
 			i3 = 0;
 			
+			//sniff for feature vars
 			while (result2 != null)
 			{
 				featureArray.push(result2);
-				trace("feature result", result2);
 				result2 = featureSniffer.exec(redirectionData);
 			}
-			trace(featureArray);
 			
+			//clean up feature vars
 			for each(var featureVar in featureArray)
 			{
 				
 				dumpContainer = featureArray[i3];
 				dumpContainer = dumpContainer.replace(featureStripper,"");
 				featureArray[i3] = dumpContainer;
-				trace(dumpContainer);
 				i3 = i3 + 1;
 			}
-			
-			trace("feature", featureArray);
 			VtoUI();
 		}
 		
@@ -379,6 +380,7 @@
 			trace(redirChoice[1]);
 		}
 		
+		//UI reverse flushing
 		private function UItoV(event:Event = null):void
 		{
 			r_vars = new URLVariables();
@@ -430,21 +432,9 @@
 			if (main.unregContainer.Check.currentFrame == 2){}
 			
 			trace("UItoV", r_vars);
-			//timeRedir flush
-			//if (main.timeContainer.switcher.currentFrame == 2){timeRedir[1] = 1;timeRedir[2] = main.timeContainer.switcher.destination.text;timeRedir[3] = main.timeContainer.switcher.Delay.text;}
-			//if (main.timeContainer.switcher.currentFrame == 3){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";main.timeContainer.switcher.Delay.text = timeRedir[3];}
-			//if (main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Fax2Mail"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Fax2Mail";main.timeContainer.switcher.Delay.text = timeRedir[3];}
-			
-			//busyRedir flush
-			//if (main.busyContainer.switcher.currentFrame == 4){busyRedir[1] = }
-			//if (busyRedir[1] == 2){main.busyContainer.switcher.gotoAndStop(5);main.busyContainer.switcher.destination.text = "Falls besetzt umleiten auf Voicemail";}
-			
-			//unregRedir flush
-			//if (unregRedir[1] == 1){main.unregContainer.switcher.gotoAndStop(6);main.unregContainer.switcher.destination.text = unregRedir[2];}
-			//if (unregRedir[1] == 2){main.unregContainer.switcher.gotoAndStop(7);main.unregContainer.switcher.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
 		}
 
-		//r_vars posting, !!work in progress
+		//r_vars posting
 		private function transmitRedir(event:TouchEvent):void
 		{
 			j_loader.load(j_send);

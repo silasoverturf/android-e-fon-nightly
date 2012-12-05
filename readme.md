@@ -9,7 +9,7 @@ The build1.fla and build.as are the main Flash documents and program class. The 
 ###Comment to nightly
 As this is the nightly repo the code may be sloppy, commented and not minified. The compiled .apk will come with an assortment of crashes, bugs and general nonsense.
 
-##How to install on android
+#How to install on android
 
 1. Enable the setting "Installation of apps from unknown sources". Usually found in the settings > security > device administration
 
