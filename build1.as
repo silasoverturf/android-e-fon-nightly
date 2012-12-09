@@ -1,4 +1,4 @@
-package 
+﻿package 
 {
 	//import
 	import com.greensock.*;
@@ -36,9 +36,9 @@ package
 
 		//local redirection vars ->
 		private var redirectionData:String;
-		private var redirectionLoader:URLLoader;
-		private var redirectionURLRequest:URLRequest;
-
+		private var redirectionLoader:URLLoader = new URLLoader();
+		private var redirectionURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");
+		
 		//local redirection vars <-
 		private var selectedNumber:String;
 		private var numberID:String;
@@ -60,7 +60,7 @@ package
 
 		//redirection post vars
 		private var r_vars:URLVariables;
-		private var r_send:URLRequest;
+		private var r_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");
 		private var r_loader:URLLoader = new URLLoader;
 		
 		//redir regular expressions
@@ -156,7 +156,6 @@ package
 		
 		private function targetTest2(event:TouchEvent):void
 		{
-			trace("target", event.target.name);
 			if(event.target.name == "phoneIcon"){main.busyContainer.switcher.gotoAndStop(4);main.busyContainer.switcher.destination.text = "";};
 			if(event.target.name == "voicemailIcon"){main.busyContainer.switcher.gotoAndStop(5);main.busyContainer.switcher.destination.text = "Falls besetzt umleiten auf Voicemail";};
 			if(event.target.name == "Check"){main.busyContainer.Check.play();}
@@ -164,7 +163,6 @@ package
 		
 		private function targetTest3(event:TouchEvent):void
 		{
-			trace("target", event.target.name);
 			if(event.target.name == "phoneIcon"){main.unregContainer.switcher.gotoAndStop(6);main.unregContainer.switcher.destination.text = "";};
 			if(event.target.name == "voicemailIcon"){main.unregContainer.switcher.gotoAndStop(7);main.unregContainer.switcher.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"};
 			if(event.target.name == "Check"){main.unregContainer.Check.play();}
@@ -173,7 +171,6 @@ package
 		//tempHandlers,2,3 temporary handlers until testing is done
 		private function tempHandler(event:TouchEvent):void
 		{
-			trace("time", event.target.name);
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
@@ -218,8 +215,6 @@ package
 			userID_local = login.userid_txt.text;
 			password_local = login.password_txt.text;
 
-			trace(userID_local, password_local);
-
 			j_session = new URLVariables();
 			j_send = new URLRequest("https://web.e-fon.ch/portal/j_acegi_security_check");
 
@@ -240,12 +235,9 @@ package
 			trace("logging in" );
 			
 			//get redirection.html, oncomplete parse
-			function completeHandler(event:Event):void
+			function completeHandler(event:Event = null):void
 			{
 				trace("log in complete, getting redirection");
-				redirectionLoader = new URLLoader();
-				redirectionURLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");
-
 				redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);
 
 				function redirectionHandler(event:Event):void
@@ -262,13 +254,31 @@ package
 		//manual parsing of .html
 		private function parse(event:Event = null):void
 		{
+			//reset all local vars
+			featureArray = [];//[feature1, feature2, feature3, feature4, featureBackuprouting, featureAnonSuppression]
+			timeRedir = [0,0];//=[active, choice, destination, delay];
+			busyRedir = [0,0];// =[active, choice, destination];
+			unregRedir = [0,0];// =[active, choice, destination];
+			redirChoice = ["","","",];// [timeChoice, busyChoice, unregChoice]
+			timeDelay = null;
+		
+			dumpRedir = [];
+			dumpContainer = null;
+			
+			//reset counters
+			i=0;
+			i2=0;
+			i3=0;
+			
 			redirectionData = redirectionData.replace(rex,"");
 			trace("parsing redirection");
-			trace(redirectionData);
-			
 			//UI management
-			TweenMax.to(main, 0.5, {motionBlur:true, delay:0.3,autoAlpha:1, y:"-1000", ease:Cubic.easeInOut});
-			TweenMax.to(loading, 0.5, {autoAlpha:0, y:-200, ease:Cubic.easeInOut});
+			if(main.y > 500)
+			{
+				TweenMax.to(main, 0.5, {delay:0.3,autoAlpha:1, y:"-1000", ease:Cubic.easeInOut});
+				TweenMax.to(loading, 0.5, {autoAlpha:0, y:-200, ease:Cubic.easeInOut});
+			}
+			
 			var result:Array = choiceSniffer.exec(redirectionData);
 			var result2:Array = featureSniffer.exec(redirectionData);
 			
@@ -392,7 +402,7 @@ package
 			r_vars._uml_manualStatus = "visible";
 			r_vars._manualStatusPrivate = "visible";
 			r_vars._uml_calOof = "visible";
-			r_vars.reload =
+			r_vars.reload = "";
 			r_vars._uml_calBusy = "visible";
 			
 			//to be defined
@@ -445,12 +455,24 @@ package
 			
 			function transmitRedir2(event:Event = null):void
 			{
-				r_send = new URLRequest("https://web.e-fon.ch/portal/redirection.html");
-
 				r_send.method = URLRequestMethod.POST;
 				r_send.data = r_vars;
 
 				r_loader.load(r_send);
+				
+				r_loader.addEventListener(Event.COMPLETE, getRedir);
+				
+				function getRedir(event:Event){
+
+				function redirectionHandler(event:Event):void
+				{
+					redirectionData = new String(redirectionLoader.data);
+					j_loader.removeEventListener(Event.COMPLETE, transmitRedir2);
+					parse();
+				}
+				redirectionLoader.load(redirectionURLRequest);
+					
+				}
 			}
 		}
 	}
