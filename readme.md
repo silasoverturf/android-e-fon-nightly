@@ -9,7 +9,7 @@ The build1.fla and build.as are the main Flash documents and program class. The 
 ###Comment to nightly
 As this is the nightly repo the code may be sloppy, commented and not minified. The compiled .apk will come with an assortment of crashes, bugs and general nonsense.
 
-#How to install on android
+##How to install on android
 
 1. Enable the setting "Installation of apps from unknown sources". Usually found in the settings > security > device administration
 
@@ -23,5 +23,5 @@ Will be updated once iOS nightly build is ready.
 
 ##Program Concept
 
-The app is compiled with Flash Pro currently with Air 3.5. UI Structure is defined in the .fla file and all other functions like UI flushing, variable posting and .html parsing is all handled by the .as file. When compiled to Android with Air the Actionscript is interpreted by Adobe's AVM. On iOS all functions are handled by the LLVM compiled by Flash Pro.
+The app is compiled with Flash Pro currently with Air 3.5. UI Structure is defined in the .fla file and all other functions like UI flushing, variable posting and .html parsing are handled by the .as class file. When compiled to Android with Air the Actionscript is interpreted by Adobe's AVM. On iOS all functions are handled by the LLVM compiled by Flash Pro.
 
