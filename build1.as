@@ -255,13 +255,12 @@
 		private function parse(event:Event = null):void
 		{
 			//reset all local vars
-			featureArray = [];//[feature1, feature2, feature3, feature4, featureBackuprouting, featureAnonSuppression]
-			timeRedir = [0,0];//=[active, choice, destination, delay];
-			busyRedir = [0,0];// =[active, choice, destination];
-			unregRedir = [0,0];// =[active, choice, destination];
-			redirChoice = ["","","",];// [timeChoice, busyChoice, unregChoice]
+			featureArray = [];
+			timeRedir = [0,0];
+			busyRedir = [0,0];
+			unregRedir = [0,0];
+			redirChoice = ["","","",];
 			timeDelay = null;
-		
 			dumpRedir = [];
 			dumpContainer = null;
 			
@@ -270,9 +269,11 @@
 			i2=0;
 			i3=0;
 			
+			///remove whitespace
 			redirectionData = redirectionData.replace(rex,"");
 			trace("parsing redirection");
-			//UI management
+			
+			//UI management, check if main at correct position
 			if(main.y > 500)
 			{
 				TweenMax.to(main, 0.5, {delay:0.3,autoAlpha:1, y:"-1000", ease:Cubic.easeInOut});

@@ -21,9 +21,8 @@ package com.greensock.loading.core {
  * Serves as the base class for all individual loaders (not LoaderMax) like <code>ImageLoader, 
  * XMLLoader, SWFLoader, MP3Loader</code>, etc. There is no reason to use this class on its own. 
  * Please see the documentation for the other classes.
- * <br /><br />
  * 
- * <b>Copyright 2010-2012, GreenSock. All rights reserved.</b> This work is subject to the terms in <a href="http://www.greensock.com/terms_of_use.html">http://www.greensock.com/terms_of_use.html</a> or for corporate Club GreenSock members, the software agreement that was issued with the corporate membership.
+ * <p><strong>Copyright 2010-2012, GreenSock. All rights reserved.</strong> This work is subject to the terms in <a href="http://www.greensock.com/terms_of_use.html">http://www.greensock.com/terms_of_use.html</a> or for <a href="http://www.greensock.com/club/">Club GreenSock</a> members, the software agreement that was issued with the membership.</p>
  * 
  * @author Jack Doyle, jack@greensock.com
  */	
