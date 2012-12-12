@@ -142,7 +142,9 @@
 			main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest2);
 			main.unregContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest3);
 			
-			trace("UI built");
+			//update status
+			TweenMax.to(indicate.contain, 0.4, {y:0, ease:Cubic.easeInOut});
+
 			trace("ready for login");
 		}
 		
@@ -233,11 +235,15 @@
 			j_loader.load(j_send);
 
 			trace("logging in" );
+			TweenMax.to(indicate.contain, 0.4, {y:-19, ease:Cubic.easeInOut});
+
 			
 			//get redirection.html, oncomplete parse
 			function completeHandler(event:Event = null):void
 			{
 				trace("log in complete, getting redirection");
+				TweenMax.to(indicate.contain, 0.4, {y:-41, ease:Cubic.easeInOut});
+				
 				redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);
 
 				function redirectionHandler(event:Event):void
@@ -272,6 +278,7 @@
 			///remove whitespace
 			redirectionData = redirectionData.replace(rex,"");
 			trace("parsing redirection");
+			TweenMax.to(indicate.contain, 0.4, {y:-59, ease:Cubic.easeInOut});
 			
 			//UI management, check if main at correct position
 			if(main.y > 500)
@@ -367,6 +374,7 @@
 		//UI flushing
 		private function VtoUI(event:Event = null):void
 		{
+			TweenMax.to(indicate.contain, 0.4, {y:-81, ease:Cubic.easeInOut});
 			//checks
 			if (timeRedir[0] == 1){main.timeContainer.Check.gotoAndStop(1);}
 			if (timeRedir[0] == 0){main.timeContainer.Check.gotoAndStop(2);}
@@ -453,6 +461,7 @@
 			j_loader.addEventListener(Event.COMPLETE, transmitRedir2);
 	
 			UItoV();
+			TweenMax.to(indicate.contain, 0.4, {y:-100, ease:Cubic.easeInOut});
 			
 			function transmitRedir2(event:Event = null):void
 			{
@@ -470,6 +479,7 @@
 					redirectionData = new String(redirectionLoader.data);
 					j_loader.removeEventListener(Event.COMPLETE, transmitRedir2);
 					parse();
+					TweenMax.to(indicate.contain, 0.4, {y:-119, ease:Cubic.easeInOut});
 				}
 				redirectionLoader.load(redirectionURLRequest);
 					
