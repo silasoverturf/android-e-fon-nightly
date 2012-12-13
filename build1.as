@@ -129,6 +129,11 @@
 			loading.scaleX = stage.stageWidth / 320;
 			loading.scaleY = stage.stageHeight / 480;
 
+			indicate.x = stage.stageWidth / 2; 
+			indicate.y = stage.stageHeight * 0.88;
+			indicate.scaleX = stage.stageWidth / 320;
+			indicate.scaleY = stage.stageHeight / 480;
+			
 			//hide main
 			TweenMax.to(main, 0, {autoAlpha:0, y:"+1000"});
 
