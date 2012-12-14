@@ -39,52 +39,49 @@
 		private var redirectionLoader:URLLoader = new URLLoader();
 		private var redirectionURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");
 		
-		//local redirection vars <-
-		private var selectedNumber:String;
-		private var numberID:String;
 
 		private var testingArray:Array = ["testing"];
 		
 		//localized redirection vars
+		private var selectedNumber:String;
+		private var numberID:String;
+		
 		private var featureArray:Array = [];//[feature1, feature2, feature3, feature4, featureBackuprouting, featureAnonSuppression]
+		
 		private var timeRedir:Array = [0,0];//=[active, choice, destination, delay];
-		private var busyRedir:Array = [0,0];// =[active, choice, destination];
-		private var unregRedir:Array = [0,0];// =[active, choice, destination];
-		private var redirChoice:Array = ["","","",];// [timeChoice, busyChoice, unregChoice]
 		private var timeDelay:String;
 		
-		//intermediate transport vars
+		private var busyRedir:Array = [0,0];// =[active, choice, destination];
+		private var unregRedir:Array = [0,0];// =[active, choice, destination];
+		
+		private var redirChoice:Array = ["","","",];// [timeChoice, busyChoice, unregChoice]
+		
+		//intermediate dump vars
 		private var dumpRedir:Array = [];
 		private var dumpContainer:String;
-		//private var selectedPhoneNumberId:Number;
 
 		//redirection post vars
 		private var r_vars:URLVariables;
 		private var r_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");
 		private var r_loader:URLLoader = new URLLoader;
 		
-		//redir regular expressions
-		private var selectedValue:RegExp = /selected="selected">[0-9]{10}/;
-		
-		//delay
-		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="[0-9]{3,12}/g;
-		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(?:Normal|Busy|Backup)\(\)(?:"checked="checked"|)/g;
-		
-		//destination
-		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{1,2}/;
-		private var numberStripper:RegExp = /name="delay1"size="5"value="/;
-		
-		//featureIDs
-		private var featureSniffer:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="[0-9]{1,10}/g;
-		private var featureStripper:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="/;
-		
-		//selected phone number
+		//selectedNumber regexp
 		private var optionSniffer:RegExp = /optionvalue="[0-9]{4,8}/;
 		private var optionStripper:RegExp = /optionvalue="/;
 		
+		//delay & choice regexp
+		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="[0-9]{3,12}/g;
 		private var bloatStripper:RegExp = /(?:phone1|phone3|backupNumber)"value="/g;
-
-		trace("vars built");
+		
+		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(?:Normal|Busy|Backup)\(\)(?:"checked="checked"|)/g;
+		
+		//destination regexp
+		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{1,2}/;
+		private var numberStripper:RegExp = /name="delay1"size="5"value="/;
+		
+		//featureIDs regexp
+		private var featureSniffer:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="[0-9]{1,10}/g;
+		private var featureStripper:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="/;
 		
 		public function build1()
 		{
@@ -237,13 +234,14 @@
 			j_session.j_username = userID_local;
 			j_session.j_password = password_local;
 
+			//post j_session
 			j_loader.load(j_send);
 
 			trace("logging in" );
 			TweenMax.to(indicate.contain, 0.4, {y:-19, ease:Cubic.easeInOut});
 
 			
-			//get redirection.html, oncomplete parse
+			//get redirection.html, onComplete -> parse
 			function completeHandler(event:Event = null):void
 			{
 				trace("log in complete, getting redirection");
@@ -283,6 +281,8 @@
 			///remove whitespace
 			redirectionData = redirectionData.replace(rex,"");
 			trace("parsing redirection");
+			
+			//indicate
 			TweenMax.to(indicate.contain, 0.4, {y:-59, ease:Cubic.easeInOut});
 			
 			//UI management, check if main at correct position
@@ -330,7 +330,7 @@
 				result = delaySniffer.exec(redirectionData);
 			}
 			
-			//clean up
+			//clean up of delayVar
 			for each (var delayVar in dumpRedir)
 			{
 				dumpContainer = dumpRedir[i3];
@@ -373,13 +373,17 @@
 				featureArray[i3] = dumpContainer;
 				i3 = i3 + 1;
 			}
+			
+			//flush to UI
 			VtoUI();
 		}
 		
 		//UI flushing
 		private function VtoUI(event:Event = null):void
 		{
+			//indicate
 			TweenMax.to(indicate.contain, 0.4, {y:-81, ease:Cubic.easeInOut});
+			
 			//checks
 			if (timeRedir[0] == 1){main.timeContainer.Check.gotoAndStop(1);}
 			if (timeRedir[0] == 0){main.timeContainer.Check.gotoAndStop(2);}
@@ -400,8 +404,6 @@
 			//unregRedir flush
 			if (unregRedir[1] == 1){main.unregContainer.switcher.gotoAndStop(6);main.unregContainer.switcher.destination.text = unregRedir[2];}
 			if (unregRedir[1] == 2){main.unregContainer.switcher.gotoAndStop(7);main.unregContainer.switcher.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
-			
-			trace(redirChoice[1]);
 		}
 		
 		//UI reverse flushing
@@ -419,7 +421,7 @@
 			r_vars.reload = "";
 			r_vars._uml_calBusy = "visible";
 			
-			//to be defined
+			//flush featureIDs
 			r_vars.featureId1 = featureArray[0];
 			r_vars.featureId2 = featureArray[1];
 			r_vars.featureId3 = featureArray[2];
@@ -427,7 +429,8 @@
 			r_vars.featureIdBackuprouting = featureArray[4];
 			r_vars.featureIdAnonSuppression = featureArray[5];
 			r_vars.selectedPhoneNumberId = numberID;
-				
+
+			//r_vars conditionals constructor
 			if (main.timeContainer.Check.currentFrame == 1)
 			{
 				r_vars.uml_normal1 = true;
@@ -454,8 +457,6 @@
 			if (main.timeContainer.Check.currentFrame == 2){}
 			if (main.busyContainer.Check.currentFrame == 2){}
 			if (main.unregContainer.Check.currentFrame == 2){}
-			
-			trace("UItoV", r_vars);
 		}
 
 		//r_vars posting
@@ -464,30 +465,38 @@
 			j_loader.load(j_send);
 
 			j_loader.addEventListener(Event.COMPLETE, transmitRedir2);
-	
+			
+			//UItoV flush
 			UItoV();
+			
+			//indicate
 			TweenMax.to(indicate.contain, 0.4, {y:-100, ease:Cubic.easeInOut});
 			
 			function transmitRedir2(event:Event = null):void
 			{
 				r_send.method = URLRequestMethod.POST;
 				r_send.data = r_vars;
-
-				r_loader.load(r_send);
 				
+				//listen for r_vars complete
 				r_loader.addEventListener(Event.COMPLETE, getRedir);
 				
-				function getRedir(event:Event){
-
-				function redirectionHandler(event:Event):void
+				//post r_vars
+				r_loader.load(r_send);
+				
+				//reget redir on complete r_vars post...
+				function getRedir(event:Event)
 				{
-					redirectionData = new String(redirectionLoader.data);
-					j_loader.removeEventListener(Event.COMPLETE, transmitRedir2);
-					parse();
-					TweenMax.to(indicate.contain, 0.4, {y:-119, ease:Cubic.easeInOut});
-				}
-				redirectionLoader.load(redirectionURLRequest);
-					
+					function redirectionHandler(event:Event):void
+					{
+						//...and reparse on complete
+						redirectionData = new String(redirectionLoader.data);
+						j_loader.removeEventListener(Event.COMPLETE, transmitRedir2);
+						parse();
+						
+						//indicate
+						TweenMax.to(indicate.contain, 0.4, {y:-119, ease:Cubic.easeInOut});
+					}
+					redirectionLoader.load(redirectionURLRequest);
 				}
 			}
 		}
