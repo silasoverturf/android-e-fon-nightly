@@ -83,10 +83,16 @@
 		private var featureSniffer:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="[0-9]{1,10}/g;
 		private var featureStripper:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="/;
 		
+		//SMS
+		private var sms_vars:URLVariables;
+		private var sms_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/SMSSender.html");
+		private var sms_loader:URLLoader = new URLLoader;
+		
 		public function build1()
 		{
 			//rename save btn
 			main.saveBtn.btn_txt.text = "Speichern";
+  			main.SMSBtn.btn_txt.text = "Senden"
   
 			//stage aligment
 			stage.align = StageAlign.TOP_LEFT;
@@ -497,6 +503,35 @@
 						TweenMax.to(indicate.contain, 0.4, {y:-119, ease:Cubic.easeInOut});
 					}
 					redirectionLoader.load(redirectionURLRequest);
+				}
+			}
+		}
+		
+		private function SMS(event:TouchEvent)
+		{
+			j_loader.load(j_send);
+			
+			j_loader.addEventListener(Event.COMPLETE, sendSMS);
+			
+			sms_vars.message = main.SMSmessage.text;
+			sms_vars.recipientNumber = main.recipient.text;
+			
+			sms_vars.numberOfMessageToSendForEachRecipient = "1"
+			sms_vars.numberOfRecipients = "1"
+			sms_vars.numberOfMessageToSend = "1"
+			sms_vars.senderNumber = "anonymous"
+
+			
+			function sendSMS(event:Event = null):void
+			{
+				sms_send.method = URLRequestMethod.POST;
+				sms_send.data = sms_vars;
+				
+				sms_loader.addEventListener(Event.COMPLETE, SMSsent);
+				
+				function SMSsent(event:Event = null):void
+				{
+					trace("SMS Sent");
 				}
 			}
 		}
