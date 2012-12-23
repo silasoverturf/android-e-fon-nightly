@@ -3,19 +3,24 @@
 	//import
 	import com.greensock.*;
 	import com.greensock.easing.*;
-	import flash.events.TouchEvent;
+	import flash.events.MouseEvent;
 	import flash.net.URLLoader;
 	import flash.display.*;
 	import flash.net.*;
 	import flash.events.*;
 	import flash.ui.*;
+	import flash.geom.Rectangle;
 	
 	trace("classes imported");
 
 	public class build1 extends MovieClip
 	{
-		//set multitouch mode for TouchEvents
-		Multitouch.inputMode=MultitouchInputMode.TOUCH_POINT;
+		//set multitouch mode for MouseEvents
+		Multitouch.inputMode=MultitouchInputMode.GESTURE;
+		
+		//swiping
+		private var ind:int = 0;
+		private var currX:Number = 0;
 		
 		//local session vars
 		private var userID_local:String;
@@ -131,47 +136,56 @@
 			loading.y = stage.stageHeight * 0.3;
 			loading.scaleX = stage.stageWidth / 320;
 			loading.scaleY = stage.stageHeight / 480;
-
-			indicate.x = stage.stageWidth / 2; 
-			indicate.y = stage.stageHeight * 0.88;
-			indicate.scaleX = stage.stageWidth / 320;
-			indicate.scaleY = stage.stageHeight / 480;
+			
+			//options.x = stage.stageWidth / 2;
+			//options.y = stage.stageHeight + 200;
+			//options.scaleX = stage.stageWidth / 320;
+			//options.scaleY = stage.stageHeight  /480;
 			
 			//hide main
 			TweenMax.to(main, 0, {autoAlpha:0, y:"+1000"});
 
 			//initial listeners;
-			loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
-			main.timeContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler);
-			main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler2);
-			main.unregContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler3);
+			loginBtn.addEventListener(MouseEvent.CLICK, transmit);
+			main.timeContainer.addEventListener(MouseEvent.CLICK, tempHandler);
+			main.busyContainer.addEventListener(MouseEvent.CLICK, tempHandler2);
+			main.unregContainer.addEventListener(MouseEvent.CLICK, tempHandler3);
 			
-			main.timeContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest);
-			main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest2);
-			main.unregContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest3);
+			main.timeContainer.addEventListener(MouseEvent.CLICK, targetTest);
+			main.busyContainer.addEventListener(MouseEvent.CLICK, targetTest2);
+			main.unregContainer.addEventListener(MouseEvent.CLICK, targetTest3);
 			
-			//update status
-			TweenMax.to(indicate.contain, 0.4, {y:0, ease:Cubic.easeInOut});
+			
+			//options.addEventListener(MouseEvent.CLICK, scrolling);
+			
+			stage.addEventListener(MouseEvent.CLICK, getTarget);
 
 			trace("ready for login");
+			
+		}
+		
+		//scrolling
+		private function getTarget(event:MouseEvent):void
+		{
+			trace(event.target.name);
 		}
 		
 		//targetTest,2,3 temporary handlers until testing is done
-		private function targetTest(event:TouchEvent):void
+		private function targetTest(event:MouseEvent):void
 		{
 			if(event.target.name == "phoneIcon"){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = "";main.timeContainer.switcher.Delay.text = "";};
 			if(event.target.name == "voicemailIcon"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";main.timeContainer.switcher.Delay.text = "";};
 			if(event.target.name == "Check"){main.timeContainer.Check.play();}
 		}
 		
-		private function targetTest2(event:TouchEvent):void
+		private function targetTest2(event:MouseEvent):void
 		{
 			if(event.target.name == "phoneIcon"){main.busyContainer.switcher.gotoAndStop(4);main.busyContainer.switcher.destination.text = "";};
 			if(event.target.name == "voicemailIcon"){main.busyContainer.switcher.gotoAndStop(5);main.busyContainer.switcher.destination.text = "Falls besetzt umleiten auf Voicemail";};
 			if(event.target.name == "Check"){main.busyContainer.Check.play();}
 		}
 		
-		private function targetTest3(event:TouchEvent):void
+		private function targetTest3(event:MouseEvent):void
 		{
 			if(event.target.name == "phoneIcon"){main.unregContainer.switcher.gotoAndStop(6);main.unregContainer.switcher.destination.text = "";};
 			if(event.target.name == "voicemailIcon"){main.unregContainer.switcher.gotoAndStop(7);main.unregContainer.switcher.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"};
@@ -179,7 +193,7 @@
 		}
 		
 		//tempHandlers,2,3 temporary handlers until testing is done
-		private function tempHandler(event:TouchEvent):void
+		private function tempHandler(event:MouseEvent):void
 		{
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
@@ -189,7 +203,7 @@
 			TweenMax.to(main.unregContainer, 0.2, {y:100, ease:Cubic.easeInOut});
 		}
 		
-		private function tempHandler2(event:TouchEvent):void
+		private function tempHandler2(event:MouseEvent):void
 		{
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
@@ -199,7 +213,7 @@
 			TweenMax.to(main.unregContainer, 0.2, {y:100, ease:Cubic.easeInOut});
 		}
 		
-		private function tempHandler3(event:TouchEvent):void
+		private function tempHandler3(event:MouseEvent):void
 		{
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
@@ -210,11 +224,13 @@
 		}
 
 		//handle listeners, builds j_session, posts and requests redirection.html
-		private function transmit(event:TouchEvent):void
+		private function transmit(event:MouseEvent):void
 		{
 			//UI management
-			loginBtn.removeEventListener(TouchEvent.TOUCH_TAP, transmit);
-			main.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, transmitRedir);
+			//stage.addEventListener(Event.ENTER_FRAME, loop);
+			//main.addEventListener(TransformGestureEvent.GESTURE_SWIPE, onSwipe);
+			loginBtn.removeEventListener(MouseEvent.CLICK, transmit);
+			main.saveBtn.addEventListener(MouseEvent.CLICK, transmitRedir);
 			TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
 			TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
 			TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
@@ -244,14 +260,12 @@
 			j_loader.load(j_send);
 
 			trace("logging in" );
-			TweenMax.to(indicate.contain, 0.4, {y:-19, ease:Cubic.easeInOut});
 
 			
 			//get redirection.html, onComplete -> parse
 			function completeHandler(event:Event = null):void
 			{
 				trace("log in complete, getting redirection");
-				TweenMax.to(indicate.contain, 0.4, {y:-41, ease:Cubic.easeInOut});
 				
 				redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);
 
@@ -265,7 +279,23 @@
 			}
 
 		}
-
+		
+		/*swiping
+		private function onSwipe(event:TransformGestureEvent):void
+		{
+			trace("onSwipe");
+			if(event.offsetX == 1 && ind > 0)
+				ind--;
+			if(event.offsetX == -1 && ind < 4)
+				ind++;
+		}
+		
+		private function loop(event:Event):void
+		{
+			currX += (ind*1024 - currX * 0.15);
+			main.scrollRect = new Rectangle(currX, 0, 1024, 768);
+		}
+		*/
 		//manual parsing of .html
 		private function parse(event:Event = null):void
 		{
@@ -288,14 +318,12 @@
 			redirectionData = redirectionData.replace(rex,"");
 			trace("parsing redirection");
 			
-			//indicate
-			TweenMax.to(indicate.contain, 0.4, {y:-59, ease:Cubic.easeInOut});
-			
 			//UI management, check if main at correct position
 			if(main.y > 500)
 			{
 				TweenMax.to(main, 0.5, {delay:0.3,autoAlpha:1, y:"-1000", ease:Cubic.easeInOut});
 				TweenMax.to(loading, 0.5, {autoAlpha:0, y:-200, ease:Cubic.easeInOut});
+				//TweenMax.to(options, 0.5, {delay:0.3,autoAlpha:1, y:stage.stageHeight, ease:Cubic.easeInOut});
 			}
 			
 			var result:Array = choiceSniffer.exec(redirectionData);
@@ -387,9 +415,6 @@
 		//UI flushing
 		private function VtoUI(event:Event = null):void
 		{
-			//indicate
-			TweenMax.to(indicate.contain, 0.4, {y:-81, ease:Cubic.easeInOut});
-			
 			//checks
 			if (timeRedir[0] == 1){main.timeContainer.Check.gotoAndStop(1);}
 			if (timeRedir[0] == 0){main.timeContainer.Check.gotoAndStop(2);}
@@ -410,6 +435,7 @@
 			//unregRedir flush
 			if (unregRedir[1] == 1){main.unregContainer.switcher.gotoAndStop(6);main.unregContainer.switcher.destination.text = unregRedir[2];}
 			if (unregRedir[1] == 2){main.unregContainer.switcher.gotoAndStop(7);main.unregContainer.switcher.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
+			
 		}
 		
 		//UI reverse flushing
@@ -466,7 +492,7 @@
 		}
 
 		//r_vars posting
-		private function transmitRedir(event:TouchEvent):void
+		private function transmitRedir(event:MouseEvent):void
 		{
 			j_loader.load(j_send);
 
@@ -474,9 +500,7 @@
 			
 			//UItoV flush
 			UItoV();
-			
-			//indicate
-			TweenMax.to(indicate.contain, 0.4, {y:-100, ease:Cubic.easeInOut});
+
 			
 			function transmitRedir2(event:Event = null):void
 			{
@@ -499,15 +523,13 @@
 						j_loader.removeEventListener(Event.COMPLETE, transmitRedir2);
 						parse();
 						
-						//indicate
-						TweenMax.to(indicate.contain, 0.4, {y:-119, ease:Cubic.easeInOut});
 					}
 					redirectionLoader.load(redirectionURLRequest);
 				}
 			}
 		}
 		
-		private function SMS(event:TouchEvent)
+		private function SMS(event:MouseEvent)
 		{
 			j_loader.load(j_send);
 			
