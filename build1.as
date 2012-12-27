@@ -175,6 +175,7 @@
 		{
 			if(event.target.name == "phoneIcon"){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = "";main.timeContainer.switcher.Delay.text = "";};
 			if(event.target.name == "voicemailIcon"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";main.timeContainer.switcher.Delay.text = "";};
+			if(event.target.name == "fax2mailIcon"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text ="s umleiten auf Fax2Mail";main.timeContainer.switcher.Delay.text = "";};
 			if(event.target.name == "Check"){main.timeContainer.Check.play();}
 		}
 		
@@ -199,13 +200,13 @@
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			
-			TweenMax.to(main.busyContainer, 0.2, {y:50, ease:Cubic.easeInOut});
-			TweenMax.to(main.unregContainer, 0.2, {y:100, ease:Cubic.easeInOut});
+			TweenMax.to(main.busyContainer, 0.2, {y:116, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer, 0.2, {y:166, ease:Cubic.easeInOut});
 		}
 		
 		private function tempHandler2(event:MouseEvent):void
 		{
-			TweenMax.to(main.timeContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
+			TweenMax.to(main.timeContainer.selecter, 0.2, {y:-80, ease:Cubic.easeInOut});
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			
@@ -215,7 +216,7 @@
 		
 		private function tempHandler3(event:MouseEvent):void
 		{
-			TweenMax.to(main.timeContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
+			TweenMax.to(main.timeContainer.selecter, 0.2, {y:-80, ease:Cubic.easeInOut});
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
 			
@@ -262,7 +263,7 @@
 			trace("logging in" );
 
 			
-			//get redirection.html, onComplete -> parse
+			//get redirection.html, onComplete -> parseRedir
 			function completeHandler(event:Event = null):void
 			{
 				trace("log in complete, getting redirection");
@@ -273,7 +274,7 @@
 				{
 					redirectionData = new String(redirectionLoader.data);
 					j_loader.removeEventListener(Event.COMPLETE, completeHandler);
-					parse();
+					parseRedir();
 				}
 				redirectionLoader.load(redirectionURLRequest);
 			}
@@ -297,7 +298,7 @@
 		}
 		*/
 		//manual parsing of .html
-		private function parse(event:Event = null):void
+		private function parseRedir(event:Event = null):void
 		{
 			//reset all local vars
 			featureArray = [];
@@ -469,7 +470,8 @@
 				r_vars.delay1 = main.timeContainer.switcher.Delay.text;
 				
 				if(main.timeContainer.switcher.currentFrame == 2){r_vars.choice1 = "1";r_vars.phone1 = main.timeContainer.switcher.destination.text}
-				if(main.timeContainer.switcher.currentFrame == 3){r_vars.choice1 = "2"}
+				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";){r_vars.choice1 = "2"}
+				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text = "s umleiten auf Fax2Mail";)(r_vars.choice1 = "3")
 			}
 			
 			if (main.busyContainer.Check.currentFrame == 1)
@@ -518,10 +520,10 @@
 				{
 					function redirectionHandler(event:Event):void
 					{
-						//...and reparse on complete
+						//...and reparseRedir on complete
 						redirectionData = new String(redirectionLoader.data);
 						j_loader.removeEventListener(Event.COMPLETE, transmitRedir2);
-						parse();
+						parseRedir();
 						
 					}
 					redirectionLoader.load(redirectionURLRequest);
