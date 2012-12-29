@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graphic version="2.0" xmlns="http://ns.adobe.com/fxg/2008" xmlns:d="http://ns.adobe.com/fxg/2008/dt" xmlns:fc="http://ns.adobe.com/flashcatalyst/2009"  viewHeight= "41" viewWidth= "184">
+	<Library>
+
+	<Definition name="light_button_disabled">
+		<Group d:userLabel="Symbol">
+			<Group d:type="layer" d:layerType="page" d:userLabel="State_1" d:pageWidth="264" d:pageHeight="121">
+				<Group d:userLabel="Layer_1" d:type="layer">
+					<BitmapImage source="@Embed('/buttonPressed.assets/Image_0.png')" x="-92" y="-21" blendMode="normal">
+					</BitmapImage>
+				</Group>
+			</Group>
+		</Group>
+	</Definition>
+	</Library>
+
+	<Group d:userLabel="Layer_1" d:type="layer">
+		<light_button_disabled x="92" y="20.5" alpha="1" blendMode="normal"/>
+	</Group>
+</Graphic>
