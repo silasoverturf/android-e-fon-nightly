@@ -95,10 +95,6 @@
 		
 		public function build1()
 		{
-			//rename save btn
-			main.saveBtn.btn_txt.text = "Speichern";
-  			main.SMSBtn.btn_txt.text = "Senden"
-  
 			//stage aligment
 			stage.align = StageAlign.TOP_LEFT;
 			stage.scaleMode = StageScaleMode.NO_SCALE;
@@ -136,11 +132,6 @@
 			loading.y = stage.stageHeight * 0.3;
 			loading.scaleX = stage.stageWidth / 320;
 			loading.scaleY = stage.stageHeight / 480;
-			
-			//options.x = stage.stageWidth / 2;
-			//options.y = stage.stageHeight + 200;
-			//options.scaleX = stage.stageWidth / 320;
-			//options.scaleY = stage.stageHeight  /480;
 			
 			//hide main
 			TweenMax.to(main, 0, {autoAlpha:0, y:"+1000"});
@@ -200,8 +191,8 @@
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			
-			TweenMax.to(main.busyContainer, 0.2, {y:116, ease:Cubic.easeInOut});
-			TweenMax.to(main.unregContainer, 0.2, {y:166, ease:Cubic.easeInOut});
+			TweenMax.to(main.busyContainer, 0.2, {y:118, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer, 0.2, {y:168, ease:Cubic.easeInOut});
 		}
 		
 		private function tempHandler2(event:MouseEvent):void
@@ -210,8 +201,8 @@
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			
-			TweenMax.to(main.busyContainer, 0.2, {y:0, ease:Cubic.easeInOut});
-			TweenMax.to(main.unregContainer, 0.2, {y:100, ease:Cubic.easeInOut});
+			TweenMax.to(main.busyContainer, 0.2, {y:5, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer, 0.2, {y:105, ease:Cubic.easeInOut});
 		}
 		
 		private function tempHandler3(event:MouseEvent):void
@@ -220,8 +211,8 @@
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
 			
-			TweenMax.to(main.busyContainer, 0.2, {y:0, ease:Cubic.easeInOut});
-			TweenMax.to(main.unregContainer, 0.2, {y:50, ease:Cubic.easeInOut});
+			TweenMax.to(main.busyContainer, 0.2, {y:5, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer, 0.2, {y:55, ease:Cubic.easeInOut});
 		}
 
 		//handle listeners, builds j_session, posts and requests redirection.html
@@ -231,7 +222,6 @@
 			//stage.addEventListener(Event.ENTER_FRAME, loop);
 			//main.addEventListener(TransformGestureEvent.GESTURE_SWIPE, onSwipe);
 			loginBtn.removeEventListener(MouseEvent.CLICK, transmit);
-			main.saveBtn.addEventListener(MouseEvent.CLICK, transmitRedir);
 			TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
 			TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
 			TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
@@ -437,6 +427,8 @@
 			if (unregRedir[1] == 1){main.unregContainer.switcher.gotoAndStop(6);main.unregContainer.switcher.destination.text = unregRedir[2];}
 			if (unregRedir[1] == 2){main.unregContainer.switcher.gotoAndStop(7);main.unregContainer.switcher.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
 			
+			main.saveBtn.addEventListener(MouseEvent.CLICK, transmitRedir);
+			main.saveBtn.btn_txt.text = "Save";
 		}
 		
 		//UI reverse flushing
@@ -500,6 +492,9 @@
 
 			j_loader.addEventListener(Event.COMPLETE, transmitRedir2);
 			
+			main.saveBtn.removeEventListener(MouseEvent.CLICK, transmitRedir);
+			trace(transmitRedir);
+			main.saveBtn.btn_txt.text = "Saving";
 			//UItoV flush
 			UItoV();
 
@@ -543,6 +538,7 @@
 		
 		private function SMS(event:MouseEvent)
 		{
+			/*
 			j_loader.load(j_send);
 			
 			j_loader.addEventListener(Event.COMPLETE, sendSMS);
@@ -568,6 +564,7 @@
 					trace("SMS Sent");
 				}
 			}
+			*/
 		}
 	}
 }
