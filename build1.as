@@ -469,9 +469,9 @@
 				r_vars.uml_normal1 = true;
 				r_vars.delay1 = main.timeContainer.switcher.Delay.text;
 				
-				if(main.timeContainer.switcher.currentFrame == 2){r_vars.choice1 = "1";r_vars.phone1 = main.timeContainer.switcher.destination.text}
-				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";){r_vars.choice1 = "2"}
-				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text = "s umleiten auf Fax2Mail";)(r_vars.choice1 = "3")
+				if(main.timeContainer.switcher.currentFrame == 2){r_vars.choice1 = "1";r_vars.phone1 = main.timeContainer.switcher.destination.text};
+				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Voicemail"){r_vars.choice1 = "2"};
+				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Fax2Mail")(r_vars.choice1 = "3");
 			}
 			
 			if (main.busyContainer.Check.currentFrame == 1)
@@ -515,6 +515,11 @@
 				//post r_vars
 				r_loader.load(r_send);
 				
+				if(r_vars.choice1 == "3")
+				{
+					transmitF2M();
+				}
+				
 				//reget redir on complete r_vars post...
 				function getRedir(event:Event)
 				{
@@ -529,6 +534,11 @@
 					redirectionLoader.load(redirectionURLRequest);
 				}
 			}
+		}
+		
+		private function transmitF2M(event:Event = null):void
+		{
+			
 		}
 		
 		private function SMS(event:MouseEvent)
