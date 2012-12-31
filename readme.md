@@ -10,7 +10,7 @@ The build1.fla and build.as are the main Flash documents and program class. The 
 As this is the nightly repo the code may be sloppy, commented and not minified. The compiled .apk will come with an assortment of crashes, bugs and general nonsense.
 
 ###Limitations
-* Currently only user with conventional USER roles are properly supported
+* Currently only user with conventional USER roles (ROLE_USER, ROLE_CDR) are properly supported
 * If F2M is not configured, redirection.html data will not be parsed properly
 
 
