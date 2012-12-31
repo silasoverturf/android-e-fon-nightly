@@ -39,12 +39,28 @@
 		private var j_send:URLRequest;
 		private var j_loader:URLLoader;
 
-		//local redirection vars ->
+		//redirection loaders
 		private var redirectionData:String;
 		private var redirectionLoader:URLLoader = new URLLoader();
-		private var redirectionURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");
+		private var redirectionURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");//?selectedPhoneNumberId=selectedNumber;
 		
-
+		//f2m loaders
+		private var f2mData:String;
+		private var f2mLoader:URLLoader = new URLLoader();
+		private var f2mURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/notifications.html");//?selectedPhoneNumberId=selectedNumber;
+		
+		//f2m posters
+		private var f2m_vars:URLVariables;
+		private var f2m_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/notifications.html");//?selectedPhoneNumberId=selectedNumber;
+		private var f2m_loader:URLLoader = new URLLoader;
+		
+		//f2m regexp
+		private var f2mSniffer:RegExp = /name="fax2emailEmail"value="[0-9a-zA-Z][-._a-zA-Z0-9]*@(?:[0-9a-zA-Z][-._0-9a-zA-Z]*\.)+[a-zA-Z]{2,4}/;
+		private var f2mStripper:RegExp = /name="fax2emailEmail"value="/;
+		
+		//f2m local
+		private var f2mEmail:String;
+		
 		private var testingArray:Array = ["testing"];
 		
 		//localized redirection vars
@@ -259,7 +275,7 @@
 				trace("log in complete, getting redirection");
 				
 				redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);
-
+				loadF2M();
 				function redirectionHandler(event:Event):void
 				{
 					redirectionData = new String(redirectionLoader.data);
@@ -534,6 +550,22 @@
 		private function transmitF2M(event:Event = null):void
 		{
 			
+		}
+		
+		private function loadF2M(event:Event = null):void
+		{
+			f2mLoader.addEventListener(Event.COMPLETE, parseF2M);
+			f2mLoader.load(f2mURLRequest);
+			
+			function parseF2M(event:Event = null):void
+			{
+				trace("parsing f2m");
+				f2mData = new String(f2mLoader.data);
+				f2mData = f2mData.replace(rex,"");
+				f2mEmail = f2mSniffer.exec(f2mData);
+				f2mEmail = f2mEmail.replace(f2mStripper,"")
+				main.timeContainer.selecter.fax2mailIcon.email.text = f2mEmail;
+			}
 		}
 		
 		private function SMS(event:MouseEvent)
