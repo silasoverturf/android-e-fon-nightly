@@ -16,7 +16,7 @@
 	public class build1 extends MovieClip
 	{
 		//set multitouch mode for MouseEvents
-		Multitouch.inputMode=MultitouchInputMode.GESTURE;
+		Multitouch.inputMode=MultitouchInputMode.TOUCH_POINT;
 		
 		//swiping
 		private var ind:int = 0;
@@ -60,8 +60,10 @@
 		
 		//f2m local
 		private var f2mEmail:String;
+		private var f2mDelivery:String;
 		
 		private var testingArray:Array = ["testing"];
+		private var testingString:String = "";
 		
 		//localized redirection vars
 		private var selectedNumber:String;
@@ -139,6 +141,11 @@
 			loginBtn.scaleX = stage.stageWidth / 320;
 			loginBtn.scaleY = stage.stageHeight / 480;
 
+			dashboard.x = stage.stageWidth / 2;
+			dashboard.y = stage.stageHeight * 0.03;
+			dashboard.scaleX = stage.stageWidth / 320;
+			dashboard.scaleY = stage.stageHeight/ 480;
+			
 			main.x = stage.stageWidth / 2;
 			main.y = stage.stageHeight * 0.3;
 			main.scaleX = stage.stageWidth / 320;
@@ -150,7 +157,8 @@
 			loading.scaleY = stage.stageHeight / 480;
 			
 			//hide main
-			TweenMax.to(main, 0, {autoAlpha:0, y:"+1000"});
+			main.visible = false;
+			TweenMax.to(dashboard, 0 , {autoAlpha:0, y:"+1000"})
 
 			//initial listeners;
 			loginBtn.addEventListener(MouseEvent.CLICK, transmit);
@@ -162,16 +170,34 @@
 			main.busyContainer.addEventListener(MouseEvent.CLICK, targetTest2);
 			main.unregContainer.addEventListener(MouseEvent.CLICK, targetTest3);
 			
-			
+			dashboard.addEventListener(MouseEvent.CLICK, dashboardHandler);
+			main.addEventListener(MouseEvent.CLICK, dashboardHandler);
 			//options.addEventListener(MouseEvent.CLICK, scrolling);
 			
-			stage.addEventListener(MouseEvent.CLICK, getTarget);
+			//stage.addEventListener(MouseEvent.CLICK, getTarget);
 
 			trace("ready for login");
 			
 		}
 		
-		//scrolling
+		private function dashboardHandler(event:MouseEvent):void
+		{
+			trace();
+			if(event.target.name == "redirDash")
+			{
+				dashboard.visible = false;
+				main.visible = true;
+			}
+			
+			if(event.target.name == "smsDash"){}
+			if(event.target.name == "cdrDash"){}
+			if(event.target.name == "backBtn")
+			{
+				dashboard.visible = true;
+				main.visible = false;
+			}
+		}
+		
 		private function getTarget(event:MouseEvent):void
 		{
 			trace(event.target.name);
@@ -182,7 +208,7 @@
 		{
 			if(event.target.name == "phoneIcon"){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = "";main.timeContainer.switcher.Delay.text = "";};
 			if(event.target.name == "voicemailIcon"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";main.timeContainer.switcher.Delay.text = "";};
-			if(event.target.name == "fax2mailIcon"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text ="s umleiten auf Fax2Mail";main.timeContainer.switcher.Delay.text = "";};
+			if(event.target.name == "fax2mailIcon"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text ="s umleiten auf Fax2Mail";main.timeContainer.switcher.Delay.text = "0";};
 			if(event.target.name == "Check"){main.timeContainer.Check.play();}
 		}
 		
@@ -207,8 +233,8 @@
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			
-			TweenMax.to(main.busyContainer, 0.2, {y:118, ease:Cubic.easeInOut});
-			TweenMax.to(main.unregContainer, 0.2, {y:168, ease:Cubic.easeInOut});
+			TweenMax.to(main.busyContainer, 0.2, {y:108, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer, 0.2, {y:158, ease:Cubic.easeInOut});
 		}
 		
 		private function tempHandler2(event:MouseEvent):void
@@ -217,8 +243,8 @@
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			
-			TweenMax.to(main.busyContainer, 0.2, {y:5, ease:Cubic.easeInOut});
-			TweenMax.to(main.unregContainer, 0.2, {y:105, ease:Cubic.easeInOut});
+			TweenMax.to(main.busyContainer, 0.2, {y:-5, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer, 0.2, {y:95, ease:Cubic.easeInOut});
 		}
 		
 		private function tempHandler3(event:MouseEvent):void
@@ -227,17 +253,16 @@
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
 			
-			TweenMax.to(main.busyContainer, 0.2, {y:5, ease:Cubic.easeInOut});
-			TweenMax.to(main.unregContainer, 0.2, {y:55, ease:Cubic.easeInOut});
+			TweenMax.to(main.busyContainer, 0.2, {y:-5, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer, 0.2, {y:45, ease:Cubic.easeInOut});
 		}
 
 		//handle listeners, builds j_session, posts and requests redirection.html
 		private function transmit(event:MouseEvent):void
 		{
 			//UI management
-			//stage.addEventListener(Event.ENTER_FRAME, loop);
-			//main.addEventListener(TransformGestureEvent.GESTURE_SWIPE, onSwipe);
 			loginBtn.removeEventListener(MouseEvent.CLICK, transmit);
+			
 			TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
 			TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
 			TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
@@ -268,14 +293,18 @@
 
 			trace("logging in" );
 
-			
 			//get redirection.html, onComplete -> parseRedir
 			function completeHandler(event:Event = null):void
 			{
-				trace("log in complete, getting redirection");
+				testingString = j_loader.data;
+				trace(testingString);
+				
+				trace("log in complete");
+				trace("getting redirection");
 				
 				redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);
 				loadF2M();
+				
 				function redirectionHandler(event:Event):void
 				{
 					redirectionData = new String(redirectionLoader.data);
@@ -286,23 +315,7 @@
 			}
 
 		}
-		
-		/*swiping
-		private function onSwipe(event:TransformGestureEvent):void
-		{
-			trace("onSwipe");
-			if(event.offsetX == 1 && ind > 0)
-				ind--;
-			if(event.offsetX == -1 && ind < 4)
-				ind++;
-		}
-		
-		private function loop(event:Event):void
-		{
-			currX += (ind*1024 - currX * 0.15);
-			main.scrollRect = new Rectangle(currX, 0, 1024, 768);
-		}
-		*/
+
 		//manual parsing of .html
 		private function parseRedir(event:Event = null):void
 		{
@@ -326,9 +339,9 @@
 			trace("parsing redirection");
 			
 			//UI management, check if main at correct position
-			if(main.y > 500)
+			if(dashboard.y > 500)
 			{
-				TweenMax.to(main, 0.5, {delay:0.3,autoAlpha:1, y:"-1000", ease:Cubic.easeInOut});
+				TweenMax.to(dashboard, 0.5, {delay:0.3,autoAlpha:1, y:"-1000", ease:Cubic.easeInOut});
 				TweenMax.to(loading, 0.5, {autoAlpha:0, y:-200, ease:Cubic.easeInOut});
 				//TweenMax.to(options, 0.5, {delay:0.3,autoAlpha:1, y:stage.stageHeight, ease:Cubic.easeInOut});
 			}
@@ -451,6 +464,7 @@
 		private function UItoV(event:Event = null):void
 		{
 			r_vars = new URLVariables();
+			f2m_vars = new URLVariables();
 			
 			r_vars._uml_normal1 = "visible";
 			r_vars._uml_busy = "visible";
@@ -496,6 +510,13 @@
 				if(main.unregContainer.switcher.currentFrame == 7){r_vars.choiceBackuprouting = "2"}
 			}
 			
+			if (r_vars.choice1 == "3")
+			{
+				f2m_vars.reload = "";
+				f2m_vars.selectedPhoneNumberId =  numberID;
+				f2m_vars.fax2emailEmail = main.timeContainer.selecter.fax2mailIcon.email.text;
+			}
+			
 			if (main.timeContainer.Check.currentFrame == 2){}
 			if (main.busyContainer.Check.currentFrame == 2){}
 			if (main.unregContainer.Check.currentFrame == 2){}
@@ -509,11 +530,10 @@
 			j_loader.addEventListener(Event.COMPLETE, transmitRedir2);
 			
 			main.saveBtn.removeEventListener(MouseEvent.CLICK, transmitRedir);
-			trace(transmitRedir);
 			main.saveBtn.btn_txt.text = "Saving";
+			
 			//UItoV flush
 			UItoV();
-
 			
 			function transmitRedir2(event:Event = null):void
 			{
@@ -528,34 +548,35 @@
 				
 				if(r_vars.choice1 == "3")
 				{
-					transmitF2M();
+					f2m_send.method = URLRequestMethod.POST;
+					f2m_send.data = f2m_vars;
+					
+					f2m_loader.load(f2m_send);
+					trace("sending f2m");
 				}
 				
 				//reget redir on complete r_vars post...
 				function getRedir(event:Event)
 				{
+					trace("rloader", r_loader.data);
 					function redirectionHandler(event:Event):void
 					{
+						trace("redirdata",redirectionData);
 						//...and reparseRedir on complete
 						redirectionData = new String(redirectionLoader.data);
 						j_loader.removeEventListener(Event.COMPLETE, transmitRedir2);
 						parseRedir();
-						
 					}
 					redirectionLoader.load(redirectionURLRequest);
 				}
 			}
 		}
 		
-		private function transmitF2M(event:Event = null):void
-		{
-			
-		}
-		
 		private function loadF2M(event:Event = null):void
 		{
 			f2mLoader.addEventListener(Event.COMPLETE, parseF2M);
 			f2mLoader.load(f2mURLRequest);
+			trace("getting f2m");
 			
 			function parseF2M(event:Event = null):void
 			{
@@ -570,7 +591,6 @@
 		
 		private function SMS(event:MouseEvent)
 		{
-			/*
 			j_loader.load(j_send);
 			
 			j_loader.addEventListener(Event.COMPLETE, sendSMS);
@@ -596,7 +616,6 @@
 					trace("SMS Sent");
 				}
 			}
-			*/
 		}
 	}
 }
