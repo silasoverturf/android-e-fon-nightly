@@ -114,7 +114,7 @@
 		private var featureStripper:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="/;
 		
 		//SMS
-		private var sms_vars:URLVariables;
+		private var sms_vars:URLVariables = new URLVariables;
 		private var sms_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/SMSSender.html");
 		private var sms_loader:URLLoader = new URLLoader;
 		
@@ -178,13 +178,6 @@
 
 			//initial listeners;
 			loginBtn.addEventListener(MouseEvent.CLICK, transmit);
-			main.timeContainer.addEventListener(MouseEvent.CLICK, tempHandler);
-			main.busyContainer.addEventListener(MouseEvent.CLICK, tempHandler2);
-			main.unregContainer.addEventListener(MouseEvent.CLICK, tempHandler3);
-			
-			main.timeContainer.addEventListener(MouseEvent.CLICK, targetTest);
-			main.busyContainer.addEventListener(MouseEvent.CLICK, targetTest2);
-			main.unregContainer.addEventListener(MouseEvent.CLICK, targetTest3);
 			
 			dashboard.addEventListener(MouseEvent.CLICK, dashboardHandler);
 			main.addEventListener(MouseEvent.CLICK, dashboardHandler);
@@ -218,7 +211,16 @@
 			{
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				
 				main.gotoAndStop(1);
+				
+				main.timeContainer.addEventListener(MouseEvent.CLICK, tempHandler);
+				main.busyContainer.addEventListener(MouseEvent.CLICK, tempHandler2);
+				main.unregContainer.addEventListener(MouseEvent.CLICK, tempHandler3);
+			
+				main.timeContainer.addEventListener(MouseEvent.CLICK, targetTest);
+				main.busyContainer.addEventListener(MouseEvent.CLICK, targetTest2);
+				main.unregContainer.addEventListener(MouseEvent.CLICK, targetTest3);
 				VtoUI();
 			}
 			
@@ -226,7 +228,10 @@
 			{
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				
 				main.gotoAndStop(2);
+				
+				main.sendBtn.addEventListener(MouseEvent.CLICK, SMS);
 			}
 			
 			if(event.target.name == "cdrDash")
@@ -656,19 +661,23 @@
 			sms_vars.numberOfRecipients = "1"
 			sms_vars.numberOfMessageToSend = "1"
 			sms_vars.senderNumber = "anonymous"
-
+			trace("authing");
 			
 			function sendSMS(event:Event = null):void
 			{
+				trace("sending");
 				sms_send.method = URLRequestMethod.POST;
 				sms_send.data = sms_vars;
 				
+				j_loader.removeEventListener(Event.COMPLETE, sendSMS);
 				sms_loader.addEventListener(Event.COMPLETE, SMSsent);
 				
 				function SMSsent(event:Event = null):void
 				{
 					trace("SMS Sent");
+					trace(sms_loader.data);
 				}
+				sms_loader.load(sms_send);
 			}
 		}
 		
