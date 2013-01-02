@@ -34,6 +34,10 @@
 		//white space remover
 		private var rex:RegExp = /[\s\r\n]*/gim;
 		
+		//functionality trackers
+		private var queueActive:Boolean;
+		private var shortDialsActive:Boolean;
+		
 		//session vars
 		private var j_session:URLVariables;
 		private var j_send:URLRequest;
@@ -43,6 +47,9 @@
 		private var redirectionData:String;
 		private var redirectionLoader:URLLoader = new URLLoader();
 		private var redirectionURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");//?selectedPhoneNumberId=selectedNumber;
+		
+		//cdr local
+		private var cdrData:String;
 		
 		//f2m loaders
 		private var f2mData:String;
@@ -111,6 +118,14 @@
 		private var sms_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/SMSSender.html");
 		private var sms_loader:URLLoader = new URLLoader;
 		
+		//Queue
+		private var queue_vars:URLVariables;
+		private var queue_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/callCenterQueueMemberStatus.html");
+		private var queue_loader:URLLoader = new URLLoader;
+		
+		private var queueData:String;
+		private var queueAgent:Array;
+		
 		public function build1()
 		{
 			//stage aligment
@@ -147,7 +162,7 @@
 			dashboard.scaleY = stage.stageHeight/ 480;
 			
 			main.x = stage.stageWidth / 2;
-			main.y = stage.stageHeight * 0.3;
+			main.y = stage.stageHeight * 0.03;
 			main.scaleX = stage.stageWidth / 320;
 			main.scaleY = stage.stageHeight / 480;
 
@@ -157,6 +172,7 @@
 			loading.scaleY = stage.stageHeight / 480;
 			
 			//hide main
+			main.stop();
 			main.visible = false;
 			TweenMax.to(dashboard, 0 , {autoAlpha:0, y:"+1000"})
 
@@ -172,6 +188,8 @@
 			
 			dashboard.addEventListener(MouseEvent.CLICK, dashboardHandler);
 			main.addEventListener(MouseEvent.CLICK, dashboardHandler);
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+
 			//options.addEventListener(MouseEvent.CLICK, scrolling);
 			
 			//stage.addEventListener(MouseEvent.CLICK, getTarget);
@@ -180,21 +198,48 @@
 			
 		}
 		
+		//backBtn handler
+		protected function onKeyDown(event:KeyboardEvent):void
+		{
+		if( event.keyCode == Keyboard.BACK )
+			{
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				TweenMax.to(dashboard, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+			}
+		}
+		
+		//dashboard UI managment
 		private function dashboardHandler(event:MouseEvent):void
 		{
 			trace();
 			if(event.target.name == "redirDash")
 			{
-				dashboard.visible = false;
-				main.visible = true;
+				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				main.gotoAndStop(1);
+				VtoUI();
 			}
 			
-			if(event.target.name == "smsDash"){}
-			if(event.target.name == "cdrDash"){}
+			if(event.target.name == "smsDash")
+			{
+				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				main.gotoAndStop(2);
+			}
+			
+			if(event.target.name == "cdrDash")
+			{
+				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				main.gotoAndStop(3);
+			}
+			
 			if(event.target.name == "backBtn")
 			{
-				dashboard.visible = true;
-				main.visible = false;
+				TweenMax.to(dashboard, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 			}
 		}
 		
@@ -203,7 +248,7 @@
 			trace(event.target.name);
 		}
 		
-		//targetTest,2,3 temporary handlers until testing is done
+		//redirection UI management
 		private function targetTest(event:MouseEvent):void
 		{
 			if(event.target.name == "phoneIcon"){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = "";main.timeContainer.switcher.Delay.text = "";};
@@ -226,15 +271,15 @@
 			if(event.target.name == "Check"){main.unregContainer.Check.play();}
 		}
 		
-		//tempHandlers,2,3 temporary handlers until testing is done
+		//redirection UI management
 		private function tempHandler(event:MouseEvent):void
 		{
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			
-			TweenMax.to(main.busyContainer, 0.2, {y:108, ease:Cubic.easeInOut});
-			TweenMax.to(main.unregContainer, 0.2, {y:158, ease:Cubic.easeInOut});
+			TweenMax.to(main.busyContainer, 0.2, {y:238, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer, 0.2, {y:288, ease:Cubic.easeInOut});
 		}
 		
 		private function tempHandler2(event:MouseEvent):void
@@ -243,8 +288,8 @@
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			
-			TweenMax.to(main.busyContainer, 0.2, {y:-5, ease:Cubic.easeInOut});
-			TweenMax.to(main.unregContainer, 0.2, {y:95, ease:Cubic.easeInOut});
+			TweenMax.to(main.busyContainer, 0.2, {y:125, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer, 0.2, {y:225, ease:Cubic.easeInOut});
 		}
 		
 		private function tempHandler3(event:MouseEvent):void
@@ -253,8 +298,8 @@
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
 			
-			TweenMax.to(main.busyContainer, 0.2, {y:-5, ease:Cubic.easeInOut});
-			TweenMax.to(main.unregContainer, 0.2, {y:45, ease:Cubic.easeInOut});
+			TweenMax.to(main.busyContainer, 0.2, {y:125, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer, 0.2, {y:175, ease:Cubic.easeInOut});
 		}
 
 		//handle listeners, builds j_session, posts and requests redirection.html
@@ -296,8 +341,8 @@
 			//get redirection.html, onComplete -> parseRedir
 			function completeHandler(event:Event = null):void
 			{
-				testingString = j_loader.data;
-				trace(testingString);
+				cdrData = j_loader.data;
+				CDR();				
 				
 				trace("log in complete");
 				trace("getting redirection");
@@ -310,6 +355,11 @@
 					redirectionData = new String(redirectionLoader.data);
 					j_loader.removeEventListener(Event.COMPLETE, completeHandler);
 					parseRedir();
+					
+					//check for functionality
+					if(redirectionData.search("Queue") > -1){queueActive = true;}
+					if(redirectionData.search("shortDials") > -1){shortDialsActive = true;}
+					trace(queueActive, shortDialsActive);
 				}
 				redirectionLoader.load(redirectionURLRequest);
 			}
@@ -435,6 +485,11 @@
 		//UI flushing
 		private function VtoUI(event:Event = null):void
 		{
+			//reset
+			main.timeContainer.switcher.gotoAndStop(2);
+			main.busyContainer.switcher.gotoAndStop(4);
+			main.unregContainer.switcher.gotoAndStop(6);
+			
 			//checks
 			if (timeRedir[0] == 1){main.timeContainer.Check.gotoAndStop(1);}
 			if (timeRedir[0] == 0){main.timeContainer.Check.gotoAndStop(2);}
@@ -456,6 +511,7 @@
 			if (unregRedir[1] == 1){main.unregContainer.switcher.gotoAndStop(6);main.unregContainer.switcher.destination.text = unregRedir[2];}
 			if (unregRedir[1] == 2){main.unregContainer.switcher.gotoAndStop(7);main.unregContainer.switcher.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
 			
+			//read savingBtn listeners
 			main.saveBtn.addEventListener(MouseEvent.CLICK, transmitRedir);
 			main.saveBtn.btn_txt.text = "Save";
 		}
@@ -463,9 +519,11 @@
 		//UI reverse flushing
 		private function UItoV(event:Event = null):void
 		{
+			//reset r_ and f2m_vars
 			r_vars = new URLVariables();
 			f2m_vars = new URLVariables();
 			
+			//r_vars static constructor
 			r_vars._uml_normal1 = "visible";
 			r_vars._uml_busy = "visible";
 			r_vars._uml_backuprouting = "visible";
@@ -525,6 +583,7 @@
 		//r_vars posting
 		private function transmitRedir(event:MouseEvent):void
 		{
+			//reauthorize
 			j_loader.load(j_send);
 
 			j_loader.addEventListener(Event.COMPLETE, transmitRedir2);
@@ -537,6 +596,7 @@
 			
 			function transmitRedir2(event:Event = null):void
 			{
+				//set method and data
 				r_send.method = URLRequestMethod.POST;
 				r_send.data = r_vars;
 				
@@ -546,6 +606,7 @@
 				//post r_vars
 				r_loader.load(r_send);
 				
+				//if f2m chosen, post F2M email address
 				if(r_vars.choice1 == "3")
 				{
 					f2m_send.method = URLRequestMethod.POST;
@@ -558,16 +619,9 @@
 				//reget redir on complete r_vars post...
 				function getRedir(event:Event)
 				{
-					trace("rloader", r_loader.data);
-					function redirectionHandler(event:Event):void
-					{
-						trace("redirdata",redirectionData);
-						//...and reparseRedir on complete
-						redirectionData = new String(redirectionLoader.data);
-						j_loader.removeEventListener(Event.COMPLETE, transmitRedir2);
-						parseRedir();
-					}
-					redirectionLoader.load(redirectionURLRequest);
+					j_loader.removeEventListener(Event.COMPLETE, transmitRedir2);
+					redirectionData = new String(r_loader.data);
+					parseRedir();
 				}
 			}
 		}
@@ -589,7 +643,7 @@
 			}
 		}
 		
-		private function SMS(event:MouseEvent)
+		private function SMS(event:MouseEvent):void
 		{
 			j_loader.load(j_send);
 			
@@ -616,6 +670,20 @@
 					trace("SMS Sent");
 				}
 			}
+		}
+		
+		private function CDR(event:Event = null):void
+		{
+			//clean cdr data
+			cdrData = cdrData.replace(rex, "");
+			//trace(cdrData);
+		}
+		
+		private function Queue(event:Event = null):void
+		{
+			//clean queue data
+			queueData = queueData.replace(rex, "")
+			trace(queueData);
 		}
 	}
 }
