@@ -131,7 +131,9 @@
 		private var accounts_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/accounts.html");
 		private var accounts_loader:URLLoader = new URLLoader;
 		
+		private var accounts:Array = [];
 		private var accountsData:String;
+		private var accountsSniffer:RegExp = /accountId=([0-9]{0,9})/g;
 		
 		public function build1()
 		{
@@ -377,7 +379,6 @@
 					redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);
 					loadF2M();
 					loadSMS();
-					loadAccounts();
 				
 					function redirectionHandler(event:Event):void
 					{
@@ -391,6 +392,7 @@
 						redirectionData = new String(redirectionLoader.data);
 						j_loader.removeEventListener(Event.COMPLETE, completeHandler);
 						parseRedir();
+						loadAccounts();
 					
 						//check for functionality
 						if(redirectionData.search("Queue") > -1){queueActive = true;}
@@ -746,12 +748,20 @@
 			accounts_loader.addEventListener(Event.COMPLETE, parseAccounts);
 			accounts_loader.load(accounts_send);
 			trace("getting accounts");
-			
+				
 			function parseAccounts(event:Event):void
 			{
 				accountsData = new String(accounts_loader.data);
 				accountsData = accountsData.replace(rex,"");
-				//trace(accountsData);
+				
+				//accountsResult = [];				
+				var accountsResult:Array = accountsSniffer.exec(accountsData);
+				while (accountsResult != null)
+				{
+					accounts.push(accountsResult[1]);
+					accountsResult = accountsSniffer.exec(accountsData);
+				}
+				trace(accounts);
 			}
 		}
 	}
