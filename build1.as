@@ -9,7 +9,6 @@
 	import flash.net.*;
 	import flash.events.*;
 	import flash.ui.*;
-	import flash.geom.Rectangle;
 	
 	trace("classes imported");
 
@@ -118,6 +117,8 @@
 		private var sms_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/SMSSender.html");
 		private var sms_loader:URLLoader = new URLLoader;
 		
+		private var smsData:String;
+		
 		//Queue
 		private var queue_vars:URLVariables;
 		private var queue_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/callCenterQueueMemberStatus.html");
@@ -125,6 +126,12 @@
 		
 		private var queueData:String;
 		private var queueAgent:Array;
+		
+		//Accounts
+		private var accounts_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/accounts.html");
+		private var accounts_loader:URLLoader = new URLLoader;
+		
+		private var accountsData:String;
 		
 		public function build1()
 		{
@@ -174,6 +181,8 @@
 			//hide main
 			main.stop();
 			main.visible = false;
+			main.alpha = 0;
+			
 			TweenMax.to(dashboard, 0 , {autoAlpha:0, y:"+1000"})
 
 			//initial listeners;
@@ -182,7 +191,7 @@
 			dashboard.addEventListener(MouseEvent.CLICK, dashboardHandler);
 			main.addEventListener(MouseEvent.CLICK, dashboardHandler);
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
-
+				
 			//options.addEventListener(MouseEvent.CLICK, scrolling);
 			
 			//stage.addEventListener(MouseEvent.CLICK, getTarget);
@@ -192,7 +201,7 @@
 		}
 		
 		//backBtn handler
-		protected function onKeyDown(event:KeyboardEvent):void
+		private function onKeyDown(event:KeyboardEvent):void
 		{
 		if( event.keyCode == Keyboard.BACK )
 			{
@@ -231,6 +240,7 @@
 				
 				main.gotoAndStop(2);
 				
+				main.sendBtn.btn_txt.text = "Senden"
 				main.sendBtn.addEventListener(MouseEvent.CLICK, SMS);
 			}
 			
@@ -337,38 +347,59 @@
 			//build server j_session
 			j_session.j_username = userID_local;
 			j_session.j_password = password_local;
-
+			
 			//post j_session
 			j_loader.load(j_send);
-
+			
 			trace("logging in" );
 
 			//get redirection.html, onComplete -> parseRedir
 			function completeHandler(event:Event = null):void
 			{
-				cdrData = j_loader.data;
-				CDR();				
-				
-				trace("log in complete");
-				trace("getting redirection");
-				
-				redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);
-				loadF2M();
-				
-				function redirectionHandler(event:Event):void
+				if(j_loader.data.search("password") > -1)
 				{
-					redirectionData = new String(redirectionLoader.data);
-					j_loader.removeEventListener(Event.COMPLETE, completeHandler);
-					parseRedir();
+					login.statusText.text = "Please check your password";
 					
-					//check for functionality
-					if(redirectionData.search("Queue") > -1){queueActive = true;}
-					if(redirectionData.search("shortDials") > -1){shortDialsActive = true;}
-					trace(queueActive, shortDialsActive);
-				}
-				redirectionLoader.load(redirectionURLRequest);
-			}
+					loginBtn.addEventListener(MouseEvent.CLICK, transmit);
+			
+					TweenMax.to(header, 0.8, {autoAlpha:1, y:stage.stageHeight * 0.19, ease:Strong.easeInOut});
+					TweenMax.to(login, 0.8, {autoAlpha:1, delay:0.1, y:stage.stageHeight * 0.5, ease:Cubic.easeInOut});
+					TweenMax.to(loginBtn, 0.8, {autoAlpha:1, delay:0.2, y:stage.stageHeight * 0.7, ease:Cubic.easeInOut});
+					TweenMax.to(loading, 0.8, {autoAlpha:0, ease:Cubic.easeInOut});
+				
+				}else{
+					cdrData = j_loader.data;
+					CDR();				
+				
+					trace("log in complete");
+					trace("getting redirection");
+				
+					redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);
+					loadF2M();
+					loadSMS();
+					loadAccounts();
+				
+					function redirectionHandler(event:Event):void
+					{
+						removeChild(header);
+						removeChild(login);
+						removeChild(loginBtn);
+						
+						main.visible = true;
 
+						
+						redirectionData = new String(redirectionLoader.data);
+						j_loader.removeEventListener(Event.COMPLETE, completeHandler);
+						parseRedir();
+					
+						//check for functionality
+						if(redirectionData.search("Queue") > -1){queueActive = true;}
+						if(redirectionData.search("shortDials") > -1){shortDialsActive = true;}
+						trace(queueActive, shortDialsActive);
+					}
+					redirectionLoader.load(redirectionURLRequest);
+				}
+			}
 		}
 
 		//manual parsing of .html
@@ -376,9 +407,9 @@
 		{
 			//reset all local vars
 			featureArray = [];
-			timeRedir = [0,0];
-			busyRedir = [0,0];
-			unregRedir = [0,0];
+			timeRedir = [0,0,""];
+			busyRedir = [0,0,""];
+			unregRedir = [0,0,""];
 			redirChoice = ["","","",];
 			timeDelay = null;
 			dumpRedir = [];
@@ -476,7 +507,6 @@
 			//clean up feature vars
 			for each(var featureVar in featureArray)
 			{
-				
 				dumpContainer = featureArray[i3];
 				dumpContainer = dumpContainer.replace(featureStripper,"");
 				featureArray[i3] = dumpContainer;
@@ -505,7 +535,7 @@
 			
 			//timeRedir flush
 			if (timeRedir[1] == 1){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = timeRedir[2];main.timeContainer.switcher.Delay.text = timeRedir[3];}
-			if (timeRedir[1] == 2){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";main.timeContainer.switcher.Delay.text = timeRedir[3];}
+			if (timeRedir[1] == 2){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";}
 			if (timeRedir[1] == 3){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Fax2Mail";main.timeContainer.switcher.Delay.text = timeRedir[3];}
 			
 			//busyRedir flush
@@ -517,7 +547,7 @@
 			if (unregRedir[1] == 2){main.unregContainer.switcher.gotoAndStop(7);main.unregContainer.switcher.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
 			
 			//read savingBtn listeners
-			main.saveBtn.addEventListener(MouseEvent.CLICK, transmitRedir);
+			main.saveBtn.addEventListener(MouseEvent.CLICK, reauth);
 			main.saveBtn.btn_txt.text = "Save";
 		}
 		
@@ -586,20 +616,20 @@
 		}
 
 		//r_vars posting
-		private function transmitRedir(event:MouseEvent):void
+		private function reauth(event:MouseEvent):void
 		{
 			//reauthorize
 			j_loader.load(j_send);
 
-			j_loader.addEventListener(Event.COMPLETE, transmitRedir2);
+			j_loader.addEventListener(Event.COMPLETE, transmitRedir);
 			
-			main.saveBtn.removeEventListener(MouseEvent.CLICK, transmitRedir);
+			main.saveBtn.removeEventListener(MouseEvent.CLICK, reauth);
 			main.saveBtn.btn_txt.text = "Saving";
 			
 			//UItoV flush
 			UItoV();
 			
-			function transmitRedir2(event:Event = null):void
+			function transmitRedir(event:Event = null):void
 			{
 				//set method and data
 				r_send.method = URLRequestMethod.POST;
@@ -624,7 +654,7 @@
 				//reget redir on complete r_vars post...
 				function getRedir(event:Event)
 				{
-					j_loader.removeEventListener(Event.COMPLETE, transmitRedir2);
+					j_loader.removeEventListener(Event.COMPLETE, transmitRedir);
 					redirectionData = new String(r_loader.data);
 					parseRedir();
 				}
@@ -639,12 +669,25 @@
 			
 			function parseF2M(event:Event = null):void
 			{
-				trace("parsing f2m");
 				f2mData = new String(f2mLoader.data);
 				f2mData = f2mData.replace(rex,"");
 				f2mEmail = f2mSniffer.exec(f2mData);
 				f2mEmail = f2mEmail.replace(f2mStripper,"")
 				main.timeContainer.selecter.fax2mailIcon.email.text = f2mEmail;
+				trace(f2mEmail);
+			}
+		}
+		
+		private function loadSMS(event:Event = null):void
+		{
+			sms_loader.addEventListener(Event.COMPLETE, parseSMS);
+			sms_loader.load(sms_send);
+			trace("getting sms");
+			
+			function parseSMS(event:Event = null):void
+			{
+				smsData = new String(sms_loader.data);
+				smsData = smsData.replace(rex,"");
 			}
 		}
 		
@@ -661,7 +704,9 @@
 			sms_vars.numberOfRecipients = "1"
 			sms_vars.numberOfMessageToSend = "1"
 			sms_vars.senderNumber = "anonymous"
-			trace("authing");
+			
+			main.sendBtn.btn_txt.text = "Warten"
+			main.sendBtn.removeEventListener(MouseEvent.CLICK, SMS);
 			
 			function sendSMS(event:Event = null):void
 			{
@@ -675,7 +720,8 @@
 				function SMSsent(event:Event = null):void
 				{
 					trace("SMS Sent");
-					trace(sms_loader.data);
+					main.sendBtn.btn_txt.text = "Senden"
+					main.sendBtn.addEventListener(MouseEvent.CLICK, SMS);
 				}
 				sms_loader.load(sms_send);
 			}
@@ -692,7 +738,21 @@
 		{
 			//clean queue data
 			queueData = queueData.replace(rex, "")
-			trace(queueData);
+			//trace(queueData);
+		}
+		
+		private function loadAccounts(event:Event = null):void
+		{
+			accounts_loader.addEventListener(Event.COMPLETE, parseAccounts);
+			accounts_loader.load(accounts_send);
+			trace("getting accounts");
+			
+			function parseAccounts(event:Event):void
+			{
+				accountsData = new String(accounts_loader.data);
+				accountsData = accountsData.replace(rex,"");
+				//trace(accountsData);
+			}
 		}
 	}
 }
