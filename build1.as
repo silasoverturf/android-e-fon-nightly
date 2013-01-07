@@ -120,7 +120,7 @@
 		private var smsData:String;
 		
 		//Queue
-		private var queue_vars:URLVariables;
+		private var queue_vars:URLVariables;//memberID+10->in,20->wait,30->pause,40->out
 		private var queue_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/callCenterQueueMemberStatus.html");
 		private var queue_loader:URLLoader = new URLLoader;
 		
