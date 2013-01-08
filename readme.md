@@ -12,7 +12,7 @@ As this is the nightly repo the code may be sloppy, commented and not minified. 
 ###Limitations
 * Currently only user with conventional USER roles (ROLE_USER, ROLE_CDR) are properly supported
 * If F2M is not configured, redirection.html data will not be parsed properly
-
+* If a diversion has never been configured for the number, rediretion.html data will not be parsed properly
 
 ##How to install on android
 
@@ -28,5 +28,5 @@ Will be updated once iOS nightly build is ready.
 
 ##Program Concept
 
-The app is compiled with Flash Pro currently with Air 3.5. UI Structure is defined in the .fla file and all other functions like UI flushing, variable posting and .html parsing are handled by the .as class file. When compiled to Android with Air the Actionscript is interpreted by Adobe's AVM. On iOS all functions are handled by the LLVM compiled by Flash Pro.
+The app is compiled with Flash Pro, currently with Air 3.5. UI Structure is defined in the .fla file and all other functions like UI flushing, variable posting and .html parsing are handled by the .as class file. When compiled to Android with Air the Actionscript is interpreted by Adobe's AVM. On iOS all functions are handled by the LLVM compiled by Flash Pro.
 
