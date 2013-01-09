@@ -99,13 +99,13 @@
 		private var optionStripper:RegExp = /optionvalue="/;
 		
 		//delay & choice regexp
-		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="[0-9]{3,12}/g;
+		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="[0-9]{0,15}/g;
 		private var bloatStripper:RegExp = /(?:phone1|phone3|backupNumber)"value="/g;
 		
 		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(?:Normal|Busy|Backup)\(\)(?:"checked="checked"|)/g;
 		
 		//destination regexp
-		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{1,2}/;
+		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{0,2}/;
 		private var numberStripper:RegExp = /name="delay1"size="5"value="/;
 		
 		//featureIDs regexp
