@@ -17,6 +17,8 @@
 		//set multitouch mode for MouseEvents
 		Multitouch.inputMode=MultitouchInputMode.TOUCH_POINT;
 		
+		////Global misc. variables////
+		
 		//swiping
 		private var ind:int = 0;
 		private var currX:Number = 0;
@@ -37,41 +39,99 @@
 		private var queueActive:Boolean;
 		private var shortDialsActive:Boolean;
 		
-		//session vars
-		private var j_session:URLVariables;
-		private var j_send:URLRequest;
-		private var j_loader:URLLoader;
-
-		//redirection loaders
-		private var redirectionData:String;
-		private var redirectionLoader:URLLoader = new URLLoader();
-		private var redirectionURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");//?selectedPhoneNumberId=selectedNumber;
+		//intermediate dump vars
+		private var dumpRedir:Array = [];
+		private var dumpContainer:String;	
 		
-		//cdr local
-		private var cdrData:String;
-		
-		//f2m loaders
-		private var f2mData:String;
-		private var f2mLoader:URLLoader = new URLLoader();
-		private var f2mURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/notifications.html");//?selectedPhoneNumberId=selectedNumber;
-		
-		//f2m posters
-		private var f2m_vars:URLVariables;
-		private var f2m_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/notifications.html");//?selectedPhoneNumberId=selectedNumber;
-		private var f2m_loader:URLLoader = new URLLoader;
-		
-		//f2m regexp
-		private var f2mSniffer:RegExp = /name="fax2emailEmail"value="[0-9a-zA-Z][-._a-zA-Z0-9]*@(?:[0-9a-zA-Z][-._0-9a-zA-Z]*\.)+[a-zA-Z]{2,4}/;
-		private var f2mStripper:RegExp = /name="fax2emailEmail"value="/;
-		
-		//f2m local
-		private var f2mEmail:String;
-		private var f2mDelivery:String;
-		
+		//T
 		private var testingArray:Array = ["testing"];
 		private var testingString:String = "";
 		
-		//localized redirection vars
+		/*variable assigning designation
+		j_session
+		redirection
+		fax2mail
+		sms
+		queue
+		
+		*///network stack variables////
+		
+		//url requests
+		private var j_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/j_acegi_security_check");
+		
+		private var redirectionURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");//?selectedPhoneNumberId=selectedNumber;
+		private var r_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");
+		
+		private var f2mURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/notifications.html");//?selectedPhoneNumberId=selectedNumber;
+		private var f2m_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/notifications.html");//?selectedPhoneNumberId=selectedNumber;
+		
+		private var sms_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/SMSSender.html");
+		private var queue_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/callCenterQueueMemberStatus.html");
+		private var accounts_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/accounts.html");
+		
+		//url loaders
+		private var j_loader:URLLoader;
+		
+		private var redirectionLoader:URLLoader = new URLLoader;
+		private var r_loader:URLLoader = new URLLoader;
+		
+		private var f2mLoader:URLLoader = new URLLoader;
+		private var f2m_loader:URLLoader = new URLLoader;
+		
+		private var sms_loader:URLLoader = new URLLoader;
+		private var queue_loader:URLLoader = new URLLoader;
+		private var accounts_loader:URLLoader = new URLLoader;
+
+		//url variables
+		private var j_session:URLVariables;
+		
+		private var r_vars:URLVariables;
+		private var f2m_vars:URLVariables;
+		private var sms_vars:URLVariables = new URLVariables;
+		private var queue_vars:URLVariables;//memberID+10->in,20->wait,30->pause,40->out
+
+		//raw .html data (URLLoader.data)
+		private var cdrData:String;
+		private var redirectionData:String;
+		private var f2mData:String;
+		private var smsData:String;
+		private var queueData:String;
+		private var accountsData:String;
+		
+		////RegExp defenition////
+		
+		//matches selectedNumber ID
+		private var optionSniffer:RegExp = /optionvalue="[0-9]{4,8}/;
+		private var optionStripper:RegExp = /optionvalue="/;
+		
+		//matches destinations
+		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="([0-9]{0,15})/g;
+		private var bloatStripper:RegExp = /(?:phone1|phone3|backupNumber)"value="/g;
+		
+		//matches checked
+		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(?:Normal|Busy|Backup)\(\)(?:"checked="checked"|)/g;
+		
+		//matches timeRedir delay
+		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{0,2}/;
+		private var numberStripper:RegExp = /name="delay1"size="5"value="/;
+		
+		//matches featureIDs
+		private var featureSniffer:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="[0-9]{1,10}/g;
+		private var featureStripper:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="/;
+		
+		//matches F2M email to result[1];
+		private var f2mSniffer:RegExp = /name="fax2emailEmail"value="([0-9a-zA-Z][-._a-zA-Z0-9]*@(?:[0-9a-zA-Z][-._0-9a-zA-Z]*\.)+[a-zA-Z]{2,4})/;
+		
+		//matches asssigned accounts to result[1]
+		private var accountsSniffer:RegExp = /accountId=([0-9]{0,9})/g;
+		
+		////Local variable defenition////
+		
+		//f2m local
+		private var f2mEmail:Array;
+		private var f2mDelivery:String;
+		
+		//redirection vars
 		private var selectedNumber:String;
 		private var numberID:String;
 		
@@ -85,55 +145,11 @@
 		
 		private var redirChoice:Array = ["","","",];// [timeChoice, busyChoice, unregChoice]
 		
-		//intermediate dump vars
-		private var dumpRedir:Array = [];
-		private var dumpContainer:String;
-
-		//redirection post vars
-		private var r_vars:URLVariables;
-		private var r_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");
-		private var r_loader:URLLoader = new URLLoader;
-		
-		//selectedNumber regexp
-		private var optionSniffer:RegExp = /optionvalue="[0-9]{4,8}/;
-		private var optionStripper:RegExp = /optionvalue="/;
-		
-		//delay & choice regexp
-		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="[0-9]{0,15}/g;
-		private var bloatStripper:RegExp = /(?:phone1|phone3|backupNumber)"value="/g;
-		
-		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(?:Normal|Busy|Backup)\(\)(?:"checked="checked"|)/g;
-		
-		//destination regexp
-		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{0,2}/;
-		private var numberStripper:RegExp = /name="delay1"size="5"value="/;
-		
-		//featureIDs regexp
-		private var featureSniffer:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="[0-9]{1,10}/g;
-		private var featureStripper:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="/;
-		
-		//SMS
-		private var sms_vars:URLVariables = new URLVariables;
-		private var sms_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/SMSSender.html");
-		private var sms_loader:URLLoader = new URLLoader;
-		
-		private var smsData:String;
-		
-		//Queue
-		private var queue_vars:URLVariables;//memberID+10->in,20->wait,30->pause,40->out
-		private var queue_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/callCenterQueueMemberStatus.html");
-		private var queue_loader:URLLoader = new URLLoader;
-		
-		private var queueData:String;
+		//avaliable agents
 		private var queueAgent:Array;
 		
-		//Accounts
-		private var accounts_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/accounts.html");
-		private var accounts_loader:URLLoader = new URLLoader;
-		
+		//assigned accounts
 		private var accounts:Array = [];
-		private var accountsData:String;
-		private var accountsSniffer:RegExp = /accountId=([0-9]{0,9})/g;
 		
 		public function build1()
 		{
@@ -193,13 +209,10 @@
 			dashboard.addEventListener(MouseEvent.CLICK, dashboardHandler);
 			main.addEventListener(MouseEvent.CLICK, dashboardHandler);
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
-				
-			//options.addEventListener(MouseEvent.CLICK, scrolling);
 			
 			//stage.addEventListener(MouseEvent.CLICK, getTarget);
 
 			trace("ready for login");
-			
 		}
 		
 		//backBtn handler
@@ -217,7 +230,6 @@
 		//dashboard UI managment
 		private function dashboardHandler(event:MouseEvent):void
 		{
-			trace();
 			if(event.target.name == "redirDash")
 			{
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
@@ -336,7 +348,6 @@
 			password_local = login.password_txt.text;
 
 			j_session = new URLVariables();
-			j_send = new URLRequest("https://web.e-fon.ch/portal/j_acegi_security_check");
 
 			j_send.method = URLRequestMethod.POST;
 			j_send.data = j_session;
@@ -468,7 +479,7 @@
 			//gets delay with delaySniffer
 			while (result != null)
 			{
-				dumpRedir.push(result);
+				dumpRedir.push(result[1]);
 				result = delaySniffer.exec(redirectionData);
 			}
 			
@@ -476,9 +487,6 @@
 			for each (var delayVar in dumpRedir)
 			{
 				dumpContainer = dumpRedir[i3];
-				dumpContainer = dumpContainer.replace(bloatStripper,"");
-				dumpRedir[i3] = dumpContainer;
-				
 				if (i3 == 0){timeRedir[2] = dumpContainer;}
 				if (i3 == 1){busyRedir[2] = dumpContainer;}
 				if (i3 == 2){unregRedir[2] = dumpContainer;}
@@ -674,9 +682,8 @@
 				f2mData = new String(f2mLoader.data);
 				f2mData = f2mData.replace(rex,"");
 				f2mEmail = f2mSniffer.exec(f2mData);
-				f2mEmail = f2mEmail.replace(f2mStripper,"")
-				main.timeContainer.selecter.fax2mailIcon.email.text = f2mEmail;
 				trace(f2mEmail);
+				main.timeContainer.selecter.fax2mailIcon.email.text = f2mEmail[1];
 			}
 		}
 		
@@ -690,6 +697,8 @@
 			{
 				smsData = new String(sms_loader.data);
 				smsData = smsData.replace(rex,"");
+				trace(smsData);
+				//sms regexp optionvalue="([0-9a-z]{0,15})">([0-9a-zA-Z]{1,10})
 			}
 		}
 		
