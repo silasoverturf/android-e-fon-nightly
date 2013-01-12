@@ -105,14 +105,14 @@
 		private var optionStripper:RegExp = /optionvalue="/;
 		
 		//matches destinations
-		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="([0-9]{0,15})/g;
+		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="([0-9]{3,15})/g;
 		private var bloatStripper:RegExp = /(?:phone1|phone3|backupNumber)"value="/g;
 		
 		//matches checked
 		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(?:Normal|Busy|Backup)\(\)(?:"checked="checked"|)/g;
 		
 		//matches timeRedir delay
-		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{0,2}/;
+		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{1,2}/;
 		private var numberStripper:RegExp = /name="delay1"size="5"value="/;
 		
 		//matches featureIDs
@@ -123,7 +123,10 @@
 		private var f2mSniffer:RegExp = /name="fax2emailEmail"value="([0-9a-zA-Z][-._a-zA-Z0-9]*@(?:[0-9a-zA-Z][-._0-9a-zA-Z]*\.)+[a-zA-Z]{2,4})/;
 		
 		//matches asssigned accounts to result[1]
-		private var accountsSniffer:RegExp = /accountId=([0-9]{0,9})/g;
+		private var accountsSniffer:RegExp = /tdwidth="100px">([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/(check_gruen.gif|cross_rot.gif)"title="[a-zA-Z\.]{0,30}"\/><\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([0-9a-zA-Z\.:@,]{0,})"\/>[\<\/td>a-zA-Z="_.]{0,}\?accountId=([0-9]{0,9})/g;
+		
+		//matches SMS option
+		private var smsSniffer:RegExp = /optionvalue="([0-9a-z]{0,15})">([0-9a-zA-Z]{1,10})/gi;
 		
 		////Local variable defenition////
 		
@@ -135,21 +138,34 @@
 		private var selectedNumber:String;
 		private var numberID:String;
 		
-		private var featureArray:Array = [];//[feature1, feature2, feature3, feature4, featureBackuprouting, featureAnonSuppression]
+		private var featureArray:Array;//[feature1, feature2, feature3, feature4, featureBackuprouting, featureAnonSuppression]
 		
-		private var timeRedir:Array = [0,0];//=[active, choice, destination, delay];
+		private var timeRedir:Array;//=[active, choice, destination, delay];
 		private var timeDelay:String;
 		
-		private var busyRedir:Array = [0,0];// =[active, choice, destination];
-		private var unregRedir:Array = [0,0];// =[active, choice, destination];
+		private var busyRedir:Array;// =[active, choice, destination];
+		private var unregRedir:Array;// =[active, choice, destination];
 		
-		private var redirChoice:Array = ["","","",];// [timeChoice, busyChoice, unregChoice]
+		private var redirChoice:Array;// [timeChoice, busyChoice, unregChoice]
 		
 		//avaliable agents
 		private var queueAgent:Array;
 		
 		//assigned accounts
 		private var accounts:Array = [];
+		private var accountN:Array = [];
+		private var accountID:Array = [];
+		private var accountCLIP:Array = [];
+		private var accountANON:Array = [];
+		private var accountZIP:Array = [];
+		private var accountStatus:Array = [];
+		private var accountMisc:Array = [];
+		
+		//sms options
+		private var smsNumberID:Array = [];
+		private var smsNumber:Array = [];
+		
+		private var smsResult:Array = [];
 		
 		public function build1()
 		{
@@ -208,7 +224,7 @@
 			
 			dashboard.addEventListener(MouseEvent.CLICK, dashboardHandler);
 			main.addEventListener(MouseEvent.CLICK, dashboardHandler);
-			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyHandler);
 			
 			//stage.addEventListener(MouseEvent.CLICK, getTarget);
 
@@ -216,7 +232,7 @@
 		}
 		
 		//backBtn handler
-		private function onKeyDown(event:KeyboardEvent):void
+		private function keyHandler(event:KeyboardEvent):void
 		{
 		if( event.keyCode == Keyboard.BACK )
 			{
@@ -263,6 +279,23 @@
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 				main.gotoAndStop(3);
+			}
+			
+			if(event.target.name == "egDash")
+			{
+				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				
+				main.gotoAndStop(4);
+				accountVtoUI();
+			}
+			
+			if(event.target.name == "queueDash")
+			{
+				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				
+				main.gotoAndStop(5);
 			}
 			
 			if(event.target.name == "backBtn")
@@ -398,7 +431,6 @@
 						removeChild(loginBtn);
 						
 						main.visible = true;
-
 						
 						redirectionData = new String(redirectionLoader.data);
 						j_loader.removeEventListener(Event.COMPLETE, completeHandler);
@@ -420,9 +452,9 @@
 		{
 			//reset all local vars
 			featureArray = [];
-			timeRedir = [0,0,""];
-			busyRedir = [0,0,""];
-			unregRedir = [0,0,""];
+			timeRedir = [0,0];
+			busyRedir = [0,0];
+			unregRedir = [0,0];
 			redirChoice = ["","","",];
 			timeDelay = null;
 			dumpRedir = [];
@@ -522,14 +554,13 @@
 				featureArray[i3] = dumpContainer;
 				i3 = i3 + 1;
 			}
-			
-			//flush to UI
 			VtoUI();
 		}
 		
 		//UI flushing
 		private function VtoUI(event:Event = null):void
 		{
+			trace("VtoUI");
 			//reset
 			main.timeContainer.switcher.gotoAndStop(2);
 			main.busyContainer.switcher.gotoAndStop(4);
@@ -558,7 +589,8 @@
 			
 			//read savingBtn listeners
 			main.saveBtn.addEventListener(MouseEvent.CLICK, reauth);
-			main.saveBtn.btn_txt.text = "Save";
+			main.saveBtn.btn_txt.text = "Saved!";
+			TweenMax.to(main.saveBtn, 0.5, {delay:0.4, x:120, ease:Bounce.easeOut});
 		}
 		
 		//UI reverse flushing
@@ -591,6 +623,7 @@
 			//r_vars conditionals constructor
 			if (main.timeContainer.Check.currentFrame == 1)
 			{
+				//if(main)
 				r_vars.uml_normal1 = true;
 				r_vars.delay1 = main.timeContainer.switcher.Delay.text;
 				
@@ -628,47 +661,54 @@
 		//r_vars posting
 		private function reauth(event:MouseEvent):void
 		{
-			//reauthorize
-			j_loader.load(j_send);
-
-			j_loader.addEventListener(Event.COMPLETE, transmitRedir);
-			
-			main.saveBtn.removeEventListener(MouseEvent.CLICK, reauth);
-			main.saveBtn.btn_txt.text = "Saving";
-			
-			//UItoV flush
-			UItoV();
-			
-			function transmitRedir(event:Event = null):void
+			//input check and fix
+			if(main.timeContainer.Check.currentFrame == 1)
 			{
-				//set method and data
-				r_send.method = URLRequestMethod.POST;
-				r_send.data = r_vars;
-				
-				//listen for r_vars complete
-				r_loader.addEventListener(Event.COMPLETE, getRedir);
-				
-				//post r_vars
-				r_loader.load(r_send);
-				
-				//if f2m chosen, post F2M email address
-				if(r_vars.choice1 == "3")
-				{
-					f2m_send.method = URLRequestMethod.POST;
-					f2m_send.data = f2m_vars;
-					
-					f2m_loader.load(f2m_send);
-					trace("sending f2m");
-				}
-				
-				//reget redir on complete r_vars post...
-				function getRedir(event:Event)
-				{
-					j_loader.removeEventListener(Event.COMPLETE, transmitRedir);
-					redirectionData = new String(r_loader.data);
-					parseRedir();
-				}
+				if(main.timeContainer.switcher.currentFrame == 2 && main.timeContainer.switcher.destination.length < 10){trace("timeRedir invalid");}
 			}
+				//reauthorize
+				j_loader.addEventListener(Event.COMPLETE, transmitRedir);
+				j_loader.load(j_send);
+				
+				main.saveBtn.removeEventListener(MouseEvent.CLICK, reauth);
+				main.saveBtn.btn_txt.text = "Saving";
+				trace("reauth");
+				TweenMax.to(main.saveBtn, 0.5, {x:70, ease:Bounce.easeOut});
+				
+				//UItoV flush
+				UItoV();
+				
+				function transmitRedir(event:Event = null):void
+				{
+					trace("sendingRedir");
+					//set method and data
+					r_send.method = URLRequestMethod.POST;
+					r_send.data = r_vars;
+					
+					//listen for r_vars complete
+					r_loader.addEventListener(Event.COMPLETE, getRedir);
+					
+					//post r_vars
+					r_loader.load(r_send);
+					
+					//if f2m chosen, post F2M email address
+					if(r_vars.choice1 == "3")
+					{
+						f2m_send.method = URLRequestMethod.POST;
+						f2m_send.data = f2m_vars;
+						
+						f2m_loader.load(f2m_send);
+						trace("sending f2m");
+					}
+					
+					//reget redir on complete r_vars post...
+					function getRedir(event:Event)
+					{
+						j_loader.removeEventListener(Event.COMPLETE, transmitRedir);
+						redirectionData = new String(r_loader.data);
+						parseRedir();
+					}
+				}
 		}
 		
 		private function loadF2M(event:Event = null):void
@@ -684,6 +724,7 @@
 				f2mEmail = f2mSniffer.exec(f2mData);
 				trace(f2mEmail);
 				main.timeContainer.selecter.fax2mailIcon.email.text = f2mEmail[1];
+				trace(main.timeContainer.selecter.fax2mailIcon.email.text);
 			}
 		}
 		
@@ -698,6 +739,19 @@
 				smsData = new String(sms_loader.data);
 				smsData = smsData.replace(rex,"");
 				trace(smsData);
+				
+				//accountsResult = [];				
+				var smsResult:Array = smsSniffer.exec(smsData);
+				
+				while (smsResult != null)
+				{
+					smsNumberID.push(smsResult[1]);
+					smsNumber.push(smsResult[2]);
+		
+					smsResult = smsSniffer.exec(smsData);
+				}
+				trace(smsNumberID);
+				trace(smsNumber);
 				//sms regexp optionvalue="([0-9a-z]{0,15})">([0-9a-zA-Z]{1,10})
 			}
 		}
@@ -716,12 +770,13 @@
 			sms_vars.numberOfMessageToSend = "1"
 			sms_vars.senderNumber = "anonymous"
 			
-			main.sendBtn.btn_txt.text = "Warten"
 			main.sendBtn.removeEventListener(MouseEvent.CLICK, SMS);
 			
+			TweenMax.to(main.sendBtn, 0.5, {delay:0.4, x:65, ease:Bounce.easeOut});
+			main.sendBtn.btn_txt.text = "Sending"
+				
 			function sendSMS(event:Event = null):void
 			{
-				trace("sending");
 				sms_send.method = URLRequestMethod.POST;
 				sms_send.data = sms_vars;
 				
@@ -730,8 +785,8 @@
 				
 				function SMSsent(event:Event = null):void
 				{
-					trace("SMS Sent");
-					main.sendBtn.btn_txt.text = "Senden"
+					TweenMax.to(main.sendBtn, 0.5, {delay:0.4, x:120, ease:Bounce.easeOut});
+					main.sendBtn.btn_txt.text = "Sent!"
 					main.sendBtn.addEventListener(MouseEvent.CLICK, SMS);
 				}
 				sms_loader.load(sms_send);
@@ -767,11 +822,30 @@
 				var accountsResult:Array = accountsSniffer.exec(accountsData);
 				while (accountsResult != null)
 				{
-					accounts.push(accountsResult[1]);
+					accounts.push(accountsResult[8]);
+					accountN.push(accountsResult[1]);
+					accountID.push(accountsResult[2]);
+					accountCLIP.push(accountsResult[3]);
+					accountZIP.push(accountsResult[5]);
+					accountStatus.push(accountsResult[7]);
+					
 					accountsResult = accountsSniffer.exec(accountsData);
 				}
-				trace(accounts);
+				//trace(accountsData);
+				trace(accountN);
+				trace(accountID);
+				trace(accountCLIP);
+				trace(accountZIP);
+				trace(accountStatus);
 			}
+		}
+		
+		private function accountVtoUI(event:Event = null):void
+		{
+			main.head.text = accountID[0] + ":" + accountN[0];
+			main.plz.text = accountZIP[0];
+			main.clip.text = accountCLIP[0];
+			main.regState.text = accountStatus[0];
 		}
 	}
 }
