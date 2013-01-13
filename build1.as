@@ -69,6 +69,8 @@
 		private var queue_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/callCenterQueueMemberStatus.html");
 		private var accounts_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/accounts.html");
 		
+		private var cdr_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/cdrs.html");
+		
 		//url loaders
 		private var j_loader:URLLoader;
 		
@@ -81,7 +83,8 @@
 		private var sms_loader:URLLoader = new URLLoader;
 		private var queue_loader:URLLoader = new URLLoader;
 		private var accounts_loader:URLLoader = new URLLoader;
-
+		private var cdr_loader:URLLoader = new URLLoader;
+		
 		//url variables
 		private var j_session:URLVariables;
 		
@@ -89,6 +92,7 @@
 		private var f2m_vars:URLVariables;
 		private var sms_vars:URLVariables = new URLVariables;
 		private var queue_vars:URLVariables;//memberID+10->in,20->wait,30->pause,40->out
+		private var cdr_vars:URLVariables;
 
 		//raw .html data (URLLoader.data)
 		private var cdrData:String;
@@ -109,7 +113,7 @@
 		private var bloatStripper:RegExp = /(?:phone1|phone3|backupNumber)"value="/g;
 		
 		//matches checked
-		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting)"value="[0-9]{0,4}"onclick="controlRedir(?:Normal|Busy|Backup)\(\)(?:"checked="checked"|)/g;
+		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting|AnonSuppression)"value="[0-9]{0,4}"(?:onclick="controlRedir(?:Normal|Busy|Backup)\(\)"|)(?:checked="checked"|)/g;
 		
 		//matches timeRedir delay
 		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{1,2}/;
@@ -145,8 +149,9 @@
 		
 		private var busyRedir:Array;// =[active, choice, destination];
 		private var unregRedir:Array;// =[active, choice, destination];
+		private var anonRedir:Array;// =[active, choice];
 		
-		private var redirChoice:Array;// [timeChoice, busyChoice, unregChoice]
+		private var redirChoice:Array;// [timeChoice, busyChoice, unregChoice, anonChoice]
 		
 		//avaliable agents
 		private var queueAgent:Array;
@@ -177,6 +182,7 @@
 			main.timeContainer.switcher.gotoAndStop(2);
 			main.busyContainer.switcher.gotoAndStop(4);
 			main.unregContainer.switcher.gotoAndStop(6);
+			main.anonContainer.switcher.gotoAndStop(4);
 			
 			bg.width = stage.stageWidth;
 			bg.height = stage.stageHeight;
@@ -256,10 +262,12 @@
 				main.timeContainer.addEventListener(MouseEvent.CLICK, tempHandler);
 				main.busyContainer.addEventListener(MouseEvent.CLICK, tempHandler2);
 				main.unregContainer.addEventListener(MouseEvent.CLICK, tempHandler3);
+				main.anonContainer.addEventListener(MouseEvent.CLICK, tempHandler4);
 			
 				main.timeContainer.addEventListener(MouseEvent.CLICK, targetTest);
 				main.busyContainer.addEventListener(MouseEvent.CLICK, targetTest2);
 				main.unregContainer.addEventListener(MouseEvent.CLICK, targetTest3);
+				main.anonContainer.addEventListener(MouseEvent.CLICK, targetTest4);
 				VtoUI();
 			}
 			
@@ -333,15 +341,24 @@
 			if(event.target.name == "Check"){main.unregContainer.Check.play();}
 		}
 		
+		private function targetTest4(event:MouseEvent):void
+		{
+			if(event.target.name == "phoneIcon"){main.anonContainer.switcher.gotoAndStop(7);main.anonContainer.switcher.destination.text = "Falls unterdrückt umleiten auf Abweisungsnachricht";};
+			if(event.target.name == "voicemailIcon"){main.anonContainer.switcher.gotoAndStop(1);main.anonContainer.switcher.Text.text = "Falls unterdrückt umleiten auf Voicemail"};
+			if(event.target.name == "Check"){main.anonContainer.Check.play();}
+		}
+		
 		//redirection UI management
 		private function tempHandler(event:MouseEvent):void
 		{
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
+			TweenMax.to(main.anonContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			
 			TweenMax.to(main.busyContainer, 0.2, {y:238, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer, 0.2, {y:288, ease:Cubic.easeInOut});
+			TweenMax.to(main.anonContainer, 0.2, {y:338, ease:Cubic.easeInOut});
 		}
 		
 		private function tempHandler2(event:MouseEvent):void
@@ -349,9 +366,11 @@
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:-80, ease:Cubic.easeInOut});
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
+			TweenMax.to(main.anonContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			
 			TweenMax.to(main.busyContainer, 0.2, {y:125, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer, 0.2, {y:225, ease:Cubic.easeInOut});
+			TweenMax.to(main.anonContainer, 0.2, {y:275, ease:Cubic.easeInOut});
 		}
 		
 		private function tempHandler3(event:MouseEvent):void
@@ -359,9 +378,23 @@
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:-80, ease:Cubic.easeInOut});
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
+			TweenMax.to(main.anonContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
 			
 			TweenMax.to(main.busyContainer, 0.2, {y:125, ease:Cubic.easeInOut});
 			TweenMax.to(main.unregContainer, 0.2, {y:175, ease:Cubic.easeInOut});
+			TweenMax.to(main.anonContainer, 0.2, {y:275, ease:Cubic.easeInOut});
+		}
+		
+		private function tempHandler4(event:MouseEvent):void
+		{
+			TweenMax.to(main.timeContainer.selecter, 0.2, {y:-80, ease:Cubic.easeInOut});
+			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
+			TweenMax.to(main.anonContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
+			
+			TweenMax.to(main.busyContainer, 0.2, {y:125, ease:Cubic.easeInOut});
+			TweenMax.to(main.unregContainer, 0.2, {y:175, ease:Cubic.easeInOut});
+			TweenMax.to(main.anonContainer, 0.2, {y:225, ease:Cubic.easeInOut});
 		}
 
 		//handle listeners, builds j_session, posts and requests redirection.html
@@ -414,8 +447,8 @@
 					TweenMax.to(loading, 0.8, {autoAlpha:0, ease:Cubic.easeInOut});
 				
 				}else{
-					cdrData = j_loader.data;
-					CDR();				
+					//cdrData = j_loader.data;
+					getCDR();				
 				
 					trace("log in complete");
 					trace("getting redirection");
@@ -455,7 +488,9 @@
 			timeRedir = [0,0];
 			busyRedir = [0,0];
 			unregRedir = [0,0];
-			redirChoice = ["","","",];
+			anonRedir = [0,0];
+			
+			redirChoice = ["","","",""];
 			timeDelay = null;
 			dumpRedir = [];
 			dumpContainer = null;
@@ -468,6 +503,7 @@
 			///remove whitespace
 			redirectionData = redirectionData.replace(rex,"");
 			trace("parsing redirection");
+			trace("redirdata", redirectionData);
 			
 			//UI management, check if main at correct position
 			if(dashboard.y > 500)
@@ -500,6 +536,8 @@
 					if (i2 == 4){busyRedir = [1,2];}
 					if (i2 == 5){unregRedir = [1,1];}
 					if (i2 == 6){unregRedir = [1,2];}
+					if (i2 == 7){anonRedir = [1,1];}
+					if (i2 == 8){anonRedir = [1,2];}
 				}
 				i2 = i2 + 1;
 			}
@@ -529,7 +567,7 @@
 			//get timeDelay
 			timeDelay = numberSniffer.exec(redirectionData);
 			timeRedir.push(timeDelay.replace(numberStripper, ""));
-			trace(timeRedir, busyRedir, unregRedir);
+			trace(timeRedir, busyRedir, unregRedir, anonRedir);
 			
 			//get selected numberID
 			numberID = optionSniffer.exec(redirectionData);
@@ -565,6 +603,7 @@
 			main.timeContainer.switcher.gotoAndStop(2);
 			main.busyContainer.switcher.gotoAndStop(4);
 			main.unregContainer.switcher.gotoAndStop(6);
+			main.anonContainer.switcher.gotoAndStop(1);
 			
 			//checks
 			if (timeRedir[0] == 1){main.timeContainer.Check.gotoAndStop(1);}
@@ -573,6 +612,8 @@
 			if (busyRedir[0] == 0){main.busyContainer.Check.gotoAndStop(2);}
 			if (unregRedir[0] == 1){main.unregContainer.Check.gotoAndStop(1);}
 			if (unregRedir[0] == 0){main.unregContainer.Check.gotoAndStop(2);}
+			if (anonRedir[0] == 1){main.anonContainer.Check.gotoAndStop(1);}
+			if (anonRedir[0] == 0){main.anonContainer.Check.gotoAndStop(2);}
 			
 			//timeRedir flush
 			if (timeRedir[1] == 1){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = timeRedir[2];main.timeContainer.switcher.Delay.text = timeRedir[3];}
@@ -586,6 +627,10 @@
 			//unregRedir flush
 			if (unregRedir[1] == 1){main.unregContainer.switcher.gotoAndStop(6);main.unregContainer.switcher.destination.text = unregRedir[2];}
 			if (unregRedir[1] == 2){main.unregContainer.switcher.gotoAndStop(7);main.unregContainer.switcher.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
+			
+			//anonRedir flush
+			if (anonRedir[1] == 1){main.anonContainer.switcher.gotoAndStop(1);main.anonContainer.switcher.Text.text = "Falls unterdrückt umleiten auf Voicemail";}
+			if (anonRedir[1] == 2){main.anonContainer.switcher.gotoAndStop(7);main.anonContainer.switcher.destination.text = "Falls unterdrückt umleiten auf Abweisungsnachricht";}
 			
 			//read savingBtn listeners
 			main.saveBtn.addEventListener(MouseEvent.CLICK, reauth);
@@ -644,6 +689,13 @@
 				r_vars.uml_backuprouting = true
 				if(main.unregContainer.switcher.currentFrame == 6){r_vars.choiceBackuprouting = "1";r_vars.backupNumber = main.unregContainer.switcher.destination.text}
 				if(main.unregContainer.switcher.currentFrame == 7){r_vars.choiceBackuprouting = "2"}
+			}
+			
+			if (main.anonContainer.Check.currentFrame == 1)
+			{
+				r_vars.uml_anonSuppression = true
+				if(main.anonContainer.switcher.currentFrame == 1){r_vars.choiceAnonSuppression = "1";}
+				if(main.anonContainer.switcher.currentFrame == 7){r_vars.choiceAnonSuppression = "2";}
 			}
 			
 			if (r_vars.choice1 == "3")
@@ -793,11 +845,8 @@
 			}
 		}
 		
-		private function CDR(event:Event = null):void
+		private function getCDR(event:Event = null):void
 		{
-			//clean cdr data
-			cdrData = cdrData.replace(rex, "");
-			//trace(cdrData);
 		}
 		
 		private function Queue(event:Event = null):void
