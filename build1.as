@@ -397,6 +397,36 @@
 			TweenMax.to(main.anonContainer, 0.2, {y:225, ease:Cubic.easeInOut});
 		}
 
+		private function loadingHandler(page:String)
+		{
+			var pageSend = page;			
+			var timePassed:String; //=time passed since last redir
+			
+			if(timePassed == true)
+			{
+				j_loader.addEventListener(Event.COMPLETE, loadMain);
+				j_loader.load(j_send);
+			}else{
+				loadMain();
+			}
+			
+			function loadMain(event:Event = null):void
+			{
+				this[page].addEventListener(Event.COMPLETE, loadComplete)
+				
+				this[page].load(this[pageSend])
+			}
+			
+			function loadComplete(event:Event):void
+			{
+				if(1 == 1){
+					//parse function
+				}else{
+					//loadComplete
+				}
+			}
+		}
+
 		//handle listeners, builds j_session, posts and requests redirection.html
 		private function transmit(event:MouseEvent):void
 		{
@@ -418,7 +448,7 @@
 			j_send.method = URLRequestMethod.POST;
 			j_send.data = j_session;
 
-			j_loader = new URLLoader  ;
+			j_loader = new URLLoader ;
 			
 			//add listener so redirection.html can be requested on complete
 			j_loader.addEventListener(Event.COMPLETE, completeHandler);
@@ -455,7 +485,6 @@
 				
 					redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);
 					loadF2M();
-					loadSMS();
 				
 					function redirectionHandler(event:Event):void
 					{
@@ -469,6 +498,7 @@
 						j_loader.removeEventListener(Event.COMPLETE, completeHandler);
 						parseRedir();
 						loadAccounts();
+						loadSMS();
 					
 						//check for functionality
 						if(redirectionData.search("Queue") > -1){queueActive = true;}
@@ -485,9 +515,9 @@
 		{
 			//reset all local vars
 			featureArray = [];
-			timeRedir = [0,0];
-			busyRedir = [0,0];
-			unregRedir = [0,0];
+			timeRedir = [0,0,"chocolate"];
+			busyRedir = [0,0,"chocolate"];
+			unregRedir = [0,0,"chocolate"];
 			anonRedir = [0,0];
 			
 			redirChoice = ["","","",""];
@@ -503,7 +533,8 @@
 			///remove whitespace
 			redirectionData = redirectionData.replace(rex,"");
 			trace("parsing redirection");
-			trace("redirdata", redirectionData);
+			//trace("redirdata", redirectionData);
+			trace(timeRedir, busyRedir, unregRedir, anonRedir);
 			
 			//UI management, check if main at correct position
 			if(dashboard.y > 500)
@@ -541,7 +572,9 @@
 				}
 				i2 = i2 + 1;
 			}
-		
+			
+			trace(timeRedir, busyRedir, unregRedir, anonRedir);
+			
 			result = [];
 			dumpRedir = [];
 			result = delaySniffer.exec(redirectionData);
@@ -774,6 +807,7 @@
 				f2mData = new String(f2mLoader.data);
 				f2mData = f2mData.replace(rex,"");
 				f2mEmail = f2mSniffer.exec(f2mData);
+				//if(f2mEmail)
 				trace(f2mEmail);
 				main.timeContainer.selecter.fax2mailIcon.email.text = f2mEmail[1];
 				trace(main.timeContainer.selecter.fax2mailIcon.email.text);
@@ -790,7 +824,6 @@
 			{
 				smsData = new String(sms_loader.data);
 				smsData = smsData.replace(rex,"");
-				trace(smsData);
 				
 				//accountsResult = [];				
 				var smsResult:Array = smsSniffer.exec(smsData);
