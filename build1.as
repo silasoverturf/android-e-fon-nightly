@@ -31,6 +31,7 @@
 		public var i:Number = 0;
 		public var i2:Number = 0;
 		public var i3:Number = 0;
+		public var i4:Number = 0;
 		
 		//white space remover
 		private var rex:RegExp = /[\s\r\n]*/gim;
@@ -57,33 +58,32 @@
 		*///network stack variables////
 		
 		//url requests
-		private var j_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/j_acegi_security_check");
+		private var jSend:URLRequest = new URLRequest("https://web.e-fon.ch/portal/j_acegi_security_check");
 		
 		private var redirectionURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");//?selectedPhoneNumberId=selectedNumber;
-		private var r_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");
 		
 		private var f2mURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/notifications.html");//?selectedPhoneNumberId=selectedNumber;
-		private var f2m_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/notifications.html");//?selectedPhoneNumberId=selectedNumber;
 		
-		private var sms_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/SMSSender.html");
-		private var queue_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/callCenterQueueMemberStatus.html");
-		private var accounts_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/accounts.html");
+		private var smsSend:URLRequest = new URLRequest("https://web.e-fon.ch/portal/SMSSender.html");
+		private var queueSend:URLRequest = new URLRequest("https://web.e-fon.ch/portal/callCenterQueueMemberStatus.html");
+		private var testSend:URLRequest = new URLRequest("http://www.google.com");
 		
-		private var cdr_send:URLRequest = new URLRequest("https://web.e-fon.ch/portal/cdrs.html");
+		private var accountsSend:URLRequest = new URLRequest("https://web.e-fon.ch/portal/accounts.html");
+		
+		private var cdrSend:URLRequest = new URLRequest("https://web.e-fon.ch/portal/cdrs.html");
 		
 		//url loaders
-		private var j_loader:URLLoader;
+		private var jLoader:URLLoader;
 		
 		private var redirectionLoader:URLLoader = new URLLoader;
-		private var r_loader:URLLoader = new URLLoader;
+		private var rLoader:URLLoader = new URLLoader;
 		
 		private var f2mLoader:URLLoader = new URLLoader;
-		private var f2m_loader:URLLoader = new URLLoader;
 		
-		private var sms_loader:URLLoader = new URLLoader;
-		private var queue_loader:URLLoader = new URLLoader;
-		private var accounts_loader:URLLoader = new URLLoader;
-		private var cdr_loader:URLLoader = new URLLoader;
+		private var smsLoader:URLLoader = new URLLoader;
+		private var queueLoader:URLLoader = new URLLoader;
+		private var accountsLoader:URLLoader = new URLLoader;
+		private var cdrLoader:URLLoader = new URLLoader;
 		
 		//url variables
 		private var j_session:URLVariables;
@@ -91,7 +91,7 @@
 		private var r_vars:URLVariables;
 		private var f2m_vars:URLVariables;
 		private var sms_vars:URLVariables = new URLVariables;
-		private var queue_vars:URLVariables;//memberID+10->in,20->wait,30->pause,40->out
+		private var queueVars:URLVariables;//memberID+10->in,20->wait,30->pause,40->out
 		private var cdr_vars:URLVariables;
 
 		//raw .html data (URLLoader.data)
@@ -132,6 +132,9 @@
 		//matches SMS option
 		private var smsSniffer:RegExp = /optionvalue="([0-9a-z]{0,15})">([0-9a-zA-Z]{1,10})/gi;
 		
+		//matches queue info
+		private var queueSniffer:RegExp =  />([0-9a-zA-Z]{0,})<\/td><td>[0-9a-zA-Z]{0,},([0-9a-zA-Z]{0,})<\/td><td>[0-9a-zA-Z]{0,}<\/td><td>[0-9a-zA-Z,;]{0,}<br\/><\/td><td><spanstyle="color:[0-9a-zA-Z,]{0,};">([a-zA-Z]{0,})<\/span><\/td><td><ahref="javascript:[a-zA-Z]{0,}\(([0-9]{0,})\)"/g; 
+		
 		////Local variable defenition////
 		
 		//f2m local
@@ -154,7 +157,10 @@
 		private var redirChoice:Array;// [timeChoice, busyChoice, unregChoice, anonChoice]
 		
 		//avaliable agents
-		private var queueAgent:Array;
+		private var queueAgent:Array = [];
+		private var queueName:Array = [];
+		private var queueList:Array = [];
+		private var queueStatus:Array = [];
 		
 		//assigned accounts
 		private var accounts:Array = [];
@@ -171,6 +177,10 @@
 		private var smsNumber:Array = [];
 		
 		private var smsResult:Array = [];
+		
+		
+		////Display stack////
+		
 		
 		public function build1()
 		{
@@ -304,6 +314,34 @@
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 				
 				main.gotoAndStop(5);
+				
+				i4 = 0;
+				
+				for each(var queue in queueList)
+				{
+					var QueueSnippet:MovieClip = new queueSnippet();
+					QueueSnippet.y = i4 * 57;
+					QueueSnippet.Text.text = queueList[i4] + " als" + "\n" +queueName[i4];
+					//QueueSnippet.agentID.text = queueAgent[i4];
+					
+					if(queueStatus[i4] == "Online")
+					{
+						QueueSnippet.slider.gotoAndStop(2);
+					}
+					
+					QueueSnippet.name = queueAgent[i4];
+
+					main.queueContainer.addChild(QueueSnippet);
+					i4 = i4 + 1;
+					trace("adding child" + i4);
+				}
+				
+				main.queueContainer.addEventListener(MouseEvent.CLICK, queueHandler);
+				
+				function queueHandler(event:MouseEvent):void
+				{
+					if(event.target.name == "slider"){sendQueue(event.target.parent.name);}
+				}
 			}
 			
 			if(event.target.name == "backBtn")
@@ -402,13 +440,7 @@
 			var pageSend = page;			
 			var timePassed:String; //=time passed since last redir
 			
-			if(timePassed == true)
-			{
-				j_loader.addEventListener(Event.COMPLETE, loadMain);
-				j_loader.load(j_send);
-			}else{
-				loadMain();
-			}
+			loadMain();
 			
 			function loadMain(event:Event = null):void
 			{
@@ -445,27 +477,26 @@
 
 			j_session = new URLVariables();
 
-			j_send.method = URLRequestMethod.POST;
-			j_send.data = j_session;
+			jSend.method = URLRequestMethod.POST;
+			jSend.data = j_session;
 
-			j_loader = new URLLoader ;
+			jLoader = new URLLoader;
 			
 			//add listener so redirection.html can be requested on complete
-			j_loader.addEventListener(Event.COMPLETE, completeHandler);
+			jLoader.addEventListener(Event.COMPLETE, completeHandler);
 			
 			//build server j_session
 			j_session.j_username = userID_local;
 			j_session.j_password = password_local;
 			
 			//post j_session
-			j_loader.load(j_send);
+			jLoader.load(jSend);
 			
 			trace("logging in" );
-
 			//get redirection.html, onComplete -> parseRedir
 			function completeHandler(event:Event = null):void
 			{
-				if(j_loader.data.search("password") > -1)
+				if(jLoader.data.search("password") > -1)
 				{
 					login.statusText.text = "Please check your password";
 					
@@ -477,7 +508,7 @@
 					TweenMax.to(loading, 0.8, {autoAlpha:0, ease:Cubic.easeInOut});
 				
 				}else{
-					//cdrData = j_loader.data;
+					//cdrData = jLoader.data;
 					getCDR();				
 				
 					trace("log in complete");
@@ -495,10 +526,11 @@
 						main.visible = true;
 						
 						redirectionData = new String(redirectionLoader.data);
-						j_loader.removeEventListener(Event.COMPLETE, completeHandler);
+						jLoader.removeEventListener(Event.COMPLETE, completeHandler);
 						parseRedir();
 						loadAccounts();
 						loadSMS();
+						loadQueue();
 					
 						//check for functionality
 						if(redirectionData.search("Queue") > -1){queueActive = true;}
@@ -600,7 +632,6 @@
 			//get timeDelay
 			timeDelay = numberSniffer.exec(redirectionData);
 			timeRedir.push(timeDelay.replace(numberStripper, ""));
-			trace(timeRedir, busyRedir, unregRedir, anonRedir);
 			
 			//get selected numberID
 			numberID = optionSniffer.exec(redirectionData);
@@ -752,8 +783,8 @@
 				if(main.timeContainer.switcher.currentFrame == 2 && main.timeContainer.switcher.destination.length < 10){trace("timeRedir invalid");}
 			}
 				//reauthorize
-				j_loader.addEventListener(Event.COMPLETE, transmitRedir);
-				j_loader.load(j_send);
+				jLoader.addEventListener(Event.COMPLETE, transmitRedir);
+				jLoader.load(jSend);
 				
 				main.saveBtn.removeEventListener(MouseEvent.CLICK, reauth);
 				main.saveBtn.btn_txt.text = "Saving";
@@ -767,30 +798,30 @@
 				{
 					trace("sendingRedir");
 					//set method and data
-					r_send.method = URLRequestMethod.POST;
-					r_send.data = r_vars;
+					redirectionURLRequest.method = URLRequestMethod.POST;
+					redirectionURLRequest.data = r_vars;
 					
 					//listen for r_vars complete
-					r_loader.addEventListener(Event.COMPLETE, getRedir);
+					rLoader.addEventListener(Event.COMPLETE, getRedir);
 					
 					//post r_vars
-					r_loader.load(r_send);
+					rLoader.load(redirectionURLRequest);
 					
 					//if f2m chosen, post F2M email address
 					if(r_vars.choice1 == "3")
 					{
-						f2m_send.method = URLRequestMethod.POST;
-						f2m_send.data = f2m_vars;
+						f2mURLRequest.method = URLRequestMethod.POST;
+						f2mURLRequest.data = f2m_vars;
 						
-						f2m_loader.load(f2m_send);
+						f2mLoader.load(f2mURLRequest);
 						trace("sending f2m");
 					}
 					
 					//reget redir on complete r_vars post...
 					function getRedir(event:Event)
 					{
-						j_loader.removeEventListener(Event.COMPLETE, transmitRedir);
-						redirectionData = new String(r_loader.data);
+						jLoader.removeEventListener(Event.COMPLETE, transmitRedir);
+						redirectionData = new String(rLoader.data);
 						parseRedir();
 					}
 				}
@@ -808,7 +839,6 @@
 				f2mData = f2mData.replace(rex,"");
 				f2mEmail = f2mSniffer.exec(f2mData);
 				//if(f2mEmail)
-				trace(f2mEmail);
 				main.timeContainer.selecter.fax2mailIcon.email.text = f2mEmail[1];
 				trace(main.timeContainer.selecter.fax2mailIcon.email.text);
 			}
@@ -816,13 +846,13 @@
 		
 		private function loadSMS(event:Event = null):void
 		{
-			sms_loader.addEventListener(Event.COMPLETE, parseSMS);
-			sms_loader.load(sms_send);
+			smsLoader.addEventListener(Event.COMPLETE, parseSMS);
+			smsLoader.load(smsSend);
 			trace("getting sms");
 			
 			function parseSMS(event:Event = null):void
 			{
-				smsData = new String(sms_loader.data);
+				smsData = new String(smsLoader.data);
 				smsData = smsData.replace(rex,"");
 				
 				//accountsResult = [];				
@@ -843,9 +873,9 @@
 		
 		private function SMS(event:MouseEvent):void
 		{
-			j_loader.load(j_send);
+			jLoader.load(jSend);
 			
-			j_loader.addEventListener(Event.COMPLETE, sendSMS);
+			jLoader.addEventListener(Event.COMPLETE, sendSMS);
 			
 			sms_vars.message = main.SMSmessage.text;
 			sms_vars.recipientNumber = main.recipient.text;
@@ -862,11 +892,11 @@
 				
 			function sendSMS(event:Event = null):void
 			{
-				sms_send.method = URLRequestMethod.POST;
-				sms_send.data = sms_vars;
+				smsSend.method = URLRequestMethod.POST;
+				smsSend.data = sms_vars;
 				
-				j_loader.removeEventListener(Event.COMPLETE, sendSMS);
-				sms_loader.addEventListener(Event.COMPLETE, SMSsent);
+				jLoader.removeEventListener(Event.COMPLETE, sendSMS);
+				smsLoader.addEventListener(Event.COMPLETE, SMSsent);
 				
 				function SMSsent(event:Event = null):void
 				{
@@ -874,7 +904,7 @@
 					main.sendBtn.btn_txt.text = "Sent!"
 					main.sendBtn.addEventListener(MouseEvent.CLICK, SMS);
 				}
-				sms_loader.load(sms_send);
+				smsLoader.load(smsSend);
 			}
 		}
 		
@@ -882,22 +912,67 @@
 		{
 		}
 		
-		private function Queue(event:Event = null):void
+		private function loadQueue(event:Event = null):void
 		{
+			queueLoader.addEventListener(Event.COMPLETE, parse);
+			
+			function parse(event:Event):void
+			{
+				queueData = queueLoader.data
+				queueData = queueData.replace(rex, "")
+				
+				//accountsResult = [];				
+				var queueResult:Array = queueSniffer.exec(queueData);
+				while (queueResult != null)
+				{
+					queueAgent.push(queueResult[4]);
+					queueName.push(queueResult[2]);
+					queueStatus.push(queueResult[3]);
+					queueList.push(queueResult[1])
+					
+					queueResult = queueSniffer.exec(queueData);
+				}
+				trace(queueAgent);
+			}
 			//clean queue data
-			queueData = queueData.replace(rex, "")
-			//trace(queueData);
+			queueLoader.load(queueSend);
+		}
+		
+		private function sendQueue(agentID:String):void
+		{
+			trace(agentID);
+			
+			queueVars = new URLVariables();
+			
+			queueSend.method = URLRequestMethod.POST;
+			queueSend.data = queueVars;
+			
+			queueLoader = new URLLoader;
+			
+			queueVars.memberId = agentID;
+			
+			if(queueStatus[queueAgent.indexOf(agentID)] == "Offline")
+			{
+				trace("going online");
+				queueVars.statusId = "10";
+				queueStatus[queueAgent.indexOf(agentID)] = "Online";
+			}else{
+				trace("going offline");
+				queueVars.statusId = "40";
+				queueStatus[queueAgent.indexOf(agentID)] = "Offline";
+			}
+			queueLoader.load(queueSend);
 		}
 		
 		private function loadAccounts(event:Event = null):void
 		{
-			accounts_loader.addEventListener(Event.COMPLETE, parseAccounts);
-			accounts_loader.load(accounts_send);
+			accountsLoader.addEventListener(Event.COMPLETE, parseAccounts);
+			accountsLoader.load(accountsSend);
 			trace("getting accounts");
 				
 			function parseAccounts(event:Event):void
 			{
-				accountsData = new String(accounts_loader.data);
+				accountsData = new String(accountsLoader.data);
 				accountsData = accountsData.replace(rex,"");
 				
 				//accountsResult = [];				
@@ -913,12 +988,6 @@
 					
 					accountsResult = accountsSniffer.exec(accountsData);
 				}
-				//trace(accountsData);
-				trace(accountN);
-				trace(accountID);
-				trace(accountCLIP);
-				trace(accountZIP);
-				trace(accountStatus);
 			}
 		}
 		

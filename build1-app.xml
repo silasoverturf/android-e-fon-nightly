@@ -17,10 +17,14 @@
     <fullScreen>false</fullScreen>
     <aspectRatio>portrait</aspectRatio>
     <renderMode>auto</renderMode>
-    <autoOrients>false</autoOrients></initialWindow>
+    <autoOrients>false</autoOrients>
+    <maximizable>true</maximizable>
+    <minimizable>true</minimizable>
+    <resizable>false</resizable>
+  </initialWindow>
   <icon>
-    <image72x72>images/icon.fw.png</image72x72>
     <image48x48>images/icon48.png</image48x48>
+    <image72x72>images/icon.fw.png</image72x72>
     <image36x36>images/icon36.png</image36x36>
   </icon>
   <customUpdateUI>false</customUpdateUI>
