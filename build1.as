@@ -9,6 +9,7 @@
 	import flash.net.*;
 	import flash.events.*;
 	import flash.ui.*;
+	import flash.text.TextFormat;
 	
 	trace("classes imported");
 
@@ -18,6 +19,8 @@
 		Multitouch.inputMode=MultitouchInputMode.TOUCH_POINT;
 		
 		////Global misc. variables////
+		//local LSO
+		var SO:SharedObject = SharedObject.getLocal("e-fon");
 		
 		//swiping
 		private var ind:int = 0;
@@ -27,6 +30,9 @@
 		private var userID_local:String;
 		private var password_local:String;
 
+		//text formats
+		public var robotoLabel:TextFormat = new TextFormat();
+		
 		//counters
 		public var i:Number = 0;
 		public var i2:Number = 0;
@@ -184,6 +190,11 @@
 		
 		public function build1()
 		{
+			//set label tf
+			robotoLabel.color = 0xFFFFFF;
+			robotoLabel.font = "Roboto";
+			robotoLabel.size = 17;
+			
 			//stage aligment
 			stage.align = StageAlign.TOP_LEFT;
 			stage.scaleMode = StageScaleMode.NO_SCALE;
@@ -244,6 +255,15 @@
 			
 			//stage.addEventListener(MouseEvent.CLICK, getTarget);
 
+			if (!SO.data.userid)
+			{
+				login.userid_txt.text = "123";
+				login.password_txt.text = "123";
+			}else{
+				login.userid_txt.text = SO.data.userid;
+				login.password_txt.text = SO.data.pass;
+			}
+			
 			trace("ready for login");
 		}
 		
@@ -256,6 +276,7 @@
 				event.stopImmediatePropagation();
 				TweenMax.to(dashboard, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+				main.gotoAndStop(6);
 			}
 		}
 		
@@ -290,6 +311,24 @@
 				
 				main.sendBtn.btn_txt.text = "Senden"
 				main.sendBtn.addEventListener(MouseEvent.CLICK, SMS);
+				
+				i4 = 0;
+				
+				trace(smsNumber);
+				
+				for each(var clip in smsNumber)
+				{
+					var SMSRadio:MovieClip = new smsRadio();
+					SMSRadio.y = i4 * 28;
+					SMSRadio.radio.label = smsNumber[i4];
+					SMSRadio.radio.setStyle("textFormat", robotoLabel);
+					//QueueSnippet.agentID.text = queueAgent[i4];
+
+					main.smsContainer.addChild(SMSRadio);
+					i4 = i4 + 1;
+					trace("adding child" + i4);
+				}
+				//main.smsContainer2.y = i4 * 20 + 95;
 			}
 			
 			if(event.target.name == "cdrDash")
@@ -348,6 +387,7 @@
 			{
 				TweenMax.to(dashboard, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+				main.gotoAndStop(6);
 			}
 		}
 		
@@ -488,6 +528,11 @@
 			//build server j_session
 			j_session.j_username = userID_local;
 			j_session.j_password = password_local;
+			
+			//flush lso
+			SO.data.userid = login.userid_txt.text;
+			SO.data.pass = login.password_txt.text;
+			SO.flush ();
 			
 			//post j_session
 			jLoader.load(jSend);
@@ -877,8 +922,8 @@
 			
 			jLoader.addEventListener(Event.COMPLETE, sendSMS);
 			
-			sms_vars.message = main.SMSmessage.text;
-			sms_vars.recipientNumber = main.recipient.text;
+			sms_vars.message = main.smsContainer2.SMSmessage.text;
+			sms_vars.recipientNumber = main.smsContainer2.recipient.text;
 			
 			sms_vars.numberOfMessageToSendForEachRecipient = "1"
 			sms_vars.numberOfRecipients = "1"
