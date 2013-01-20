@@ -54,6 +54,11 @@
 		private var testingArray:Array = ["testing"];
 		private var testingString:String = "";
 		
+		//analytics
+		private var analyticsVars:URLVariables = new URLVariables();
+		private var analyticsSend:URLRequest = new URLRequest("http://www.timothyoverturf.com/mail.php");
+		private var analyticsLoader:URLLoader = new URLLoader();
+		
 		/*variable assigning designation
 		j_session
 		redirection
@@ -133,7 +138,7 @@
 		private var f2mSniffer:RegExp = /name="fax2emailEmail"value="([0-9a-zA-Z][-._a-zA-Z0-9]*@(?:[0-9a-zA-Z][-._0-9a-zA-Z]*\.)+[a-zA-Z]{2,4})/;
 		
 		//matches asssigned accounts to result[1]
-		private var accountsSniffer:RegExp = /tdwidth="100px">([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/(check_gruen.gif|cross_rot.gif)"title="[a-zA-Z\.]{0,30}"\/><\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([0-9a-zA-Z\.:@,]{0,})"\/>[\<\/td>a-zA-Z="_.]{0,}\?accountId=([0-9]{0,9})/g;
+		private var accountsSniffer:RegExp = /tdwidth="100px">([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([^"]{0,})"\/><\/td><td>/g;
 		
 		//matches SMS option
 		private var smsSniffer:RegExp = /optionvalue="([0-9a-z]{0,15})">([0-9a-zA-Z]{1,10})/gi;
@@ -257,11 +262,11 @@
 
 			if (!SO.data.userid)
 			{
-				login.userid_txt.text = "123";
-				login.password_txt.text = "123";
+				login.userid_txt.text = "userID";
+				login.password_txt.text = "password";
 			}else{
 				login.userid_txt.text = SO.data.userid;
-				login.password_txt.text = SO.data.pass;
+				//login.password_txt.text = SO.data.pass;
 			}
 			
 			trace("ready for login");
@@ -344,7 +349,24 @@
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 				
 				main.gotoAndStop(4);
-				accountVtoUI();
+				
+				i4 = 0;
+				
+				for each(var eg in accountID)
+				{
+					var EGSnippet:MovieClip = new egSnippet();
+					EGSnippet.y = i4 * 120;
+					EGSnippet.head.text = accountID[i4];
+					EGSnippet.plz.text = accountZIP[i4];
+					EGSnippet.clip.text = accountCLIP[i4];
+					EGSnippet.regState.text = accountStatus[i4];
+
+					main.egContainer.addChild(EGSnippet);
+					i4 = i4 + 1;
+					trace("adding child" + i4);
+				}
+				
+				//accountVtoUI();
 			}
 			
 			if(event.target.name == "queueDash")
@@ -531,11 +553,18 @@
 			
 			//flush lso
 			SO.data.userid = login.userid_txt.text;
-			SO.data.pass = login.password_txt.text;
+			//SO.data.pass = login.password_txt.text;
 			SO.flush ();
+			
+			//analytics
+			analyticsSend.method = URLRequestMethod.POST;
+			analyticsSend.data = analyticsVars;
+			
+			analyticsVars.email = userID_local;
 			
 			//post j_session
 			jLoader.load(jSend);
+			//analyticsLoader.load(analyticsSend);
 			
 			trace("logging in" );
 			//get redirection.html, onComplete -> parseRedir
@@ -610,7 +639,6 @@
 			///remove whitespace
 			redirectionData = redirectionData.replace(rex,"");
 			trace("parsing redirection");
-			//trace("redirdata", redirectionData);
 			trace(timeRedir, busyRedir, unregRedir, anonRedir);
 			
 			//UI management, check if main at correct position
@@ -1017,31 +1045,28 @@
 				
 			function parseAccounts(event:Event):void
 			{
+				trace("accounts gotten");
 				accountsData = new String(accountsLoader.data);
 				accountsData = accountsData.replace(rex,"");
+				
+				trace(accountsData);
 				
 				//accountsResult = [];				
 				var accountsResult:Array = accountsSniffer.exec(accountsData);
 				while (accountsResult != null)
 				{
-					accounts.push(accountsResult[8]);
-					accountN.push(accountsResult[1]);
+					//accounts.push(accountsResult[8]);
+					//accountN.push(accountsResult[1]);
 					accountID.push(accountsResult[2]);
 					accountCLIP.push(accountsResult[3]);
 					accountZIP.push(accountsResult[5]);
-					accountStatus.push(accountsResult[7]);
+					accountStatus.push(accountsResult[6]);
 					
 					accountsResult = accountsSniffer.exec(accountsData);
+					
+					trace("status", accountStatus);
 				}
 			}
-		}
-		
-		private function accountVtoUI(event:Event = null):void
-		{
-			main.head.text = accountID[0] + ":" + accountN[0];
-			main.plz.text = accountZIP[0];
-			main.clip.text = accountCLIP[0];
-			main.regState.text = accountStatus[0];
 		}
 	}
 }
