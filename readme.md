@@ -1,6 +1,6 @@
 ##Android/iOS App for e-fon portal access
 
-This app enables streamlined e-fon portal from mobile devices. Currently only call diversion can be configured, but SMS dispatch and CDR access is being implemented soon. 
+This app enables streamlined e-fon portal from mobile devices. Currently  diversion, queues, SMS and Accounts are avaliable.
 
 The portal connection is currently achieved with HTTP and TLS. The conventional HTML is loaded and parsed manually using regular expressions. Variables are POSTed using the AS3 "URLRequestMethod".
 
