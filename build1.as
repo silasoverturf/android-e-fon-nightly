@@ -10,6 +10,7 @@
 	import flash.events.*;
 	import flash.ui.*;
 	import flash.text.TextFormat;
+	import flash.desktop.NativeApplication;
 	
 	trace("classes imported");
 
@@ -258,6 +259,9 @@
 			main.addEventListener(MouseEvent.CLICK, dashboardHandler);
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyHandler);
 			
+			NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, deactivate);
+			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
+			
 			//stage.addEventListener(MouseEvent.CLICK, getTarget);
 
 			if (!SO.data.userid)
@@ -270,6 +274,20 @@
 			}
 			
 			trace("ready for login");
+		}
+		
+		//reauth handler
+		private function deactivate(event:Event):void
+		{
+			login.statusText.text = "deactivate";			
+		}
+		
+		private function activate(event:Event):void
+		{
+			if(jLoader.data != null)
+			{
+				jLoader.load(jSend);
+			}
 		}
 		
 		//backBtn handler
