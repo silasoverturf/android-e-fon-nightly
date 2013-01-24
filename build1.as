@@ -20,17 +20,16 @@
 		Multitouch.inputMode=MultitouchInputMode.TOUCH_POINT;
 		
 		////Global misc. variables////
+		
 		//local LSO
 		var SO:SharedObject = SharedObject.getLocal("e-fon");
-		
-		//swiping
-		private var ind:int = 0;
-		private var currX:Number = 0;
-		
+				
 		//local session vars
 		private var userID_local:String;
 		private var password_local:String;
 
+		public var appState:String = "login";
+		
 		//text formats
 		public var robotoLabel:TextFormat = new TextFormat();
 		
@@ -279,21 +278,29 @@
 		//reauth handler
 		private function deactivate(event:Event):void
 		{
-			login.statusText.text = "deactivate";			
+			//login.statusText.text = "deactivate";
+			trace("deactivate");
 		}
 		
 		private function activate(event:Event):void
 		{
 			if(jLoader.data != null)
 			{
+				jLoader.addEventListener(Event.COMPLETE, reactivate);
 				jLoader.load(jSend);
+				//overlay.visible = true;
+			}
+			
+			function reactivate(event:Event):void
+			{
+				//overlay.visible = false;
 			}
 		}
 		
 		//backBtn handler
 		private function keyHandler(event:KeyboardEvent):void
 		{
-		if( event.keyCode == Keyboard.BACK )
+		if(event.keyCode == Keyboard.BACK && appState != "login")
 			{
 				event.preventDefault();
 				event.stopImmediatePropagation();
@@ -387,7 +394,7 @@
 				//accountVtoUI();
 			}
 			
-			if(event.target.name == "queueDash")
+			if(event.target.name == "queueDash" && queueLoader.data != null)
 			{
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
@@ -403,10 +410,8 @@
 					QueueSnippet.Text.text = queueList[i4] + " als" + "\n" +queueName[i4];
 					//QueueSnippet.agentID.text = queueAgent[i4];
 					
-					if(queueStatus[i4] == "Online")
-					{
-						QueueSnippet.slider.gotoAndStop(2);
-					}
+					if(queueStatus[i4] == "Online"){QueueSnippet.slider.gotoAndStop(2);}
+					if(queueStatus[i4] == "Offline"){QueueSnippet.slider.gotoAndStop(1);}
 					
 					QueueSnippet.name = queueAgent[i4];
 
@@ -467,6 +472,11 @@
 		}
 		
 		//redirection UI management
+		private function redirectionUIHandler(event:MouseEvent):void
+		{
+			//TweenMax.to()
+		}
+		
 		private function tempHandler(event:MouseEvent):void
 		{
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
