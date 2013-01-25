@@ -11,8 +11,6 @@
 	import flash.ui.*;
 	import flash.text.TextFormat;
 	import flash.desktop.NativeApplication;
-	
-	trace("classes imported");
 
 	public class build1 extends MovieClip
 	{
@@ -32,6 +30,9 @@
 		
 		//text formats
 		public var robotoLabel:TextFormat = new TextFormat();
+		
+		//stage duplicator
+		private var stageItems:Array;
 		
 		//counters
 		public var i:Number = 0;
@@ -189,10 +190,6 @@
 		
 		private var smsResult:Array = [];
 		
-		
-		////Display stack////
-		
-		
 		public function build1()
 		{
 			//set label tf
@@ -214,35 +211,21 @@
 			bg.height = stage.stageHeight;
 			
 			//mc placement and scaling
-			header.x = stage.stageWidth / 2;
 			header.y = stage.stageHeight * 0.19;
-			header.scaleX = stage.stageWidth / 320;
-			header.scaleY = stage.stageHeight / 480;
-			
-			login.x = stage.stageWidth / 2;
 			login.y = stage.stageHeight * 0.5;
-			login.scaleX = stage.stageWidth / 320;
-			login.scaleY = stage.stageHeight / 480;
-
-			loginBtn.x = stage.stageWidth / 2;
 			loginBtn.y = stage.stageHeight * 0.7;
-			loginBtn.scaleX = stage.stageWidth / 320;
-			loginBtn.scaleY = stage.stageHeight / 480;
-
-			dashboard.x = stage.stageWidth / 2;
 			dashboard.y = stage.stageHeight * 0.03;
-			dashboard.scaleX = stage.stageWidth / 320;
-			dashboard.scaleY = stage.stageHeight/ 480;
-			
-			main.x = stage.stageWidth / 2;
 			main.y = stage.stageHeight * 0.03;
-			main.scaleX = stage.stageWidth / 320;
-			main.scaleY = stage.stageHeight / 480;
-
-			loading.x = stage.stageWidth / 2;
 			loading.y = stage.stageHeight * 0.3;
-			loading.scaleX = stage.stageWidth / 320;
-			loading.scaleY = stage.stageHeight / 480;
+			
+			stageItems = [header, login, loginBtn, dashboard, main, loading];
+
+			for each(var item in stageItems)
+			{
+				item.x = stage.stageWidth / 2;
+				item.scaleX = stage.stageWidth / 320;
+				item.scaleY = stage.stageHeight / 480;
+			}
 			
 			//hide main
 			main.stop();
@@ -278,22 +261,21 @@
 		//reauth handler
 		private function deactivate(event:Event):void
 		{
-			//login.statusText.text = "deactivate";
-			trace("deactivate");
 		}
 		
 		private function activate(event:Event):void
 		{
-			if(jLoader.data != null)
+			if(redirectionData != null)
 			{
 				jLoader.addEventListener(Event.COMPLETE, reactivate);
 				jLoader.load(jSend);
-				//overlay.visible = true;
+				var Overlay:MovieClip = new overlay();
+				stage.addChild(Overlay);
 			}
 			
 			function reactivate(event:Event):void
 			{
-				//overlay.visible = false;
+				stage.removeChild(Overlay);
 			}
 		}
 		
@@ -388,7 +370,6 @@
 
 					main.egContainer.addChild(EGSnippet);
 					i4 = i4 + 1;
-					trace("adding child" + i4);
 				}
 				
 				//accountVtoUI();
@@ -417,7 +398,6 @@
 
 					main.queueContainer.addChild(QueueSnippet);
 					i4 = i4 + 1;
-					trace("adding child" + i4);
 				}
 				
 				main.queueContainer.addEventListener(MouseEvent.CLICK, queueHandler);
@@ -595,6 +575,7 @@
 			//analyticsLoader.load(analyticsSend);
 			
 			trace("logging in" );
+			appState = "logging in";
 			//get redirection.html, onComplete -> parseRedir
 			function completeHandler(event:Event = null):void
 			{
@@ -889,7 +870,6 @@
 				
 				main.saveBtn.removeEventListener(MouseEvent.CLICK, reauth);
 				main.saveBtn.btn_txt.text = "Saving";
-				trace("reauth");
 				TweenMax.to(main.saveBtn, 0.5, {x:70, ease:Bounce.easeOut});
 				
 				//UItoV flush
