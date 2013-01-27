@@ -270,6 +270,9 @@
 				jLoader.addEventListener(Event.COMPLETE, reactivate);
 				jLoader.load(jSend);
 				var Overlay:MovieClip = new overlay();
+				Overlay.scaleX = stage.stageWidth / 320;
+				Overlay.scaleY = stage.stageHeight / 480;
+				
 				stage.addChild(Overlay);
 			}
 			
@@ -613,11 +616,12 @@
 						parseRedir();
 						loadAccounts();
 						loadSMS();
-						loadQueue();
 					
 						//check for functionality
-						if(redirectionData.search("Queue") > -1){queueActive = true;}
+						if(redirectionData.search("Queue") > -1){queueActive = true;loadQueue();}
 						if(redirectionData.search("shortDials") > -1){shortDialsActive = true;}
+						if(redirectionData.search())
+						
 						trace(queueActive, shortDialsActive);
 					}
 					redirectionLoader.load(redirectionURLRequest);
@@ -864,48 +868,41 @@
 			{
 				if(main.timeContainer.switcher.currentFrame == 2 && main.timeContainer.switcher.destination.length < 10){trace("timeRedir invalid");}
 			}
-				//reauthorize
-				jLoader.addEventListener(Event.COMPLETE, transmitRedir);
-				jLoader.load(jSend);
 				
-				main.saveBtn.removeEventListener(MouseEvent.CLICK, reauth);
-				main.saveBtn.btn_txt.text = "Saving";
-				TweenMax.to(main.saveBtn, 0.5, {x:70, ease:Bounce.easeOut});
+			main.saveBtn.removeEventListener(MouseEvent.CLICK, reauth);
+			main.saveBtn.btn_txt.text = "Saving";
+			TweenMax.to(main.saveBtn, 0.5, {x:70, ease:Bounce.easeOut});
+			
+			//UItoV flush
+			UItoV();
+			
+			trace("sendingRedir");
+			//set method and data
+			redirectionURLRequest.method = URLRequestMethod.POST;
+			redirectionURLRequest.data = r_vars;
+			
+			//listen for r_vars complete
+			rLoader.addEventListener(Event.COMPLETE, getRedir);
+			
+			//post r_vars
+			rLoader.load(redirectionURLRequest);
+		
+			//if f2m chosen, post F2M email address
+			if(r_vars.choice1 == "3")
+			{
+				f2mURLRequest.method = URLRequestMethod.POST;
+				f2mURLRequest.data = f2m_vars;
 				
-				//UItoV flush
-				UItoV();
+				f2mLoader.load(f2mURLRequest);
+				trace("sending f2m");
+			}
 				
-				function transmitRedir(event:Event = null):void
-				{
-					trace("sendingRedir");
-					//set method and data
-					redirectionURLRequest.method = URLRequestMethod.POST;
-					redirectionURLRequest.data = r_vars;
-					
-					//listen for r_vars complete
-					rLoader.addEventListener(Event.COMPLETE, getRedir);
-					
-					//post r_vars
-					rLoader.load(redirectionURLRequest);
-					
-					//if f2m chosen, post F2M email address
-					if(r_vars.choice1 == "3")
-					{
-						f2mURLRequest.method = URLRequestMethod.POST;
-						f2mURLRequest.data = f2m_vars;
-						
-						f2mLoader.load(f2mURLRequest);
-						trace("sending f2m");
-					}
-					
-					//reget redir on complete r_vars post...
-					function getRedir(event:Event)
-					{
-						jLoader.removeEventListener(Event.COMPLETE, transmitRedir);
-						redirectionData = new String(rLoader.data);
-						parseRedir();
-					}
-				}
+			//reget redir on complete r_vars post...
+			function getRedir(event:Event)
+			{
+				redirectionData = new String(rLoader.data);
+				parseRedir();
+			}
 		}
 		
 		private function loadF2M(event:Event = null):void
