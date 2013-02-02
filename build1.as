@@ -47,7 +47,7 @@
 		private var rex:RegExp = /[\s\r\n]*/gim;
 		
 		//functionality trackers
-		private var functionCount:Number = 3;
+		private var functionCount:Number = 4;
 		private var queueActive:Boolean;
 		private var shortDialsActive:Boolean;
 		
@@ -245,10 +245,10 @@
 			main.scaleX = stage.stageWidth / 320;
 			main.scaleY = stage.stageHeight / 480;
 
-			loading.x = stage.stageWidth / 2;
-			loading.y = stage.stageHeight * 0.3;
-			loading.scaleX = stage.stageWidth / 320;
-			loading.scaleY = stage.stageHeight / 480;
+			//loading.x = stage.stageWidth / 2;
+			//loading.y = stage.stageHeight * 0.3;
+			//loading.scaleX = stage.stageWidth / 320;
+			//loading.scaleY = stage.stageHeight / 480;
 			
 			//hide main
 			main.stop();
@@ -303,9 +303,9 @@
 			i4 = i4 + 1;
 			
 			if(i4 == functionCount){
-				TweenMax.to(loading, 0.5, {y:"+1000", autoAlpha:0, ease:Cubic.easeInOut});
+				TweenMax.to(dashboard.loading, 0.5, {y:"+1000", autoAlpha:0, ease:Cubic.easeInOut});
 			}else{
-				TweenMax.to(loading, 0.5, {y:yP + 20, x:xP + 160, ease:Cubic.easeInOut});
+				TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 			}
 		}
 		
@@ -564,11 +564,10 @@
 			//UI management
 			loginBtn.removeEventListener(MouseEvent.CLICK, transmit);
 			
-			TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
-			TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
-			TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
-			TweenMax.to(loading, 0.5, {autoAlpha:1, ease:Cubic.easeInOut});
-			TweenMax.to(loading.loading, 0.75, {rotation:"-360", ease:Cubic.easeInOut, repeat:-1});
+			TweenMax.to(loginBtn.loading, 0.75, {rotation:"-360", ease:Cubic.easeInOut, repeat:-1});
+			TweenMax.to(loginBtn.loading, 0.75, {alpha:1});
+			TweenMax.to(dashboard.loading, 0.5, {autoAlpha:1, ease:Cubic.easeInOut});
+			TweenMax.to(dashboard.loading.loading, 0.75, {rotation:"-360", ease:Cubic.easeInOut, repeat:-1});
 
 			//flush local j_session w/ text fields
 			userID_local = login.userid_txt.text;
@@ -609,15 +608,11 @@
 			{
 				if(jLoader.data.search("password") > -1)
 				{
-					login.statusText.text = "Please check your password";
+					TweenLite.killTweensOf(loginBtn.loading);
+					loginBtn.loading.alpha = 0;
 					
+					login.statusText.text = "Please check your password";
 					loginBtn.addEventListener(MouseEvent.CLICK, transmit);
-			
-					TweenMax.to(header, 0.8, {autoAlpha:1, y:stage.stageHeight * 0.19, ease:Strong.easeInOut});
-					TweenMax.to(login, 0.8, {autoAlpha:1, delay:0.1, y:stage.stageHeight * 0.5, ease:Cubic.easeInOut});
-					TweenMax.to(loginBtn, 0.8, {autoAlpha:1, delay:0.2, y:stage.stageHeight * 0.7, ease:Cubic.easeInOut});
-					TweenMax.to(loading, 0.8, {autoAlpha:0, ease:Cubic.easeInOut});
-				
 				}else{
 					//check for functionality
 					jData = jLoader.data;
@@ -630,8 +625,11 @@
 					trace("log in complete");
 					trace("getting redirection");
 				
+					TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
+					TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
+					TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
 					TweenMax.to(dashboard, 0.5, {delay:0.3,autoAlpha:1, y:"-1000", ease:Cubic.easeInOut});
-					TweenMax.to(loading, 0.5, {y:yP + 20, x:xP + 160, ease:Cubic.easeInOut});
+					TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 				
 					redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);
 					loadF2M();
@@ -1017,6 +1015,7 @@
 		
 		private function getCDR(event:Event = null):void
 		{
+			addDashboard("CDR", 4);
 		}
 		
 		private function loadQueue(event:Event = null):void
