@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <application xmlns="http://ns.adobe.com/air/application/3.4">
-  <id>build1</id>
+  <id>ixnay.efonandroid</id>
   <versionNumber>1.0.0</versionNumber>
   <versionLabel/>
   <filename>e-fon</filename>
@@ -33,6 +33,7 @@
     <manifestAdditions>
       <![CDATA[<manifest>
 <uses-permission android:name="android.permission.INTERNET"/>
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 </manifest>]]>
     </manifestAdditions>
   </android>

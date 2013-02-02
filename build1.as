@@ -10,8 +10,7 @@
 	import flash.events.*;
 	import flash.ui.*;
 	import flash.text.TextFormat;
-	
-	trace("classes imported");
+	import flash.desktop.NativeApplication;
 
 	public class build1 extends MovieClip
 	{
@@ -19,6 +18,9 @@
 		Multitouch.inputMode=MultitouchInputMode.TOUCH_POINT;
 		
 		////Global misc. variables////
+		//state holder
+		var programState:String = "home";
+		
 		//local LSO
 		var SO:SharedObject = SharedObject.getLocal("e-fon");
 		
@@ -38,6 +40,7 @@
 		public var i2:Number = 0;
 		public var i3:Number = 0;
 		public var i4:Number = 0;
+		public var i5:Number = 0;
 		
 		//ui counter
 		public var xP:Number = -100;
@@ -144,13 +147,13 @@
 		private var f2mSniffer:RegExp = /name="fax2emailEmail"value="([0-9a-zA-Z][-._a-zA-Z0-9]*@(?:[0-9a-zA-Z][-._0-9a-zA-Z]*\.)+[a-zA-Z]{2,4})/;
 		
 		//matches asssigned accounts to result[1]
-		private var accountsSniffer:RegExp = /tdwidth="100px">([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([^"]{0,})"\/><\/td><td>/g;
+		private var accountsSniffer:RegExp = /tdwidth=."100px">([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([^"]{0,})"\/><\/td><td>/g;
 		
 		//matches SMS option
 		private var smsSniffer:RegExp = /optionvalue="([0-9a-z]{0,15})">([0-9a-zA-Z]{1,10})/gi;
 		
 		//matches queue info
-		private var queueSniffer:RegExp =  />([0-9a-zA-Z]{0,})<\/td><td>[0-9a-zA-Z]{0,},([0-9a-zA-Z]{0,})<\/td><td>[0-9a-zA-Z]{0,}<\/td><td>[0-9a-zA-Z,;]{0,}<br\/><\/td><td><spanstyle="color:[0-9a-zA-Z,]{0,};">([a-zA-Z]{0,})<\/span><\/td><td><ahref="javascript:[a-zA-Z]{0,}\(([0-9]{0,})\)"/g; 
+		private var queueSniffer:RegExp =  />([0-9a-zA-Z]{0,})<\/td><td>[0-9a-zA-Z]{0,},([0-9a-zA-Z]{0,})<\/td><td>[0-9a-zA-Z]{0,}<\/td><td>[0-9a-zA-Z,;]{0,}<br\/><\/td><td><spanstyle="color:[0-9a-zA-Z,]{0,};">([a-zA-Z]{0,})<\/span><\/td><td><ahref="javascript:[a-zA-Z]{0,}\(([0-9]{0,})\)/g; 
 		
 		////Local variable defenition////
 		
@@ -226,7 +229,7 @@
 			header.scaleY = stage.stageHeight / 480;
 			
 			login.x = stage.stageWidth / 2;
-			login.y = stage.stageHeight * 0.5;
+			login.y = stage.stageHeight * 0.47;
 			login.scaleX = stage.stageWidth / 320;
 			login.scaleY = stage.stageHeight / 480;
 
@@ -263,8 +266,10 @@
 			dashboard.addEventListener(MouseEvent.CLICK, dashboardHandler);
 			main.addEventListener(MouseEvent.CLICK, dashboardHandler);
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyHandler);
+			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
+			NativeApplication.nativeApplication.addEventListener(Event.NETWORK_CHANGE, networkChange);
 			
-			stage.addEventListener(MouseEvent.CLICK, getTarget);
+			//stage.addEventListener(MouseEvent.CLICK, getTarget);
 
 			if (!SO.data.userid)
 			{
@@ -274,13 +279,34 @@
 				login.userid_txt.text = SO.data.userid;
 				//login.password_txt.text = SO.data.pass;
 			}
-			
-			trace("ready for login");
 		}
+		//reactivation
+		private function activate(event:Event):void
+		{
+			if(jData != null)
+			{
+				jLoader.addEventListener(Event.COMPLETE, removeOverlay);
+				jLoader.load(jSend);
+				var Overlay:MovieClip = new overlay();
+				Overlay.scaleX = stage.stageWidth / 320;
+				Overlay.scaleY = stage.stageHeight / 480;
+				
+				stage.addChild(Overlay);
+			}
+
+			function removeOverlay(event:Event):void
+			{
+				stage.removeChild(Overlay);
+			}
+		}
+		
+		private function networkChange(event:Event):void
+		{
+		}
+		
 		//dashboard stack
 		private function addDashboard(type:String, typeFrame:Number):void
 		{
-			trace(i4, functionCount);
 			var DashboardItem:MovieClip = new dashboardItem();
 			
 			DashboardItem.y = yP;
@@ -300,10 +326,10 @@
 			}else{
 				xP = xP + 100;
 			}
-			i4 = i4 + 1;
+			i5 = i5 + 1;
 			
-			if(i4 == functionCount){
-				TweenMax.to(dashboard.loading, 0.5, {y:"+1000", autoAlpha:0, ease:Cubic.easeInOut});
+			if(i5 == functionCount){
+				TweenMax.to(dashboard.loading, 0.5, {x:"+100", autoAlpha:0, ease:Cubic.easeInOut});
 			}else{
 				TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 			}
@@ -312,24 +338,26 @@
 		//backBtn handler
 		private function keyHandler(event:KeyboardEvent):void
 		{
-		if( event.keyCode == Keyboard.BACK )
+		if(event.keyCode == Keyboard.BACK && programState != "home")
 			{
 				event.preventDefault();
 				event.stopImmediatePropagation();
 				TweenMax.to(dashboard, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
-				main.gotoAndStop(6);
+				programState = "home";
 			}
 		}
 		
 		//dashboard UI managment
 		private function dashboardHandler(event:MouseEvent):void
 		{
+			programState = event.target.name;
 			if(event.target.name == "Umleitung")
 			{
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 				
+				main.gotoAndStop(6);
 				main.gotoAndStop(1);
 				
 				main.timeContainer.addEventListener(MouseEvent.CLICK, tempHandler);
@@ -349,14 +377,13 @@
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 				
+				main.gotoAndStop(6);
 				main.gotoAndStop(2);
 				
 				main.sendBtn.btn_txt.text = "Senden"
 				main.sendBtn.addEventListener(MouseEvent.CLICK, SMS);
 				
 				i4 = 0;
-				
-				trace(smsNumber);
 				
 				for each(var clip in smsNumber)
 				{
@@ -368,7 +395,6 @@
 
 					main.smsContainer.addChild(SMSRadio);
 					i4 = i4 + 1;
-					trace("adding child" + i4);
 				}
 				//main.smsContainer2.y = i4 * 20 + 95;
 			}
@@ -377,6 +403,8 @@
 			{
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				
+				main.gotoAndStop(6);
 				main.gotoAndStop(3);
 			}
 			
@@ -385,6 +413,7 @@
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 				
+				main.gotoAndStop(6);
 				main.gotoAndStop(4);
 				
 				i4 = 0;
@@ -400,7 +429,6 @@
 
 					main.egContainer.addChild(EGSnippet);
 					i4 = i4 + 1;
-					trace("adding child" + i4);
 				}
 				
 				//accountVtoUI();
@@ -411,6 +439,7 @@
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 				
+				main.gotoAndStop(6);
 				main.gotoAndStop(5);
 				
 				i4 = 0;
@@ -431,7 +460,6 @@
 
 					main.queueContainer.addChild(QueueSnippet);
 					i4 = i4 + 1;
-					trace("adding child" + i4);
 				}
 				
 				main.queueContainer.addEventListener(MouseEvent.CLICK, queueHandler);
@@ -442,11 +470,34 @@
 				}
 			}
 			
+			if(event.target.name == "info")
+			{
+				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				
+				main.gotoAndStop(6);
+				main.gotoAndStop(7);
+				
+				main.github.addEventListener(MouseEvent.CLICK, openGit);
+				main.ticket.addEventListener(MouseEvent.CLICK, sendTicket);
+				
+				function openGit(event:MouseEvent):void
+				{
+					navigateToURL(new URLRequest("https://github.com/silasoverturf/android-e-fon-nightly/issues"));
+				}
+				
+				function sendTicket(event:MouseEvent):void
+				{
+					navigateToURL(new URLRequest("mailto:support@e-fon.ch"));
+				}
+			}
+			
 			if(event.target.name == "backBtn")
 			{
 				TweenMax.to(dashboard, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
-				main.gotoAndStop(6);
+				
+				programState = "home";
 			}
 		}
 		
@@ -563,6 +614,7 @@
 		{
 			//UI management
 			loginBtn.removeEventListener(MouseEvent.CLICK, transmit);
+			main.gotoAndStop(5);
 			
 			TweenMax.to(loginBtn.loading, 0.75, {rotation:"-360", ease:Cubic.easeInOut, repeat:-1});
 			TweenMax.to(loginBtn.loading, 0.75, {alpha:1});
@@ -602,7 +654,6 @@
 			jLoader.load(jSend);
 			//analyticsLoader.load(analyticsSend);
 			
-			trace("logging in" );
 			//get redirection.html, onComplete -> parseRedir
 			function completeHandler(event:Event = null):void
 			{
@@ -618,12 +669,8 @@
 					jData = jLoader.data;
 					if(jData.search("Queue") > -1){queueActive = true;functionCount = functionCount + 1}
 					if(jData.search("shortDials") > -1){shortDialsActive = true;}
-					trace(queueActive, shortDialsActive);
 						
 					getCDR();
-					
-					trace("log in complete");
-					trace("getting redirection");
 				
 					TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
 					TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
@@ -677,8 +724,6 @@
 			
 			///remove whitespace
 			redirectionData = redirectionData.replace(rex,"");
-			trace("parsing redirection");
-			trace(timeRedir, busyRedir, unregRedir, anonRedir);
 			
 			var result:Array = choiceSniffer.exec(redirectionData);
 			var result2:Array = featureSniffer.exec(redirectionData);
@@ -709,8 +754,6 @@
 				i2 = i2 + 1;
 			}
 			
-			trace(timeRedir, busyRedir, unregRedir, anonRedir);
-			
 			result = [];
 			dumpRedir = [];
 			result = delaySniffer.exec(redirectionData);
@@ -740,7 +783,6 @@
 			//get selected numberID
 			numberID = optionSniffer.exec(redirectionData);
 			numberID = numberID.replace(optionStripper, "");
-			trace(numberID);
 			
 			//reset counter
 			i3 = 0;
@@ -760,13 +802,12 @@
 				featureArray[i3] = dumpContainer;
 				i3 = i3 + 1;
 			}
-			VtoUI();
+			if(main.currentFrame == 1){VtoUI();}
 		}
 		
 		//UI flushing
 		private function VtoUI(event:Event = null):void
 		{
-			trace("VtoUI");
 			//reset
 			main.timeContainer.switcher.gotoAndStop(2);
 			main.busyContainer.switcher.gotoAndStop(4);
@@ -799,11 +840,14 @@
 			//anonRedir flush
 			if (anonRedir[1] == 1){main.anonContainer.switcher.gotoAndStop(1);main.anonContainer.switcher.Text.text = "Falls unterdrückt umleiten auf Voicemail";}
 			if (anonRedir[1] == 2){main.anonContainer.switcher.gotoAndStop(7);main.anonContainer.switcher.destination.text = "Falls unterdrückt umleiten auf Abweisungsnachricht";}
+
+			//f2m flush
+			main.timeContainer.selecter.fax2mailIcon.email.text = f2mEmail[1];
 			
 			//read savingBtn listeners
 			main.saveBtn.addEventListener(MouseEvent.CLICK, reauth);
 			main.saveBtn.btn_txt.text = "Saved!";
-			TweenMax.to(main.saveBtn, 0.5, {delay:0.4, x:120, ease:Bounce.easeOut});
+			TweenMax.to(main.saveBtn, 0.5, {delay:0.4, x:123, ease:Bounce.easeOut});
 		}
 		
 		//UI reverse flushing
@@ -892,7 +936,6 @@
 				
 				main.saveBtn.removeEventListener(MouseEvent.CLICK, reauth);
 				main.saveBtn.btn_txt.text = "Saving";
-				trace("reauth");
 				TweenMax.to(main.saveBtn, 0.5, {x:70, ease:Bounce.easeOut});
 				
 				//UItoV flush
@@ -900,26 +943,17 @@
 				
 				function transmitRedir(event:Event = null):void
 				{
-					trace("sendingRedir");
 					//set method and data
 					redirectionURLRequest.method = URLRequestMethod.POST;
 					redirectionURLRequest.data = r_vars;
 					
+					trace(r_vars)
+
 					//listen for r_vars complete
 					rLoader.addEventListener(Event.COMPLETE, getRedir);
 					
 					//post r_vars
 					rLoader.load(redirectionURLRequest);
-					
-					//if f2m chosen, post F2M email address
-					if(r_vars.choice1 == "3")
-					{
-						f2mURLRequest.method = URLRequestMethod.POST;
-						f2mURLRequest.data = f2m_vars;
-						
-						f2mLoader.load(f2mURLRequest);
-						trace("sending f2m");
-					}
 					
 					//reget redir on complete r_vars post...
 					function getRedir(event:Event)
@@ -927,6 +961,15 @@
 						jLoader.removeEventListener(Event.COMPLETE, transmitRedir);
 						redirectionData = new String(rLoader.data);
 						parseRedir();
+
+						//if f2m chosen, post F2M email address, post is deffered to after the rloader to avoid timeouts from the server
+						if(r_vars.choice1 == "3")
+						{
+							f2mURLRequest.method = URLRequestMethod.POST;
+							f2mURLRequest.data = f2m_vars;
+						
+							f2mLoader.load(f2mURLRequest);
+						}
 					}
 				}
 		}
@@ -935,16 +978,12 @@
 		{
 			f2mLoader.addEventListener(Event.COMPLETE, parseF2M);
 			f2mLoader.load(f2mURLRequest);
-			trace("getting f2m");
 			
 			function parseF2M(event:Event = null):void
 			{
 				f2mData = new String(f2mLoader.data);
 				f2mData = f2mData.replace(rex,"");
 				f2mEmail = f2mSniffer.exec(f2mData);
-				//if(f2mEmail)
-				main.timeContainer.selecter.fax2mailIcon.email.text = f2mEmail[1];
-				trace(main.timeContainer.selecter.fax2mailIcon.email.text);
 			}
 		}
 		
@@ -952,7 +991,6 @@
 		{
 			smsLoader.addEventListener(Event.COMPLETE, parseSMS);
 			smsLoader.load(smsSend);
-			trace("getting sms");
 			
 			function parseSMS(event:Event = null):void
 			{
@@ -969,10 +1007,7 @@
 		
 					smsResult = smsSniffer.exec(smsData);
 				}
-				trace(smsNumberID);
-				trace(smsNumber);
 				addDashboard("SMS", 5);
-				//sms regexp optionvalue="([0-9a-z]{0,15})">([0-9a-zA-Z]{1,10})
 			}
 		}
 		
@@ -1046,8 +1081,6 @@
 		
 		private function sendQueue(agentID:String):void
 		{
-			trace(agentID);
-			
 			queueVars = new URLVariables();
 			
 			queueSend.method = URLRequestMethod.POST;
@@ -1059,11 +1092,9 @@
 			
 			if(queueStatus[queueAgent.indexOf(agentID)] == "Offline")
 			{
-				trace("going online");
 				queueVars.statusId = "10";
 				queueStatus[queueAgent.indexOf(agentID)] = "Online";
 			}else{
-				trace("going offline");
 				queueVars.statusId = "40";
 				queueStatus[queueAgent.indexOf(agentID)] = "Offline";
 			}
@@ -1074,30 +1105,22 @@
 		{
 			accountsLoader.addEventListener(Event.COMPLETE, parseAccounts);
 			accountsLoader.load(accountsSend);
-			trace("getting accounts");
 				
 			function parseAccounts(event:Event):void
 			{
-				trace("accounts gotten");
 				accountsData = new String(accountsLoader.data);
+				
 				accountsData = accountsData.replace(rex,"");
 				
-				trace(accountsData);
-				
-				//accountsResult = [];				
 				var accountsResult:Array = accountsSniffer.exec(accountsData);
 				while (accountsResult != null)
 				{
-					//accounts.push(accountsResult[8]);
-					//accountN.push(accountsResult[1]);
 					accountID.push(accountsResult[2]);
 					accountCLIP.push(accountsResult[3]);
 					accountZIP.push(accountsResult[5]);
 					accountStatus.push(accountsResult[6]);
 					
 					accountsResult = accountsSniffer.exec(accountsData);
-					
-					trace("status", accountStatus);
 				}
 				addDashboard("Accounts", 3);
 			}
