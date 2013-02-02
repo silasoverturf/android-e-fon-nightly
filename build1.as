@@ -10,7 +10,8 @@
 	import flash.events.*;
 	import flash.ui.*;
 	import flash.text.TextFormat;
-	import flash.desktop.NativeApplication;
+	
+	trace("classes imported");
 
 	public class build1 extends MovieClip
 	{
@@ -18,21 +19,19 @@
 		Multitouch.inputMode=MultitouchInputMode.TOUCH_POINT;
 		
 		////Global misc. variables////
-		
 		//local LSO
 		var SO:SharedObject = SharedObject.getLocal("e-fon");
-				
+		
+		//swiping
+		private var ind:int = 0;
+		private var currX:Number = 0;
+		
 		//local session vars
 		private var userID_local:String;
 		private var password_local:String;
 
-		public var appState:String = "login";
-		
 		//text formats
 		public var robotoLabel:TextFormat = new TextFormat();
-		
-		//stage duplicator
-		private var stageItems:Array;
 		
 		//counters
 		public var i:Number = 0;
@@ -40,10 +39,15 @@
 		public var i3:Number = 0;
 		public var i4:Number = 0;
 		
+		//ui counter
+		public var xP:Number = -100;
+		public var yP:Number = 130;
+		
 		//white space remover
 		private var rex:RegExp = /[\s\r\n]*/gim;
 		
 		//functionality trackers
+		private var functionCount:Number = 3;
 		private var queueActive:Boolean;
 		private var shortDialsActive:Boolean;
 		
@@ -107,6 +111,7 @@
 		private var cdr_vars:URLVariables;
 
 		//raw .html data (URLLoader.data)
+		private var jData:String;
 		private var cdrData:String;
 		private var redirectionData:String;
 		private var f2mData:String;
@@ -190,6 +195,10 @@
 		
 		private var smsResult:Array = [];
 		
+		
+		////Display stack////
+		
+		
 		public function build1()
 		{
 			//set label tf
@@ -211,21 +220,35 @@
 			bg.height = stage.stageHeight;
 			
 			//mc placement and scaling
+			header.x = stage.stageWidth / 2;
 			header.y = stage.stageHeight * 0.19;
-			login.y = stage.stageHeight * 0.5;
-			loginBtn.y = stage.stageHeight * 0.7;
-			dashboard.y = stage.stageHeight * 0.03;
-			main.y = stage.stageHeight * 0.03;
-			loading.y = stage.stageHeight * 0.3;
+			header.scaleX = stage.stageWidth / 320;
+			header.scaleY = stage.stageHeight / 480;
 			
-			stageItems = [header, login, loginBtn, dashboard, main, loading];
+			login.x = stage.stageWidth / 2;
+			login.y = stage.stageHeight * 0.5;
+			login.scaleX = stage.stageWidth / 320;
+			login.scaleY = stage.stageHeight / 480;
 
-			for each(var item in stageItems)
-			{
-				item.x = stage.stageWidth / 2;
-				item.scaleX = stage.stageWidth / 320;
-				item.scaleY = stage.stageHeight / 480;
-			}
+			loginBtn.x = stage.stageWidth / 2;
+			loginBtn.y = stage.stageHeight * 0.7;
+			loginBtn.scaleX = stage.stageWidth / 320;
+			loginBtn.scaleY = stage.stageHeight / 480;
+
+			dashboard.x = stage.stageWidth / 2;
+			dashboard.y = stage.stageHeight * 0.03;
+			dashboard.scaleX = stage.stageWidth / 320;
+			dashboard.scaleY = stage.stageHeight/ 480;
+			
+			main.x = stage.stageWidth / 2;
+			main.y = stage.stageHeight * 0.03;
+			main.scaleX = stage.stageWidth / 320;
+			main.scaleY = stage.stageHeight / 480;
+
+			loading.x = stage.stageWidth / 2;
+			loading.y = stage.stageHeight * 0.3;
+			loading.scaleX = stage.stageWidth / 320;
+			loading.scaleY = stage.stageHeight / 480;
 			
 			//hide main
 			main.stop();
@@ -241,10 +264,7 @@
 			main.addEventListener(MouseEvent.CLICK, dashboardHandler);
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyHandler);
 			
-			NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, deactivate);
-			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
-			
-			//stage.addEventListener(MouseEvent.CLICK, getTarget);
+			stage.addEventListener(MouseEvent.CLICK, getTarget);
 
 			if (!SO.data.userid)
 			{
@@ -257,35 +277,42 @@
 			
 			trace("ready for login");
 		}
-		
-		//reauth handler
-		private function deactivate(event:Event):void
+		//dashboard stack
+		private function addDashboard(type:String, typeFrame:Number):void
 		{
-		}
-		
-		private function activate(event:Event):void
-		{
-			if(redirectionData != null)
-			{
-				jLoader.addEventListener(Event.COMPLETE, reactivate);
-				jLoader.load(jSend);
-				var Overlay:MovieClip = new overlay();
-				Overlay.scaleX = stage.stageWidth / 320;
-				Overlay.scaleY = stage.stageHeight / 480;
-				
-				stage.addChild(Overlay);
-			}
+			trace(i4, functionCount);
+			var DashboardItem:MovieClip = new dashboardItem();
 			
-			function reactivate(event:Event):void
+			DashboardItem.y = yP;
+			DashboardItem.x = xP;
+			
+			DashboardItem.gotoAndStop(typeFrame);
+			//DashboardItem.Text.text = type;
+			//DashboardItem.alpha = 0.5;
+			DashboardItem.name = type;
+
+			dashboard.addChild(DashboardItem);
+
+			if(xP == 100)
 			{
-				stage.removeChild(Overlay);
+				yP = yP + 70;
+				xP = -100;
+			}else{
+				xP = xP + 100;
+			}
+			i4 = i4 + 1;
+			
+			if(i4 == functionCount){
+				TweenMax.to(loading, 0.5, {y:"+1000", autoAlpha:0, ease:Cubic.easeInOut});
+			}else{
+				TweenMax.to(loading, 0.5, {y:yP + 20, x:xP + 160, ease:Cubic.easeInOut});
 			}
 		}
 		
 		//backBtn handler
 		private function keyHandler(event:KeyboardEvent):void
 		{
-		if(event.keyCode == Keyboard.BACK && appState != "login")
+		if( event.keyCode == Keyboard.BACK )
 			{
 				event.preventDefault();
 				event.stopImmediatePropagation();
@@ -298,7 +325,7 @@
 		//dashboard UI managment
 		private function dashboardHandler(event:MouseEvent):void
 		{
-			if(event.target.name == "redirDash")
+			if(event.target.name == "Umleitung")
 			{
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
@@ -317,7 +344,7 @@
 				VtoUI();
 			}
 			
-			if(event.target.name == "smsDash")
+			if(event.target.name == "SMS")
 			{
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
@@ -346,14 +373,14 @@
 				//main.smsContainer2.y = i4 * 20 + 95;
 			}
 			
-			if(event.target.name == "cdrDash")
+			if(event.target.name == "CDR")
 			{
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 				main.gotoAndStop(3);
 			}
 			
-			if(event.target.name == "egDash")
+			if(event.target.name == "Accounts")
 			{
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
@@ -373,12 +400,13 @@
 
 					main.egContainer.addChild(EGSnippet);
 					i4 = i4 + 1;
+					trace("adding child" + i4);
 				}
 				
 				//accountVtoUI();
 			}
 			
-			if(event.target.name == "queueDash" && queueLoader.data != null)
+			if(event.target.name == "Queue")
 			{
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
@@ -394,13 +422,16 @@
 					QueueSnippet.Text.text = queueList[i4] + " als" + "\n" +queueName[i4];
 					//QueueSnippet.agentID.text = queueAgent[i4];
 					
-					if(queueStatus[i4] == "Online"){QueueSnippet.slider.gotoAndStop(2);}
-					if(queueStatus[i4] == "Offline"){QueueSnippet.slider.gotoAndStop(1);}
+					if(queueStatus[i4] == "Online")
+					{
+						QueueSnippet.slider.gotoAndStop(2);
+					}
 					
 					QueueSnippet.name = queueAgent[i4];
 
 					main.queueContainer.addChild(QueueSnippet);
 					i4 = i4 + 1;
+					trace("adding child" + i4);
 				}
 				
 				main.queueContainer.addEventListener(MouseEvent.CLICK, queueHandler);
@@ -455,11 +486,6 @@
 		}
 		
 		//redirection UI management
-		private function redirectionUIHandler(event:MouseEvent):void
-		{
-			//TweenMax.to()
-		}
-		
 		private function tempHandler(event:MouseEvent):void
 		{
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
@@ -578,7 +604,6 @@
 			//analyticsLoader.load(analyticsSend);
 			
 			trace("logging in" );
-			appState = "logging in";
 			//get redirection.html, onComplete -> parseRedir
 			function completeHandler(event:Event = null):void
 			{
@@ -594,15 +619,26 @@
 					TweenMax.to(loading, 0.8, {autoAlpha:0, ease:Cubic.easeInOut});
 				
 				}else{
-					//cdrData = jLoader.data;
-					getCDR();				
-				
+					//check for functionality
+					jData = jLoader.data;
+					if(jData.search("Queue") > -1){queueActive = true;functionCount = functionCount + 1}
+					if(jData.search("shortDials") > -1){shortDialsActive = true;}
+					trace(queueActive, shortDialsActive);
+						
+					getCDR();
+					
 					trace("log in complete");
 					trace("getting redirection");
 				
+					TweenMax.to(dashboard, 0.5, {delay:0.3,autoAlpha:1, y:"-1000", ease:Cubic.easeInOut});
+					TweenMax.to(loading, 0.5, {y:yP + 20, x:xP + 160, ease:Cubic.easeInOut});
+				
 					redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);
 					loadF2M();
-				
+					loadAccounts();
+					loadSMS();
+					loadQueue();
+					
 					function redirectionHandler(event:Event):void
 					{
 						removeChild(header);
@@ -614,15 +650,7 @@
 						redirectionData = new String(redirectionLoader.data);
 						jLoader.removeEventListener(Event.COMPLETE, completeHandler);
 						parseRedir();
-						loadAccounts();
-						loadSMS();
-					
-						//check for functionality
-						if(redirectionData.search("Queue") > -1){queueActive = true;loadQueue();}
-						if(redirectionData.search("shortDials") > -1){shortDialsActive = true;}
-						if(redirectionData.search())
-						
-						trace(queueActive, shortDialsActive);
+						addDashboard("Umleitung", 1);
 					}
 					redirectionLoader.load(redirectionURLRequest);
 				}
@@ -653,14 +681,6 @@
 			redirectionData = redirectionData.replace(rex,"");
 			trace("parsing redirection");
 			trace(timeRedir, busyRedir, unregRedir, anonRedir);
-			
-			//UI management, check if main at correct position
-			if(dashboard.y > 500)
-			{
-				TweenMax.to(dashboard, 0.5, {delay:0.3,autoAlpha:1, y:"-1000", ease:Cubic.easeInOut});
-				TweenMax.to(loading, 0.5, {autoAlpha:0, y:-200, ease:Cubic.easeInOut});
-				//TweenMax.to(options, 0.5, {delay:0.3,autoAlpha:1, y:stage.stageHeight, ease:Cubic.easeInOut});
-			}
 			
 			var result:Array = choiceSniffer.exec(redirectionData);
 			var result2:Array = featureSniffer.exec(redirectionData);
@@ -868,41 +888,49 @@
 			{
 				if(main.timeContainer.switcher.currentFrame == 2 && main.timeContainer.switcher.destination.length < 10){trace("timeRedir invalid");}
 			}
+				//reauthorize
+				jLoader.addEventListener(Event.COMPLETE, transmitRedir);
+				jLoader.load(jSend);
 				
-			main.saveBtn.removeEventListener(MouseEvent.CLICK, reauth);
-			main.saveBtn.btn_txt.text = "Saving";
-			TweenMax.to(main.saveBtn, 0.5, {x:70, ease:Bounce.easeOut});
-			
-			//UItoV flush
-			UItoV();
-			
-			trace("sendingRedir");
-			//set method and data
-			redirectionURLRequest.method = URLRequestMethod.POST;
-			redirectionURLRequest.data = r_vars;
-			
-			//listen for r_vars complete
-			rLoader.addEventListener(Event.COMPLETE, getRedir);
-			
-			//post r_vars
-			rLoader.load(redirectionURLRequest);
-		
-			//if f2m chosen, post F2M email address
-			if(r_vars.choice1 == "3")
-			{
-				f2mURLRequest.method = URLRequestMethod.POST;
-				f2mURLRequest.data = f2m_vars;
+				main.saveBtn.removeEventListener(MouseEvent.CLICK, reauth);
+				main.saveBtn.btn_txt.text = "Saving";
+				trace("reauth");
+				TweenMax.to(main.saveBtn, 0.5, {x:70, ease:Bounce.easeOut});
 				
-				f2mLoader.load(f2mURLRequest);
-				trace("sending f2m");
-			}
+				//UItoV flush
+				UItoV();
 				
-			//reget redir on complete r_vars post...
-			function getRedir(event:Event)
-			{
-				redirectionData = new String(rLoader.data);
-				parseRedir();
-			}
+				function transmitRedir(event:Event = null):void
+				{
+					trace("sendingRedir");
+					//set method and data
+					redirectionURLRequest.method = URLRequestMethod.POST;
+					redirectionURLRequest.data = r_vars;
+					
+					//listen for r_vars complete
+					rLoader.addEventListener(Event.COMPLETE, getRedir);
+					
+					//post r_vars
+					rLoader.load(redirectionURLRequest);
+					
+					//if f2m chosen, post F2M email address
+					if(r_vars.choice1 == "3")
+					{
+						f2mURLRequest.method = URLRequestMethod.POST;
+						f2mURLRequest.data = f2m_vars;
+						
+						f2mLoader.load(f2mURLRequest);
+						trace("sending f2m");
+					}
+					
+					//reget redir on complete r_vars post...
+					function getRedir(event:Event)
+					{
+						jLoader.removeEventListener(Event.COMPLETE, transmitRedir);
+						redirectionData = new String(rLoader.data);
+						parseRedir();
+					}
+				}
 		}
 		
 		private function loadF2M(event:Event = null):void
@@ -945,6 +973,7 @@
 				}
 				trace(smsNumberID);
 				trace(smsNumber);
+				addDashboard("SMS", 5);
 				//sms regexp optionvalue="([0-9a-z]{0,15})">([0-9a-zA-Z]{1,10})
 			}
 		}
@@ -1010,7 +1039,7 @@
 					
 					queueResult = queueSniffer.exec(queueData);
 				}
-				trace(queueAgent);
+				addDashboard("Queue", 2);
 			}
 			//clean queue data
 			queueLoader.load(queueSend);
@@ -1071,6 +1100,7 @@
 					
 					trace("status", accountStatus);
 				}
+				addDashboard("Accounts", 3);
 			}
 		}
 	}
