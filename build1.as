@@ -11,6 +11,7 @@
 	import flash.ui.*;
 	import flash.text.TextFormat;
 	import flash.desktop.NativeApplication;
+	import fl.controls.RadioButtonGroup;
 
 	public class build1 extends MovieClip
 	{
@@ -123,10 +124,24 @@
 		private var accountsData:String;
 		
 		////RegExp defenition////
+		//matches connection date[1] and time[2]
+		private var timeSniffer:RegExp = /([0-9]{0,2}[.][0-9]{0,2}[.][0-9]{0,4})([0-9]{0,2}:[0-9]{0,2}:[0-9]{0,2})/g;
+		
+		//matches destination sniffer in cdr, number[1] and "ziel"[2]
+		private var destSniffer:RegExp = /([0-9]{1,15})<\/td><td>([^<]{0,})/g;
+		
+		//matches time of call in cdr, time[1]
+		private var durSniffer:RegExp = />([0-9]{1,2}:[0-9]{2}:[0-9]{2})/g;
+		
+		//matches price of call in cdr, price[1]
+		private var priceSniffer:RegExp = />([0-9]{1,3}[.][0-9]{1,2})</g;
 		
 		//matches selectedNumber ID
 		private var optionSniffer:RegExp = /optionvalue="[0-9]{4,8}/;
 		private var optionStripper:RegExp = /optionvalue="/;
+		
+		//matches selectedNumber
+		private var userNumberSniffer:RegExp = /optionvalue="([0-9]{1,15})/;
 		
 		//matches destinations
 		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="([0-9]{3,15})/g;
@@ -147,13 +162,13 @@
 		private var f2mSniffer:RegExp = /name="fax2emailEmail"value="([0-9a-zA-Z][-._a-zA-Z0-9]*@(?:[0-9a-zA-Z][-._0-9a-zA-Z]*\.)+[a-zA-Z]{2,4})/;
 		
 		//matches asssigned accounts to result[1]
-		private var accountsSniffer:RegExp = /tdwidth=."100px">([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([^"]{0,})"\/><\/td><td>/g;
+		private var accountsSniffer:RegExp = /tdwidth="100px">([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([^"]{0,})"\/><\/td><td>/g;
 		
 		//matches SMS option
 		private var smsSniffer:RegExp = /optionvalue="([0-9a-z]{0,15})">([0-9a-zA-Z]{1,10})/gi;
 		
 		//matches queue info
-		private var queueSniffer:RegExp =  />([0-9a-zA-Z]{0,})<\/td><td>[0-9a-zA-Z]{0,},([0-9a-zA-Z]{0,})<\/td><td>[0-9a-zA-Z]{0,}<\/td><td>[0-9a-zA-Z,;]{0,}<br\/><\/td><td><spanstyle="color:[0-9a-zA-Z,]{0,};">([a-zA-Z]{0,})<\/span><\/td><td><ahref="javascript:[a-zA-Z]{0,}\(([0-9]{0,})\)/g; 
+		private var queueSniffer:RegExp =  />([0-9a-zA-Z]{0,})<\/td><td>[0-9a-zA-Z]{0,},([0-9a-zA-Z]{0,})<\/td><td>[0-9a-zA-Z]{0,}<\/td><td>[0-9a-zA-Z,;]{0,}<br\/><\/td><td><spanstyle="color:[0-9a-zA-Z,]{0,};">([a-zA-Z]{0,})<\/span><\/td><td><ahref="javascript:[a-zA-Z]{0,}\(([0-9]{0,})\)"/g; 
 		
 		////Local variable defenition////
 		
@@ -198,9 +213,17 @@
 		
 		private var smsResult:Array = [];
 		
+		//cdr vars
+		private var phoneNumber:Array = [];
+		
+		
+		private var cdrTime:Array = [];
+		private var cdrDur:Array = [];
+		private var cdrDest:Array = [];
+		private var cdrPrice:Array = [];
 		
 		////Display stack////
-		
+		private var smsRadioGroup:RadioButtonGroup = new RadioButtonGroup("SMSRadioGroup");
 		
 		public function build1()
 		{
@@ -390,6 +413,9 @@
 					var SMSRadio:MovieClip = new smsRadio();
 					SMSRadio.y = i4 * 28;
 					SMSRadio.radio.label = smsNumber[i4];
+					SMSRadio.radio.value = smsNumberID[i4];
+					SMSRadio.radio.group = smsRadioGroup;
+					
 					SMSRadio.radio.setStyle("textFormat", robotoLabel);
 					//QueueSnippet.agentID.text = queueAgent[i4];
 
@@ -670,7 +696,7 @@
 					if(jData.search("Queue") > -1){queueActive = true;functionCount = functionCount + 1}
 					if(jData.search("shortDials") > -1){shortDialsActive = true;}
 						
-					getCDR();
+					loadCDR();
 				
 					TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
 					TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
@@ -946,8 +972,6 @@
 					//set method and data
 					redirectionURLRequest.method = URLRequestMethod.POST;
 					redirectionURLRequest.data = r_vars;
-					
-					trace(r_vars)
 
 					//listen for r_vars complete
 					rLoader.addEventListener(Event.COMPLETE, getRedir);
@@ -1023,7 +1047,7 @@
 			sms_vars.numberOfMessageToSendForEachRecipient = "1"
 			sms_vars.numberOfRecipients = "1"
 			sms_vars.numberOfMessageToSend = "1"
-			sms_vars.senderNumber = "anonymous"
+			sms_vars.senderNumber = smsRadioGroup.selectedData;
 			
 			main.sendBtn.removeEventListener(MouseEvent.CLICK, SMS);
 			
@@ -1048,9 +1072,70 @@
 			}
 		}
 		
-		private function getCDR(event:Event = null):void
+		private function loadCDR(event:Event = null):void
 		{
-			addDashboard("CDR", 4);
+			jData = jData.replace(rex,"");
+			phoneNumber = userNumberSniffer.exec(jData);
+			
+			cdr_vars = new URLVariables();
+			
+			cdr_vars.selector = "missed";
+			cdr_vars.accountCode = phoneNumber[1];
+			cdr_vars.periodFromDate = "01.02.2013";
+			cdr_vars.periodFromTime = "00:00:00";
+			cdr_vars.periodUntilDate = "03.02.2013";
+			cdr_vars.periodUntilTime = "23:59:59";
+			cdr_vars.orderBy = "cdr.startDate desc";
+			cdr_vars.size = "50";
+			cdr_vars.showExcel = 
+			cdr_vars.offset = "0";
+			
+			cdrSend.method = URLRequestMethod.POST;
+			cdrSend.data = cdr_vars;
+			
+			cdrLoader = new URLLoader;
+			
+			cdrLoader.addEventListener(Event.COMPLETE, loadOutgoing);
+			cdrLoader.load(cdrSend);
+			
+			function loadOutgoing():void
+			{
+				cdrData = cdrLoader.data.replace(rex,"");
+				trace(cdrData);
+				
+				cdr_vars.selector = "outgoing";
+				cdrSend.data = cdr_vars;
+				
+				cdrLoader = new URLLoader;
+				
+				cdrLoader.removeEventListener(Event.COMPLETE, loadOutgoing);
+				cdrLoader.addEventListener(Event.COMPLETE, loadIncoming);
+				cdrLoader.load(cdrSend);
+				
+				function loadIncoming():void
+				{
+					cdrData = cdrLoader.data.replace(rex,"");
+					trace(cdrData);
+				
+					cdr_vars.selector = "incoming";
+					cdr_vars.selectionType = "1";
+					
+					cdrSend.data = cdr_vars;
+				
+					cdrLoader = new URLLoader;
+				
+					cdrLoader.removeEventListener(Event.COMPLETE, loadIncoming);
+					cdrLoader.addEventListener(Event.COMPLETE, returnIncoming);
+					cdrLoader.load(cdrSend);
+					
+					function returnIncoming():void
+					{
+						cdrData = cdrLoader.data.replace(rex,"");
+						trace(cdrData);
+						addDashboard("CDR", 4);
+					}
+				}
+			}
 		}
 		
 		private function loadQueue(event:Event = null):void
