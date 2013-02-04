@@ -9,11 +9,6 @@ The build1.fla and build.as are the main Flash documents and program class. The 
 ###Comment to nightly
 As this is the nightly repo the code may be sloppy, commented and not minified. The compiled .apk will come with an assortment of crashes, bugs and general nonsense.
 
-###Limitations
-* Currently only user with conventional USER roles (ROLE_USER, ROLE_CDR) are properly supported
-* If F2M is not configured, redirection.html data will not be parsed properly
-* If a diversion has never been configured for the number, rediretion.html data will not be parsed properly
-
 ##How to install on android
 
 1. Enable the setting "Installation of apps from unknown sources". Usually found in the settings > security > device administration
