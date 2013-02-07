@@ -175,7 +175,7 @@
 		private var smsSniffer:RegExp = /optionvalue="([0-9a-z]{0,15})">([0-9a-zA-Z]{1,10})/gi;
 		
 		//matches queue info
-		private var queueSniffer:RegExp =  />([^<]{0,})<\/td><td>[^<]{0,},([^<]{0,})<\/td><td>[^<]{0,}<\/td><td>[^<,;]{0,}<br\/><\/td><td><spanstyle="color:[0-9a-zA-Z,]{0,};">([a-zA-Z]{0,})<\/span><\/td><td><ahref="javascript:[a-zA-Z]{0,}\(([0-9]{0,})\)"/g; 
+		private var queueSniffer:RegExp =  />([^<]{0,})<\/td><td>[^<]{0,},([^<]{0,})<\/td><td>[^<]{0,}<\/td><td>[^<]{0,}<br\/><\/td><td><spanstyle="color:[0-9a-zA-Z,]{0,};">([a-zA-Z]{0,})<\/span><\/td><td><ahref="javascript:[a-zA-Z]{0,}\(([0-9]{0,})\)"/g; 
 		
 		////Local variable defenition////
 		
@@ -1119,7 +1119,6 @@
 			function loadOutgoing():void
 			{
 				cdrData = cdrLoader.data.replace(rex,"");
-				trace(cdrData);
 				
 				cdr_vars.selector = "outgoing";
 				cdrSend.data = cdr_vars;
@@ -1133,7 +1132,6 @@
 				function loadIncoming():void
 				{
 					cdrData = cdrLoader.data.replace(rex,"");
-					trace(cdrData);
 				
 					cdr_vars.selector = "incoming";
 					cdr_vars.selectionType = "1";
@@ -1149,7 +1147,6 @@
 					function returnIncoming():void
 					{
 						cdrData = cdrLoader.data.replace(rex,"");
-						trace(cdrData);
 						addDashboard("CDR", 4);
 					}
 				}
