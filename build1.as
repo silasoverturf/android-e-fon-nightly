@@ -54,6 +54,7 @@
 		private var functionCount:Number = 4;
 		private var queueActive:Boolean;
 		private var shortDialsActive:Boolean;
+		private var isAdmin:Boolean;
 		
 		//intermediate dump vars
 		private var dumpRedir:Array = [];
@@ -70,6 +71,7 @@
 		
 		/*variable assigning designation
 		j_session
+		members
 		redirection
 		fax2mail
 		sms
@@ -79,6 +81,8 @@
 		
 		//url requests
 		private var jSend:URLRequest = new URLRequest("https://web.e-fon.ch/portal/j_acegi_security_check");
+
+		private var memberURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/memberOverview.html")
 		
 		private var redirectionURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");//?selectedPhoneNumberId=selectedNumber;
 		
@@ -94,6 +98,8 @@
 		
 		//url loaders
 		private var jLoader:URLLoader;
+
+		private var memberLoader:URLLoader = new URLLoader;
 		
 		private var redirectionLoader:URLLoader = new URLLoader;
 		private var rLoader:URLLoader = new URLLoader;
@@ -116,6 +122,7 @@
 
 		//raw .html data (URLLoader.data)
 		private var jData:String;
+		private var memberData:String;
 		private var cdrData:String;
 		private var redirectionData:String;
 		private var f2mData:String;
@@ -168,7 +175,7 @@
 		private var smsSniffer:RegExp = /optionvalue="([0-9a-z]{0,15})">([0-9a-zA-Z]{1,10})/gi;
 		
 		//matches queue info
-		private var queueSniffer:RegExp =  />([0-9a-zA-Z]{0,})<\/td><td>[0-9a-zA-Z]{0,},([0-9a-zA-Z]{0,})<\/td><td>[0-9a-zA-Z]{0,}<\/td><td>[0-9a-zA-Z,;]{0,}<br\/><\/td><td><spanstyle="color:[0-9a-zA-Z,]{0,};">([a-zA-Z]{0,})<\/span><\/td><td><ahref="javascript:[a-zA-Z]{0,}\(([0-9]{0,})\)"/g; 
+		private var queueSniffer:RegExp =  />([^<]{0,})<\/td><td>[^<]{0,},([^<]{0,})<\/td><td>[^<]{0,}<\/td><td>[^<,;]{0,}<br\/><\/td><td><spanstyle="color:[0-9a-zA-Z,]{0,};">([a-zA-Z]{0,})<\/span><\/td><td><ahref="javascript:[a-zA-Z]{0,}\(([0-9]{0,})\)"/g; 
 		
 		////Local variable defenition////
 		
@@ -693,8 +700,20 @@
 				}else{
 					//check for functionality
 					jData = jLoader.data;
-					if(jData.search("Queue") > -1){queueActive = true;functionCount = functionCount + 1}
+					if(jData.search("Queue") > -1)
+					{
+						queueActive = true;
+						functionCount = functionCount + 1
+						loadQueue();
+					}
+					
 					if(jData.search("shortDials") > -1){shortDialsActive = true;}
+					
+					if(jData.search("memberOverview") > -1)
+					{
+						isAdmin = true;
+						loadMembers();
+					}
 						
 					loadCDR();
 				
@@ -708,7 +727,6 @@
 					loadF2M();
 					loadAccounts();
 					loadSMS();
-					loadQueue();
 					
 					function redirectionHandler(event:Event):void
 					{
@@ -1209,6 +1227,11 @@
 				}
 				addDashboard("Accounts", 3);
 			}
+		}
+
+		private function loadMembers():void
+		{
+
 		}
 	}
 }
