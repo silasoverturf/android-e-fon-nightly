@@ -303,12 +303,15 @@ package
 			dashboard.addEventListener(MouseEvent.CLICK, dashboardHandler);
 			main.addEventListener(MouseEvent.CLICK, dashboardHandler);
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyHandler);
+
+			//listen for native actions
 			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
 			NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, deactivate);
 			NativeApplication.nativeApplication.addEventListener(Event.NETWORK_CHANGE, networkChange);
 			
 			//stage.addEventListener(MouseEvent.CLICK, getTarget);
 
+			//if SO invalid, set default, else set SO
 			if (!SO.data.userid)
 			{
 				login.userid_txt.text = "userID";
@@ -322,6 +325,7 @@ package
 		//reactivation
 		private function activate(event:Event):void
 		{
+			//check if initial login complete
 			if(jData != null)
 			{
 				jLoader.addEventListener(Event.COMPLETE, removeOverlay);
@@ -333,6 +337,7 @@ package
 				stage.addChild(Overlay);
 			}
 
+			//remove overlay once reauth complete
 			function removeOverlay(event:Event):void
 			{
 				stage.removeChild(Overlay);
@@ -343,6 +348,7 @@ package
 		private function deactivate(event:Event):void
 		{}
 		
+		//network change
 		private function networkChange(event:Event):void
 		{}
 		
@@ -776,10 +782,11 @@ package
 						redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);	
 						redirectionLoader.load(redirectionURLRequest);
 
+						//update functino count
 						functionCount = functionCount + 3;
 					}
 					
-				
+					//ui management
 					TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
 					TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
 					TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
@@ -797,9 +804,9 @@ package
 		{
 			//reset all local vars
 			featureArray = [];
-			timeRedir = [0,0,"chocolate"];
-			busyRedir = [0,0,"chocolate"];
-			unregRedir = [0,0,"chocolate"];
+			timeRedir = [0,0,""];
+			busyRedir = [0,0,""];
+			unregRedir = [0,0,""];
 			anonRedir = [0,0];
 			
 			redirChoice = ["","","",""];
@@ -829,21 +836,42 @@ package
 			for each (var dumpVar in dumpRedir)
 			{
 				dumpContainer = dumpRedir[i2];
-				if (dumpContainer.search("checked") != -1)
+
+				if(dumpRedir.length == 9)
 				{
-					if (i2 == 0){timeRedir = [1,1];}
-					if (i2 == 1){timeRedir = [1,2];}
-					if (i2 == 2){timeRedir = [1,3];}
-					if (i2 == 3){busyRedir = [1,1];}
-					if (i2 == 4){busyRedir = [1,2];}
-					if (i2 == 5){unregRedir = [1,1];}
-					if (i2 == 6){unregRedir = [1,2];}
-					if (i2 == 7){anonRedir = [1,1];}
-					if (i2 == 8){anonRedir = [1,2];}
+					if (dumpContainer.search("checked") != -1)
+					{
+						if (i2 == 0){timeRedir = [1,1];}
+						if (i2 == 1){timeRedir = [1,2];}
+						if (i2 == 2){timeRedir = [1,3];}
+						if (i2 == 3){busyRedir = [1,1];}
+						if (i2 == 4){busyRedir = [1,2];}
+						if (i2 == 5){unregRedir = [1,1];}
+						if (i2 == 6){unregRedir = [1,2];}
+						if (i2 == 7){anonRedir = [1,1];}
+						if (i2 == 8){anonRedir = [1,2];}
+					}
+				}
+
+				if(dumpRedir.length == 8)
+				{
+					if (dumpContainer.search("checked") != -1)
+					{
+						if (i2 == 0){timeRedir = [1,1];}
+						if (i2 == 1){timeRedir = [1,2];}
+						if (i2 == 2){busyRedir = [1,1];}
+						if (i2 == 3){busyRedir = [1,2];}
+						if (i2 == 4){unregRedir = [1,1];}
+						if (i2 == 5){unregRedir = [1,2];}
+						if (i2 == 6){anonRedir = [1,1];}
+						if (i2 == 7){anonRedir = [1,2];}
+					}
 				}
 				i2 = i2 + 1;
 			}
-			
+
+			trace(busyRedir, "c")
+
 			result = [];
 			dumpRedir = [];
 			result = delaySniffer.exec(redirectionData);
@@ -1072,7 +1100,6 @@ package
 				//parse F2M
 				f2mData = new String(f2mLoader.data);
 				f2mData = f2mData.replace(rex,"");
-				trace(f2mData);
 				f2mEmail = f2mSniffer.exec(f2mData);
 
 				//parse Voicemail
