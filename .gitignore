@@ -165,3 +165,9 @@ pip-log.txt
 *.xml
 .xml
 xml
+
+# Build and Release Folders
+bin/
+bin-debug/
+bin-release/
+com/
