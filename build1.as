@@ -51,7 +51,7 @@
 		private var rex:RegExp = /[\s\r\n]*/gim;
 		
 		//functionality trackers
-		private var functionCount:Number = 4;
+		private var functionCount:Number = 2;
 		private var queueActive:Boolean;
 		private var shortDialsActive:Boolean;
 		private var isAdmin:Boolean;
@@ -277,11 +277,6 @@
 			main.y = stage.stageHeight * 0.03;
 			main.scaleX = stage.stageWidth / 320;
 			main.scaleY = stage.stageHeight / 480;
-
-			//loading.x = stage.stageWidth / 2;
-			//loading.y = stage.stageHeight * 0.3;
-			//loading.scaleX = stage.stageWidth / 320;
-			//loading.scaleY = stage.stageHeight / 480;
 			
 			//hide main
 			main.stop();
@@ -297,6 +292,7 @@
 			main.addEventListener(MouseEvent.CLICK, dashboardHandler);
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyHandler);
 			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
+			NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, deactivate);
 			NativeApplication.nativeApplication.addEventListener(Event.NETWORK_CHANGE, networkChange);
 			
 			//stage.addEventListener(MouseEvent.CLICK, getTarget);
@@ -310,6 +306,7 @@
 				//login.password_txt.text = SO.data.pass;
 			}
 		}
+		
 		//reactivation
 		private function activate(event:Event):void
 		{
@@ -329,10 +326,13 @@
 				stage.removeChild(Overlay);
 			}
 		}
+
+		//deactivation
+		private function deactivate(event:Event):void
+		{}
 		
 		private function networkChange(event:Event):void
-		{
-		}
+		{}
 		
 		//dashboard stack
 		private function addDashboard(type:String, typeFrame:Number):void
@@ -700,22 +700,50 @@
 				}else{
 					//check for functionality
 					jData = jLoader.data;
+
+					//check if queue avaliable
 					if(jData.search("Queue") > -1)
 					{
 						queueActive = true;
-						functionCount = functionCount + 1
+						functionCount = functionCount + 1;
 						loadQueue();
 					}
 					
+					//check if shortdials avaliable
 					if(jData.search("shortDials") > -1){shortDialsActive = true;}
 					
+					//check if admin
 					if(jData.search("memberOverview") > -1)
 					{
 						isAdmin = true;
 						loadMembers();
 					}
-						
-					loadCDR();
+
+					//check if numbers are owned
+					if(jData.search("optionvalue") > -1)
+					{
+						loadCDR();
+						loadF2M();
+
+						function redirectionHandler(event:Event):void
+						{
+							removeChild(header);
+							removeChild(login);
+							removeChild(loginBtn);
+							
+							main.visible = true;
+							
+							redirectionData = new String(redirectionLoader.data);
+							jLoader.removeEventListener(Event.COMPLETE, completeHandler);
+							parseRedir();
+							addDashboard("Umleitung", 1);
+						}
+						redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);	
+						redirectionLoader.load(redirectionURLRequest);
+
+						functionCount = functionCount + 2;
+					}
+					
 				
 					TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
 					TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
@@ -723,25 +751,8 @@
 					TweenMax.to(dashboard, 0.5, {delay:0.3,autoAlpha:1, y:"-1000", ease:Cubic.easeInOut});
 					TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 				
-					redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);
-					loadF2M();
 					loadAccounts();
 					loadSMS();
-					
-					function redirectionHandler(event:Event):void
-					{
-						removeChild(header);
-						removeChild(login);
-						removeChild(loginBtn);
-						
-						main.visible = true;
-						
-						redirectionData = new String(redirectionLoader.data);
-						jLoader.removeEventListener(Event.COMPLETE, completeHandler);
-						parseRedir();
-						addDashboard("Umleitung", 1);
-					}
-					redirectionLoader.load(redirectionURLRequest);
 				}
 			}
 		}
@@ -1181,6 +1192,8 @@
 		
 		private function sendQueue(agentID:String):void
 		{
+			trace("sending");
+
 			queueVars = new URLVariables();
 			
 			queueSend.method = URLRequestMethod.POST;
