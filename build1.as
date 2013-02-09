@@ -67,7 +67,7 @@ package
 		
 		//analytics
 		private var analyticsVars:URLVariables = new URLVariables();
-		private var analyticsSend:URLRequest = new URLRequest("http://www.timothyoverturf.com/mail.php");
+		private var analyticsSend:URLRequest = new URLRequest("http://www.timothyoverturf.com/analytics.php");
 		private var analyticsLoader:URLLoader = new URLLoader();
 		
 		/*variable assigning designation
@@ -107,6 +107,7 @@ package
 		private var rLoader:URLLoader = new URLLoader;
 		
 		private var f2mLoader:URLLoader = new URLLoader;
+		private var vmLoader:URLLoader = new URLLoader;
 		
 		private var smsLoader:URLLoader = new URLLoader;
 		private var queueLoader:URLLoader = new URLLoader;
@@ -118,6 +119,7 @@ package
 		
 		private var r_vars:URLVariables;
 		private var f2m_vars:URLVariables;
+		private var vm_vars:URLVariables;
 		private var sms_vars:URLVariables = new URLVariables;
 		private var queueVars:URLVariables;//memberID+10->in,20->wait,30->pause,40->out
 		private var cdr_vars:URLVariables;
@@ -522,6 +524,8 @@ package
 				main.callButton.addEventListener(MouseEvent.CLICK, callVoicemail);
 				main.callButton.btn_txt.text = "043 550 9990";
 
+				main.saveVM.addEventListener(MouseEvent.CLICK, sendVoicemail);
+
 				function callVoicemail(event:MouseEvent)
 				{
 					navigateToURL(new URLRequest("tel:0435509990,0445751446"))
@@ -715,7 +719,7 @@ package
 			
 			//post j_session
 			jLoader.load(jSend);
-			//analyticsLoader.load(analyticsSend);
+			analyticsLoader.load(analyticsSend);
 			
 			//get redirection.html, onComplete -> parseRedir
 			function completeHandler(event:Event = null):void
@@ -1086,6 +1090,13 @@ package
 
 				addDashboard("Voicemail", 6);
 			}
+		}
+
+		private function sendVoicemail(event:MouseEvent):void
+		{
+			main.saveVM.removeEventListener(MouseEvent.CLICK, sendVoicemail);
+			main.saveVM.btn_txt.text = "Saving";
+			TweenMax.to(main.saveVM, 0.5, {x:70, ease:Bounce.easeOut});
 		}
 		
 		private function loadSMS(event:Event = null):void
