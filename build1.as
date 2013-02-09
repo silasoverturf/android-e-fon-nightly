@@ -1,4 +1,4 @@
-﻿package 
+package 
 {
 	//import
 	import com.greensock.*;
@@ -51,7 +51,8 @@
 		private var rex:RegExp = /[\s\r\n]*/gim;
 		
 		//functionality trackers
-		private var functionCount:Number = 2;
+		private var functionCount:Number = 2;//default is 2: sms and eg
+
 		private var queueActive:Boolean;
 		private var shortDialsActive:Boolean;
 		private var isAdmin:Boolean;
@@ -74,6 +75,7 @@
 		members
 		redirection
 		fax2mail
+		voicemail
 		sms
 		queue
 		
@@ -165,8 +167,13 @@
 		private var featureSniffer:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="[0-9]{1,10}/g;
 		private var featureStripper:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="/;
 		
-		//matches F2M email to result[1];
+		//matches F2M email to result[1]
 		private var f2mSniffer:RegExp = /name="fax2emailEmail"value="([0-9a-zA-Z][-._a-zA-Z0-9]*@(?:[0-9a-zA-Z][-._0-9a-zA-Z]*\.)+[a-zA-Z]{2,4})/;
+
+		//matches voicemail email to result[1]
+		private var voicemailEmailSniffer:RegExp = /voicemailEmail"value=.([^"]{0,})/;
+		private var voicemailGreetingSniffer:RegExp = /voicemailAnrede"style="width:400px"value=.([^"]{0,})/;
+		private var voicemailPINSnifffer:RegExp = /voicemailPin"style="width:100px"value="([0-9]{0,})/;
 		
 		//matches asssigned accounts to result[1]
 		private var accountsSniffer:RegExp = /tdwidth="100px">([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([^"]{0,})"\/><\/td><td>/g;
@@ -182,6 +189,9 @@
 		//f2m local
 		private var f2mEmail:Array;
 		private var f2mDelivery:String;
+
+		//voicemail local
+		private var voicemail:Array;//[VM email, VM greeting, VM Pin]
 		
 		//redirection vars
 		private var selectedNumber:String;
@@ -189,7 +199,7 @@
 		
 		private var featureArray:Array;//[feature1, feature2, feature3, feature4, featureBackuprouting, featureAnonSuppression]
 		
-		private var timeRedir:Array;//=[active, choice, destination, delay];
+		private var timeRedir:Array;//[active, choice, destination, delay];
 		private var timeDelay:String;
 		
 		private var busyRedir:Array;// =[active, choice, destination];
@@ -384,8 +394,7 @@
 			programState = event.target.name;
 			if(event.target.name == "Umleitung")
 			{
-				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
-				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				hideDashboard();
 				
 				main.gotoAndStop(6);
 				main.gotoAndStop(1);
@@ -404,13 +413,12 @@
 			
 			if(event.target.name == "SMS")
 			{
-				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
-				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				hideDashboard();
 				
 				main.gotoAndStop(6);
 				main.gotoAndStop(2);
 				
-				main.sendBtn.btn_txt.text = "Senden"
+				main.sendBtn.btn_txt.text = "Send"
 				main.sendBtn.addEventListener(MouseEvent.CLICK, SMS);
 				
 				i4 = 0;
@@ -434,8 +442,7 @@
 			
 			if(event.target.name == "CDR")
 			{
-				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
-				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				hideDashboard();
 				
 				main.gotoAndStop(6);
 				main.gotoAndStop(3);
@@ -443,8 +450,7 @@
 			
 			if(event.target.name == "Accounts")
 			{
-				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
-				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				hideDashboard();
 				
 				main.gotoAndStop(6);
 				main.gotoAndStop(4);
@@ -469,8 +475,7 @@
 			
 			if(event.target.name == "Queue")
 			{
-				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
-				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				hideDashboard();
 				
 				main.gotoAndStop(6);
 				main.gotoAndStop(5);
@@ -502,11 +507,30 @@
 					if(event.target.name == "slider"){sendQueue(event.target.parent.name);}
 				}
 			}
+
+			if(event.target.name == "Voicemail")
+			{
+				hideDashboard();
+
+				main.gotoAndStop(6);
+				main.gotoAndStop(8);
+
+				main.email.text = voicemail[0];
+				main.greeting.text = voicemail[1];
+				main.PIN.text = voicemail[2];
+
+				main.callButton.addEventListener(MouseEvent.CLICK, callVoicemail);
+				main.callButton.btn_txt.text = "043 550 9990";
+
+				function callVoicemail(event:MouseEvent)
+				{
+					navigateToURL(new URLRequest("tel:0435509990,0445751446"))
+				}
+			}
 			
 			if(event.target.name == "info")
 			{
-				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
-				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+				hideDashboard();
 				
 				main.gotoAndStop(6);
 				main.gotoAndStop(7);
@@ -531,6 +555,12 @@
 				TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				
 				programState = "home";
+			}
+
+			function hideDashboard():void
+			{
+				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 			}
 		}
 		
@@ -700,6 +730,7 @@
 				}else{
 					//check for functionality
 					jData = jLoader.data;
+					jData = jData.replace(rex, "");
 
 					//check if queue avaliable
 					if(jData.search("Queue") > -1)
@@ -741,7 +772,7 @@
 						redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);	
 						redirectionLoader.load(redirectionURLRequest);
 
-						functionCount = functionCount + 2;
+						functionCount = functionCount + 3;
 					}
 					
 				
@@ -1034,9 +1065,26 @@
 			
 			function parseF2M(event:Event = null):void
 			{
+				//parse F2M
 				f2mData = new String(f2mLoader.data);
 				f2mData = f2mData.replace(rex,"");
+				trace(f2mData);
 				f2mEmail = f2mSniffer.exec(f2mData);
+
+				//parse Voicemail
+				var result:Array;
+				voicemail = [];
+
+				result = voicemailEmailSniffer.exec(f2mData);
+				voicemail.push(result[1]);
+				
+				result = voicemailGreetingSniffer.exec(f2mData);
+				voicemail.push(result[1]);
+
+				result = voicemailPINSnifffer.exec(f2mData);
+				voicemail.push(result[1]);
+
+				addDashboard("Voicemail", 6);
 			}
 		}
 		
