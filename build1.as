@@ -52,6 +52,7 @@ package
 		
 		//functionality trackers
 		private var functionCount:Number = 2;//default is 2: sms and eg
+		private var DashboardItems:Array = [];
 
 		private var queueActive:Boolean;
 		private var shortDialsActive:Boolean;
@@ -381,6 +382,7 @@ package
 			}else{
 				TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 			}
+			DashboardItems.push(type);
 		}
 		
 		//backBtn handler
@@ -417,6 +419,7 @@ package
 				main.unregContainer.addEventListener(MouseEvent.CLICK, targetTest3);
 				main.anonContainer.addEventListener(MouseEvent.CLICK, targetTest4);
 				VtoUI();
+				flushF2M();
 			}
 			
 			if(event.target.name == "SMS")
@@ -764,7 +767,7 @@ package
 					if(jData.search("optionvalue") > -1)
 					{
 						loadCDR();
-						loadF2M();
+						loadF2M("GET");
 
 						function redirectionHandler(event:Event):void
 						{
@@ -958,14 +961,11 @@ package
 			//anonRedir flush
 			if (anonRedir[1] == 1){main.anonContainer.switcher.gotoAndStop(1);main.anonContainer.switcher.Text.text = "Falls unterdrückt umleiten auf Voicemail";}
 			if (anonRedir[1] == 2){main.anonContainer.switcher.gotoAndStop(7);main.anonContainer.switcher.destination.text = "Falls unterdrückt umleiten auf Abweisungsnachricht";}
-
-			//f2m flush
-			main.timeContainer.selecter.fax2mailIcon.email.text = f2mEmail[1];
 			
 			//read savingBtn listeners
 			main.saveBtn.addEventListener(MouseEvent.CLICK, reauth);
 			main.saveBtn.btn_txt.text = "Saved!";
-			TweenMax.to(main.saveBtn, 0.5, {delay:0.4, x:123, ease:Bounce.easeOut});
+			TweenMax.to(main.saveBtn, 0.5, {delay:0.4, x:117, ease:Bounce.easeOut});
 		}
 		
 		//UI reverse flushing
@@ -973,7 +973,6 @@ package
 		{
 			//reset r_ and f2m_vars
 			r_vars = new URLVariables();
-			f2m_vars = new URLVariables();
 			
 			//r_vars static constructor
 			r_vars._uml_normal1 = "visible";
@@ -1028,13 +1027,6 @@ package
 				if(main.anonContainer.switcher.currentFrame == 7){r_vars.choiceAnonSuppression = "2";}
 			}
 			
-			if (r_vars.choice1 == "3")
-			{
-				f2m_vars.reload = "";
-				f2m_vars.selectedPhoneNumberId =  numberID;
-				f2m_vars.fax2emailEmail = main.timeContainer.selecter.fax2mailIcon.email.text;
-			}
-			
 			if (main.timeContainer.Check.currentFrame == 2){}
 			if (main.busyContainer.Check.currentFrame == 2){}
 			if (main.unregContainer.Check.currentFrame == 2){}
@@ -1081,17 +1073,32 @@ package
 						//if f2m chosen, post F2M email address, post is deffered to after the rloader to avoid timeouts from the server
 						if(r_vars.choice1 == "3")
 						{
-							f2mURLRequest.method = URLRequestMethod.POST;
-							f2mURLRequest.data = f2m_vars;
-						
-							f2mLoader.load(f2mURLRequest);
+							loadF2M("POST")
 						}
 					}
 				}
 		}
 		
-		private function loadF2M(event:Event = null):void
+		private function loadF2M(method:String):void
 		{
+			if(method == "GET")
+			{
+				f2mURLRequest.method = URLRequestMethod.GET;	
+			}
+			
+			if(method == "POST")
+			{
+				f2m_vars = new URLVariables();
+
+				f2m_vars.reload = "";
+				f2m_vars.selectedPhoneNumberId =  numberID;
+				f2m_vars.fax2emailEmail = main.timeContainer.selecter.fax2mailIcon.email.text;
+
+				f2mURLRequest.method =  URLRequestMethod.POST;
+				f2mURLRequest.data = f2m_vars;
+				trace("postingf2m", f2m_vars, main.timeContainer.selecter.fax2mailIcon.email.text);
+			}
+
 			f2mLoader.addEventListener(Event.COMPLETE, parseF2M);
 			f2mLoader.load(f2mURLRequest);
 			
@@ -1115,8 +1122,21 @@ package
 				result = voicemailPINSnifffer.exec(f2mData);
 				voicemail.push(result[1]);
 
-				addDashboard("Voicemail", 6);
+				if(DashboardItems.indexOf("Voicemail") == -1)
+				{
+					addDashboard("Voicemail", 6);	
+				}
+
+				if(main.currentFrame == 1)
+				{
+					flushF2M();
+				}
 			}
+		}
+
+		private function flushF2M():void
+		{
+			main.timeContainer.selecter.fax2mailIcon.email.text = f2mEmail[1];
 		}
 
 		private function sendVoicemail(event:MouseEvent):void
