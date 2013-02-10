@@ -3,15 +3,24 @@ package
 	//import
 	import com.greensock.*;
 	import com.greensock.easing.*;
+	import com.greensock.plugins.*;
+
 	import flash.events.MouseEvent;
 	import flash.net.URLLoader;
 	import flash.display.*;
 	import flash.net.*;
 	import flash.events.*;
 	import flash.ui.*;
-	import flash.text.TextFormat;
+	//import flash.text.TextFormat;
 	import flash.desktop.NativeApplication;
 	import fl.controls.RadioButtonGroup;
+	import flash.system.Capabilities;
+
+	import flash.geom.Rectangle;
+	import flash.utils.getTimer;
+	import flash.text.*;
+
+	TweenPlugin.activate([ThrowPropsPlugin]);
 
 	public class build1 extends MovieClip
 	{
@@ -71,6 +80,9 @@ package
 		private var analyticsSend:URLRequest = new URLRequest("http://www.timothyoverturf.com/analytics.php");
 		private var analyticsLoader:URLLoader = new URLLoader();
 		
+		//user settings
+		private var context:String = "web.e-fon.ch";//e.g. web.e-fon.ch
+
 		/*variable assigning designation
 		j_session
 		members
@@ -83,21 +95,20 @@ package
 		*///network stack variables////
 		
 		//url requests
-		private var jSend:URLRequest = new URLRequest("https://web.e-fon.ch/portal/j_acegi_security_check");
+		private var jSend:URLRequest = new URLRequest("https://" + context + "/portal/j_acegi_security_check");
 
-		private var memberURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/memberOverview.html")
+		private var memberURLRequest:URLRequest = new URLRequest("https://" + context + "/portal/memberOverview.html")
 		
-		private var redirectionURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/redirection.html");//?selectedPhoneNumberId=selectedNumber;
+		private var redirectionURLRequest:URLRequest = new URLRequest("https://" + context + "/portal/redirection.html");//?selectedPhoneNumberId=selectedNumber;
 		
-		private var f2mURLRequest:URLRequest = new URLRequest("https://web.e-fon.ch/portal/notifications.html");//?selectedPhoneNumberId=selectedNumber;
+		private var f2mURLRequest:URLRequest = new URLRequest("https://" + context + "/portal/notifications.html");//?selectedPhoneNumberId=selectedNumber;
 		
-		private var smsSend:URLRequest = new URLRequest("https://web.e-fon.ch/portal/SMSSender.html");
-		private var queueSend:URLRequest = new URLRequest("https://web.e-fon.ch/portal/callCenterQueueMemberStatus.html");
-		private var testSend:URLRequest = new URLRequest("http://www.google.com");
+		private var smsSend:URLRequest = new URLRequest("https://" + context + "/portal/SMSSender.html");
+		private var queueSend:URLRequest = new URLRequest("https://" + context + "/portal/callCenterQueueMemberStatus.html");
 		
-		private var accountsSend:URLRequest = new URLRequest("https://web.e-fon.ch/portal/accounts.html");
+		private var accountsSend:URLRequest = new URLRequest("https://" + context + "/portal/accounts.html");
 		
-		private var cdrSend:URLRequest = new URLRequest("https://web.e-fon.ch/portal/cdrs.html");
+		private var cdrSend:URLRequest = new URLRequest("https://" + context + "/portal/cdrs.html");
 		
 		//url loaders
 		private var jLoader:URLLoader;
@@ -245,8 +256,20 @@ package
 		////Display stack////
 		private var smsRadioGroup:RadioButtonGroup = new RadioButtonGroup("SMSRadioGroup");
 		
+		//public var bounds:Rectangle = new Rectangle(stage.stageWidth/2, 30, 250, 230);
+		//public var mc:Sprite = new Sprite();
+		//public var t1:uint, t2:uint, y1:Number, y2:Number;
+
 		public function build1()
 		{
+			//swiping
+			//setupTextField(bounds, 20);
+
+			//some variables for tracking the velocity of mc
+			
+
+			//dashboard.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
+
 			//set label tf
 			robotoLabel.color = 0xFFFFFF;
 			robotoLabel.font = "Roboto";
@@ -311,6 +334,9 @@ package
 			NativeApplication.nativeApplication.addEventListener(Event.NETWORK_CHANGE, networkChange);
 			
 			//stage.addEventListener(MouseEvent.CLICK, getTarget);
+
+			//get language
+			trace(Capabilities.languages, Capabilities.os);
 
 			//if SO invalid, set default, else set SO
 			if (!SO.data.userid)
@@ -378,8 +404,9 @@ package
 			i5 = i5 + 1;
 			
 			if(i5 == functionCount){
+				//addDashboard("Settings", 7);
 				TweenMax.to(dashboard.loading, 0.5, {x:"+100", autoAlpha:0, ease:Cubic.easeInOut});
-			}else{
+			}if(i5 < functionCount){
 				TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 			}
 			DashboardItems.push(type);
@@ -406,7 +433,6 @@ package
 			{
 				hideDashboard();
 				
-				main.gotoAndStop(6);
 				main.gotoAndStop(1);
 				
 				main.timeContainer.addEventListener(MouseEvent.CLICK, tempHandler);
@@ -418,7 +444,7 @@ package
 				main.busyContainer.addEventListener(MouseEvent.CLICK, targetTest2);
 				main.unregContainer.addEventListener(MouseEvent.CLICK, targetTest3);
 				main.anonContainer.addEventListener(MouseEvent.CLICK, targetTest4);
-				VtoUI();
+				redirectionFlush();
 				flushF2M();
 			}
 			
@@ -426,7 +452,6 @@ package
 			{
 				hideDashboard();
 				
-				main.gotoAndStop(6);
 				main.gotoAndStop(2);
 				
 				main.sendBtn.btn_txt.text = "Send"
@@ -455,7 +480,6 @@ package
 			{
 				hideDashboard();
 				
-				main.gotoAndStop(6);
 				main.gotoAndStop(3);
 			}
 			
@@ -463,7 +487,6 @@ package
 			{
 				hideDashboard();
 				
-				main.gotoAndStop(6);
 				main.gotoAndStop(4);
 				
 				i4 = 0;
@@ -480,15 +503,12 @@ package
 					main.egContainer.addChild(EGSnippet);
 					i4 = i4 + 1;
 				}
-				
-				//accountVtoUI();
 			}
 			
 			if(event.target.name == "Queue")
 			{
 				hideDashboard();
 				
-				main.gotoAndStop(6);
 				main.gotoAndStop(5);
 				
 				i4 = 0;
@@ -522,8 +542,6 @@ package
 			if(event.target.name == "Voicemail")
 			{
 				hideDashboard();
-
-				main.gotoAndStop(6);
 				main.gotoAndStop(8);
 
 				main.email.text = voicemail[0];
@@ -533,19 +551,25 @@ package
 				main.callButton.addEventListener(MouseEvent.CLICK, callVoicemail);
 				main.callButton.btn_txt.text = "043 550 9990";
 
-				main.saveVM.addEventListener(MouseEvent.CLICK, sendVoicemail);
+				//main.saveVM.addEventListener(MouseEvent.CLICK, sendVoicemail);
 
 				function callVoicemail(event:MouseEvent)
 				{
-					navigateToURL(new URLRequest("tel:0435509990,0445751446"))
+					navigateToURL(new URLRequest("tel:0435509990"))
 				}
 			}
-			
+
+			if(event.target.name == "Settings")
+			{
+				hideDashboard();
+
+				main.gotoAndStop(9);
+			}	
+
 			if(event.target.name == "info")
 			{
 				hideDashboard();
 				
-				main.gotoAndStop(6);
 				main.gotoAndStop(7);
 				
 				main.github.addEventListener(MouseEvent.CLICK, openGit);
@@ -572,6 +596,8 @@ package
 
 			function hideDashboard():void
 			{
+				main.gotoAndStop(6);
+
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 			}
@@ -661,30 +687,6 @@ package
 			TweenMax.to(main.anonContainer, 0.2, {y:225, ease:Cubic.easeInOut});
 		}
 
-		private function loadingHandler(page:String)
-		{
-			var pageSend = page;			
-			var timePassed:String; //=time passed since last redir
-			
-			loadMain();
-			
-			function loadMain(event:Event = null):void
-			{
-				this[page].addEventListener(Event.COMPLETE, loadComplete)
-				
-				this[page].load(this[pageSend])
-			}
-			
-			function loadComplete(event:Event):void
-			{
-				if(1 == 1){
-					//parse function
-				}else{
-					//loadComplete
-				}
-			}
-		}
-
 		//handle listeners, builds j_session, posts and requests redirection.html
 		private function transmit(event:MouseEvent):void
 		{
@@ -735,7 +737,7 @@ package
 			{
 				if(jLoader.data.search("password") > -1)
 				{
-					TweenLite.killTweensOf(loginBtn.loading);
+					TweenMax.killTweensOf(loginBtn.loading);
 					loginBtn.loading.alpha = 0;
 					
 					login.statusText.text = "Please check your password";
@@ -766,7 +768,7 @@ package
 					//check if numbers are owned
 					if(jData.search("optionvalue") > -1)
 					{
-						loadCDR();
+						//loadCDR();
 						loadF2M("GET");
 
 						function redirectionHandler(event:Event):void
@@ -786,7 +788,7 @@ package
 						redirectionLoader.load(redirectionURLRequest);
 
 						//update functino count
-						functionCount = functionCount + 3;
+						functionCount = functionCount + 2;
 					}
 					
 					//ui management
@@ -923,11 +925,11 @@ package
 				featureArray[i3] = dumpContainer;
 				i3 = i3 + 1;
 			}
-			if(main.currentFrame == 1){VtoUI();}
+			if(main.currentFrame == 1){redirectionFlush();}
 		}
 		
 		//UI flushing
-		private function VtoUI(event:Event = null):void
+		private function redirectionFlush(event:Event = null):void
 		{
 			//reset
 			main.timeContainer.switcher.gotoAndStop(2);
@@ -1349,5 +1351,33 @@ package
 		{
 
 		}
+
+		/*
+		private function mouseDownHandler(event:MouseEvent):void {
+		 TweenLite.killTweensOf(dashboard);
+		 y1 = y2 = dashboard.y;
+		 t1 = t2 = getTimer();
+		 dashboard.startDrag(false, new Rectangle(bounds.x, -99999, 0, 99999999));
+		 dashboard.addEventListener(Event.ENTER_FRAME, enterFrameHandler);
+		 dashboard.stage.addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
+		}
+
+		private function enterFrameHandler(event:Event):void {
+		 //track velocity using the last 2 frames for more accuracy
+		 y2 = y1;
+		 t2 = t1;
+		 y1 = dashboard.y;
+		 t1 = getTimer();
+		}
+
+		private function mouseUpHandler(event:MouseEvent):void {
+		 dashboard.stopDrag();
+		 dashboard.stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
+		 dashboard.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
+		 var time:Number = (getTimer() - t2) / 1000;
+		 var yVelocity:Number = (dashboard.y - y2) / time;
+		 var yOverlap:Number = Math.max(0, dashboard.height - bounds.height);
+		 ThrowPropsPlugin.to(dashboard, {ease:Strong.easeOut, throwProps:{y:{velocity:yVelocity, max:bounds.top, min:bounds.top - yOverlap, resistance:200}}}, 10, 0.25, 1);
+		}*/
 	}
 }
