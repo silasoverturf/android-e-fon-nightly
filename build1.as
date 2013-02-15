@@ -177,6 +177,17 @@ package
 		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{1,2}/;
 		private var numberStripper:RegExp = /name="delay1"size="5"value="/;
 		
+		//matches calender choices
+		private var manualStatusSelected:RegExp = /uml_manualStatus"value="true"onclick="[^"]{0,}"([^\/]{0,})/;
+		private var manualStatusSubject:RegExp = /manualStatusSubject"value=.([^"]{0,})/;
+		private var manualStatusPrivate:RegExp = /manualStatusPrivate"value=.true"([^\/]{0,})/;
+		private var manualStatusTimeDate:RegExp = /manualStatus(?:from|until)(?:time|date)"value=.([^"]{0,})/gi; //fromdate, fromtime, untildate, untiltime
+		privaet var manualStatusChoice:Regexp = /choiceManualStatus"value="([0-9])"onclick=.controlRedirManualStatus\(\)"([^\/]{0,})/gi; //result[1], selection, result[2], checked
+		private var manualStatusDestination:Regexp = /phoneManualStatus"value="([0-9]{0,15})/i;
+
+		private var calenderStatusChoice:Regexp = /choiceCal(Oof|Busy)"value="([0-9]).onclick="[^\)]{0,}\)"\/>/gi;
+		private var calenderDestinationOOF:Regexp = /phoneCal(?:oof|busy)"value="([0-9]{0,15})/gi;
+
 		//matches featureIDs
 		private var featureSniffer:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="[0-9]{1,10}/g;
 		private var featureStripper:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="/;
