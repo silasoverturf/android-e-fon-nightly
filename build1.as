@@ -11,11 +11,10 @@ package
 	import flash.net.*;
 	import flash.events.*;
 	import flash.ui.*;
-	//import flash.text.TextFormat;
+
 	import flash.desktop.NativeApplication;
 	import fl.controls.RadioButtonGroup;
 	import flash.system.Capabilities;
-
 	import flash.geom.Rectangle;
 	import flash.utils.getTimer;
 	import flash.text.*;
@@ -260,7 +259,6 @@ package
 		//cdr vars
 		private var phoneNumber:Array = [];
 		
-		
 		private var cdrTime:Array = [];
 		private var cdrDur:Array = [];
 		private var cdrDest:Array = [];
@@ -269,20 +267,13 @@ package
 		////Display stack////
 		private var smsRadioGroup:RadioButtonGroup = new RadioButtonGroup("SMSRadioGroup");
 
+		//some variables for tracking the velocity of main
 		public var bounds:Rectangle;
 		public var mc:Sprite = new Sprite();
 		public var t1:uint, t2:uint, y1:Number, y2:Number;
 
 		public function build1()
 		{
-			//swiping
-			//setupTextField(bounds, 20);
-
-			//some variables for tracking the velocity of mc
-			
-
-			main.addEventListener(TouchEvent.TOUCH_BEGIN, mouseDownHandler);
-
 			//set label tf
 			robotoLabel.color = 0xFFFFFF;
 			robotoLabel.font = "Roboto";
@@ -293,7 +284,7 @@ package
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 
 			trace(stage.stageWidth, stage.stageHeight);
-			bounds = new Rectangle(stage.stageWidth*0.5, 0, 320, 480);
+			bounds = new Rectangle(stage.stageWidth*0.5, 7, 320, 480);
 
 			//bg setup
 			main.timeContainer.switcher.gotoAndStop(2);
@@ -327,11 +318,13 @@ package
 				item.scaleX = stage.stageWidth / 320;
 				item.scaleY = stage.stageHeight / 480;
 			}
-			
+
 			//hide main
 			main.stop();
 			main.visible = false;
 			main.alpha = 0;
+
+			trace(main.scaleX, main.scaleY, main.width, main.height*main.scaleY);
 			
 			TweenMax.to(dashboard, 0 , {autoAlpha:0, y:"+1000"})
 
@@ -436,6 +429,7 @@ package
 				TweenMax.to(dashboard, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				programState = "home";
+				main.removeEventListener(TouchEvent.TOUCH_BEGIN, mouseDownHandler);
 			}
 		}
 		
@@ -445,9 +439,7 @@ package
 			programState = event.target.name;
 			if(event.target.name == "Umleitung")
 			{
-				hideDashboard();
-				
-				main.gotoAndStop(1);
+				hideDashboard(1);
 				
 				main.timeContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler);
 				main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler2);
@@ -460,13 +452,12 @@ package
 				main.anonContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest4);
 				redirectionFlush();
 				flushF2M();
+				addSwipe();
 			}
 			
 			if(event.target.name == "SMS")
 			{
-				hideDashboard();
-				
-				main.gotoAndStop(2);
+				hideDashboard(2);
 				
 				main.sendBtn.btn_txt.text = "Send"
 				main.sendBtn.addEventListener(TouchEvent.TOUCH_TAP, SMS);
@@ -487,21 +478,18 @@ package
 					main.smsContainer.addChild(SMSRadio);
 					i4 = i4 + 1;
 				}
-				//main.smsContainer2.y = i4 * 20 + 95;
+				addSwipe();
 			}
 			
 			if(event.target.name == "CDR")
 			{
-				hideDashboard();
-				
-				main.gotoAndStop(3);
+				hideDashboard(3);
+				addSwipe();
 			}
 			
 			if(event.target.name == "Accounts")
 			{
-				hideDashboard();
-				
-				main.gotoAndStop(4);
+				hideDashboard(4);
 				
 				i4 = 0;
 				
@@ -517,13 +505,12 @@ package
 					main.egContainer.addChild(EGSnippet);
 					i4 = i4 + 1;
 				}
+				addSwipe();
 			}
 			
 			if(event.target.name == "Queue")
 			{
-				hideDashboard();
-				
-				main.gotoAndStop(5);
+				hideDashboard(5);
 				
 				i4 = 0;
 				
@@ -551,12 +538,12 @@ package
 				{
 					if(event.target.name == "slider"){sendQueue(event.target.parent.name);}
 				}
+				addSwipe();
 			}
 
 			if(event.target.name == "Voicemail")
 			{
-				hideDashboard();
-				main.gotoAndStop(8);
+				hideDashboard(8);
 
 				main.email.text = voicemail[0];
 				main.greeting.text = voicemail[1];
@@ -571,20 +558,18 @@ package
 				{
 					navigateToURL(new URLRequest("tel:0435009990"))
 				}
+				addSwipe();
 			}
 
 			if(event.target.name == "Settings")
 			{
-				hideDashboard();
-
-				main.gotoAndStop(9);
+				hideDashboard(9);
+				addSwipe();
 			}	
 
 			if(event.target.name == "info")
 			{
-				hideDashboard();
-				
-				main.gotoAndStop(7);
+				hideDashboard(7);
 				
 				main.github.addEventListener(TouchEvent.TOUCH_TAP, openGit);
 				main.ticket.addEventListener(TouchEvent.TOUCH_TAP, sendTicket);
@@ -598,6 +583,7 @@ package
 				{
 					navigateToURL(new URLRequest("mailto:support@e-fon.ch"));
 				}
+				addSwipe();
 			}
 			
 			if(event.target.name == "backBtn")
@@ -606,14 +592,29 @@ package
 				TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				
 				programState = "home";
+				main.removeEventListener(TouchEvent.TOUCH_BEGIN, mouseDownHandler);
 			}
 
-			function hideDashboard():void
+			function hideDashboard(selection:Number):void
 			{
 				main.gotoAndStop(6);
+				main.gotoAndStop(selection);
+				main.y = 7;
 
 				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+			}
+
+			function addSwipe():void
+			{
+				//swiping
+				trace(main.scaleY + " * " + main.height + " = " + main.scaleY * main.height);
+				trace(stage.stageHeight);
+				if(main.height > stage.stageHeight)
+				{
+					trace("listener added");
+					main.addEventListener(TouchEvent.TOUCH_BEGIN, mouseDownHandler);
+				}
 			}
 		}
 		
@@ -1480,34 +1481,38 @@ package
 		}
 
 		
-		private function mouseDownHandler(event:TouchEvent):void {
-		 TweenLite.killTweensOf(main);
-		 y1 = y2 = main.y;
-		 t1 = t2 = getTimer();
-		 main.startDrag(false, new Rectangle(bounds.x, -99999, 0, 99999999));
-		 main.addEventListener(Event.ENTER_FRAME, enterFrameHandler);
-		 main.stage.addEventListener(TouchEvent.TOUCH_END, mouseUpHandler);
+		private function mouseDownHandler(event:TouchEvent):void
+		{
+			TweenLite.killTweensOf(main);
+		 	y1 = y2 = main.y;
+		 	t1 = t2 = getTimer();
+		 	main.startDrag(false, new Rectangle(bounds.x, -99999, 0, 99999999));
+		 	main.addEventListener(Event.ENTER_FRAME, enterFrameHandler);
+		 	main.stage.addEventListener(TouchEvent.TOUCH_END, mouseUpHandler);
 		}
 
-		private function enterFrameHandler(event:Event):void {
-		 //track velocity using the last 2 frames for more accuracy
-		 y2 = y1;
-		 t2 = t1;
-		 y1 = main.y;
-		 t1 = getTimer();
+		private function enterFrameHandler(event:Event):void
+		{
+		 	//track velocity using the last 2 frames for more accuracy
+		 	y2 = y1;
+		 	t2 = t1;
+		 	y1 = main.y;
+		 	t1 = getTimer();
 		}
 
-		private function mouseUpHandler(event:TouchEvent):void {
-		 main.stopDrag();
-		 main.stage.removeEventListener(TouchEvent.TOUCH_END, mouseUpHandler);
-		 main.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
-		 var time:Number = (getTimer() - t2) / 1000;
-		 var yVelocity:Number = (main.y - y2) / time;
-		 var yOverlap:Number = Math.max(0, main.height - bounds.height - stage.stageHeight);
-		 if(yOverlap < 0){yOverlap = 0};
-		 ThrowPropsPlugin.to(main, {ease:Strong.easeOut, throwProps:{y:{velocity:yVelocity, max:bounds.top, min:bounds.top - yOverlap, resistance:200}}}, 10, 0.25, 1);
-		 trace(main.scaleY*480);
-		 trace(bounds.top, bounds.top - yOverlap)
+		private function mouseUpHandler(event:TouchEvent):void
+		{
+			main.stopDrag();
+		 	main.stage.removeEventListener(TouchEvent.TOUCH_END, mouseUpHandler);
+		 	main.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
+		 	var time:Number = (getTimer() - t2) / 1000;
+		 	var yVelocity:Number = (main.y - y2) / time;
+		 	var grace:Number = stage.stageHeight / 480 * 8
+		 	var yOverlap:Number = stage.stageHeight - main.height - grace;
+		 	if(yOverlap > 7){yOverlap = 7};
+		 	ThrowPropsPlugin.to(main, {ease:Strong.easeOut, throwProps:{y:{velocity:yVelocity, max:bounds.top, min:yOverlap, resistance:200}}}, 10, 0.25, 1);
+		 	trace(main.scaleY*480);
+		 	trace(bounds.top, bounds.top - yOverlap)
 		}
 	}
 }
