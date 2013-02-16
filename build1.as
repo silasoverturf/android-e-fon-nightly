@@ -5,7 +5,7 @@ package
 	import com.greensock.easing.*;
 	import com.greensock.plugins.*;
 
-	import flash.events.MouseEvent;
+	import flash.events.TouchEvent;
 	import flash.net.URLLoader;
 	import flash.display.*;
 	import flash.net.*;
@@ -24,7 +24,7 @@ package
 
 	public class build1 extends MovieClip
 	{
-		//set multitouch mode for MouseEvents
+		//set multitouch mode for TouchEvents
 		Multitouch.inputMode=MultitouchInputMode.TOUCH_POINT;
 		
 		////Global misc. variables////
@@ -91,7 +91,6 @@ package
 		voicemail
 		sms
 		queue
-		
 		*///network stack variables////
 		
 		//url requests
@@ -269,10 +268,10 @@ package
 		
 		////Display stack////
 		private var smsRadioGroup:RadioButtonGroup = new RadioButtonGroup("SMSRadioGroup");
-		
-		//public var bounds:Rectangle = new Rectangle(stage.stageWidth/2, 30, 250, 230);
-		//public var mc:Sprite = new Sprite();
-		//public var t1:uint, t2:uint, y1:Number, y2:Number;
+
+		public var bounds:Rectangle;
+		public var mc:Sprite = new Sprite();
+		public var t1:uint, t2:uint, y1:Number, y2:Number;
 
 		public function build1()
 		{
@@ -282,7 +281,7 @@ package
 			//some variables for tracking the velocity of mc
 			
 
-			//dashboard.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
+			main.addEventListener(TouchEvent.TOUCH_BEGIN, mouseDownHandler);
 
 			//set label tf
 			robotoLabel.color = 0xFFFFFF;
@@ -292,7 +291,10 @@ package
 			//stage aligment
 			stage.align = StageAlign.TOP_LEFT;
 			stage.scaleMode = StageScaleMode.NO_SCALE;
-			
+
+			trace(stage.stageWidth, stage.stageHeight);
+			bounds = new Rectangle(stage.stageWidth*0.5, 0, 320, 480);
+
 			//bg setup
 			main.timeContainer.switcher.gotoAndStop(2);
 			main.busyContainer.switcher.gotoAndStop(4);
@@ -305,28 +307,26 @@ package
 			//mc placement and scaling
 			header.x = stage.stageWidth / 2;
 			header.y = stage.stageHeight * 0.19;
-			header.scaleX = stage.stageWidth / 320;
-			header.scaleY = stage.stageHeight / 480;
 			
 			login.x = stage.stageWidth / 2;
 			login.y = stage.stageHeight * 0.47;
-			login.scaleX = stage.stageWidth / 320;
-			login.scaleY = stage.stageHeight / 480;
 
 			loginBtn.x = stage.stageWidth / 2;
 			loginBtn.y = stage.stageHeight * 0.7;
-			loginBtn.scaleX = stage.stageWidth / 320;
-			loginBtn.scaleY = stage.stageHeight / 480;
 
 			dashboard.x = stage.stageWidth / 2;
 			dashboard.y = stage.stageHeight * 0.03;
-			dashboard.scaleX = stage.stageWidth / 320;
-			dashboard.scaleY = stage.stageHeight/ 480;
 			
 			main.x = stage.stageWidth / 2;
 			main.y = stage.stageHeight * 0.03;
-			main.scaleX = stage.stageWidth / 320;
-			main.scaleY = stage.stageHeight / 480;
+
+			var stageObjects:Array = [header,login,loginBtn,dashboard,main];
+
+			for each(var item in stageObjects)
+			{
+				item.scaleX = stage.stageWidth / 320;
+				item.scaleY = stage.stageHeight / 480;
+			}
 			
 			//hide main
 			main.stop();
@@ -336,10 +336,10 @@ package
 			TweenMax.to(dashboard, 0 , {autoAlpha:0, y:"+1000"})
 
 			//initial listeners;
-			loginBtn.addEventListener(MouseEvent.CLICK, transmit);
+			loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
 			
-			dashboard.addEventListener(MouseEvent.CLICK, dashboardHandler);
-			main.addEventListener(MouseEvent.CLICK, dashboardHandler);
+			dashboard.addEventListener(TouchEvent.TOUCH_TAP, dashboardHandler);
+			main.addEventListener(TouchEvent.TOUCH_TAP, dashboardHandler);
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyHandler);
 
 			//listen for native actions
@@ -347,7 +347,7 @@ package
 			NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, deactivate);
 			NativeApplication.nativeApplication.addEventListener(Event.NETWORK_CHANGE, networkChange);
 			
-			//stage.addEventListener(MouseEvent.CLICK, getTarget);
+			//stage.addEventListener(TouchEvent.TOUCH_TAP, getTarget);
 
 			//get language
 			trace(Capabilities.languages, Capabilities.os);
@@ -355,8 +355,8 @@ package
 			//if SO invalid, set default, else set SO
 			if (!SO.data.userid)
 			{
-				login.userid_txt.text = "userID";
-				login.password_txt.text = "password";
+				login.userid_txt.text = "timothy.overturf@e-fon.ch";
+				login.password_txt.text = "underturf4";
 			}else{
 				login.userid_txt.text = SO.data.userid;
 				//login.password_txt.text = SO.data.pass;
@@ -440,7 +440,7 @@ package
 		}
 		
 		//dashboard UI managment
-		private function dashboardHandler(event:MouseEvent):void
+		private function dashboardHandler(event:TouchEvent):void
 		{
 			programState = event.target.name;
 			if(event.target.name == "Umleitung")
@@ -449,15 +449,15 @@ package
 				
 				main.gotoAndStop(1);
 				
-				main.timeContainer.addEventListener(MouseEvent.CLICK, tempHandler);
-				main.busyContainer.addEventListener(MouseEvent.CLICK, tempHandler2);
-				main.unregContainer.addEventListener(MouseEvent.CLICK, tempHandler3);
-				main.anonContainer.addEventListener(MouseEvent.CLICK, tempHandler4);
+				main.timeContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler);
+				main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler2);
+				main.unregContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler3);
+				main.anonContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler4);
 			
-				main.timeContainer.addEventListener(MouseEvent.CLICK, targetTest);
-				main.busyContainer.addEventListener(MouseEvent.CLICK, targetTest2);
-				main.unregContainer.addEventListener(MouseEvent.CLICK, targetTest3);
-				main.anonContainer.addEventListener(MouseEvent.CLICK, targetTest4);
+				main.timeContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest);
+				main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest2);
+				main.unregContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest3);
+				main.anonContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest4);
 				redirectionFlush();
 				flushF2M();
 			}
@@ -469,7 +469,7 @@ package
 				main.gotoAndStop(2);
 				
 				main.sendBtn.btn_txt.text = "Send"
-				main.sendBtn.addEventListener(MouseEvent.CLICK, SMS);
+				main.sendBtn.addEventListener(TouchEvent.TOUCH_TAP, SMS);
 				
 				i4 = 0;
 				
@@ -545,9 +545,9 @@ package
 					i4 = i4 + 1;
 				}
 				
-				main.queueContainer.addEventListener(MouseEvent.CLICK, queueHandler);
+				main.queueContainer.addEventListener(TouchEvent.TOUCH_TAP, queueHandler);
 				
-				function queueHandler(event:MouseEvent):void
+				function queueHandler(event:TouchEvent):void
 				{
 					if(event.target.name == "slider"){sendQueue(event.target.parent.name);}
 				}
@@ -562,14 +562,14 @@ package
 				main.greeting.text = voicemail[1];
 				main.PIN.text = voicemail[2];
 
-				main.callButton.addEventListener(MouseEvent.CLICK, callVoicemail);
-				main.callButton.btn_txt.text = "043 550 9990";
+				main.callButton.addEventListener(TouchEvent.TOUCH_TAP, callVoicemail);
+				main.callButton.btn_txt.text = "043 500 9990";
 
-				//main.saveVM.addEventListener(MouseEvent.CLICK, sendVoicemail);
+				//main.saveVM.addEventListener(TouchEvent.TOUCH_TAP, sendVoicemail);
 
-				function callVoicemail(event:MouseEvent)
+				function callVoicemail(event:TouchEvent)
 				{
-					navigateToURL(new URLRequest("tel:0435509990"))
+					navigateToURL(new URLRequest("tel:0435009990"))
 				}
 			}
 
@@ -586,15 +586,15 @@ package
 				
 				main.gotoAndStop(7);
 				
-				main.github.addEventListener(MouseEvent.CLICK, openGit);
-				main.ticket.addEventListener(MouseEvent.CLICK, sendTicket);
+				main.github.addEventListener(TouchEvent.TOUCH_TAP, openGit);
+				main.ticket.addEventListener(TouchEvent.TOUCH_TAP, sendTicket);
 				
-				function openGit(event:MouseEvent):void
+				function openGit(event:TouchEvent):void
 				{
 					navigateToURL(new URLRequest("https://github.com/silasoverturf/android-e-fon-nightly/issues"));
 				}
 				
-				function sendTicket(event:MouseEvent):void
+				function sendTicket(event:TouchEvent):void
 				{
 					navigateToURL(new URLRequest("mailto:support@e-fon.ch"));
 				}
@@ -617,13 +617,13 @@ package
 			}
 		}
 		
-		private function getTarget(event:MouseEvent):void
+		private function getTarget(event:TouchEvent):void
 		{
 			trace(event.target.name);
 		}
 		
 		//redirection UI management
-		private function targetTest(event:MouseEvent):void
+		private function targetTest(event:TouchEvent):void
 		{
 			if(event.target.name == "phoneIcon"){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = "";main.timeContainer.switcher.Delay.text = "";};
 			if(event.target.name == "voicemailIcon"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";main.timeContainer.switcher.Delay.text = "";};
@@ -631,21 +631,21 @@ package
 			if(event.target.name == "Check"){main.timeContainer.Check.play();}
 		}
 		
-		private function targetTest2(event:MouseEvent):void
+		private function targetTest2(event:TouchEvent):void
 		{
 			if(event.target.name == "phoneIcon"){main.busyContainer.switcher.gotoAndStop(4);main.busyContainer.switcher.destination.text = "";};
 			if(event.target.name == "voicemailIcon"){main.busyContainer.switcher.gotoAndStop(5);main.busyContainer.switcher.destination.text = "Falls besetzt umleiten auf Voicemail";};
 			if(event.target.name == "Check"){main.busyContainer.Check.play();}
 		}
 		
-		private function targetTest3(event:MouseEvent):void
+		private function targetTest3(event:TouchEvent):void
 		{
 			if(event.target.name == "phoneIcon"){main.unregContainer.switcher.gotoAndStop(6);main.unregContainer.switcher.destination.text = "";};
 			if(event.target.name == "voicemailIcon"){main.unregContainer.switcher.gotoAndStop(7);main.unregContainer.switcher.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"};
 			if(event.target.name == "Check"){main.unregContainer.Check.play();}
 		}
 		
-		private function targetTest4(event:MouseEvent):void
+		private function targetTest4(event:TouchEvent):void
 		{
 			if(event.target.name == "phoneIcon"){main.anonContainer.switcher.gotoAndStop(7);main.anonContainer.switcher.destination.text = "Falls unterdrückt umleiten auf Abweisungsnachricht";};
 			if(event.target.name == "voicemailIcon"){main.anonContainer.switcher.gotoAndStop(1);main.anonContainer.switcher.Text.text = "Falls unterdrückt umleiten auf Voicemail"};
@@ -653,7 +653,7 @@ package
 		}
 		
 		//redirection UI management
-		private function tempHandler(event:MouseEvent):void
+		private function tempHandler(event:TouchEvent):void
 		{
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
@@ -665,7 +665,7 @@ package
 			TweenMax.to(main.anonContainer, 0.2, {y:338, ease:Cubic.easeInOut});
 		}
 		
-		private function tempHandler2(event:MouseEvent):void
+		private function tempHandler2(event:TouchEvent):void
 		{
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:-80, ease:Cubic.easeInOut});
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:50, ease:Cubic.easeInOut});
@@ -677,7 +677,7 @@ package
 			TweenMax.to(main.anonContainer, 0.2, {y:275, ease:Cubic.easeInOut});
 		}
 		
-		private function tempHandler3(event:MouseEvent):void
+		private function tempHandler3(event:TouchEvent):void
 		{
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:-80, ease:Cubic.easeInOut});
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
@@ -689,7 +689,7 @@ package
 			TweenMax.to(main.anonContainer, 0.2, {y:275, ease:Cubic.easeInOut});
 		}
 		
-		private function tempHandler4(event:MouseEvent):void
+		private function tempHandler4(event:TouchEvent):void
 		{
 			TweenMax.to(main.timeContainer.selecter, 0.2, {y:-80, ease:Cubic.easeInOut});
 			TweenMax.to(main.busyContainer.selecter, 0.2, {y:0, ease:Cubic.easeInOut});
@@ -702,10 +702,10 @@ package
 		}
 
 		//handle listeners, builds j_session, posts and requests redirection.html
-		private function transmit(event:MouseEvent):void
+		private function transmit(event:TouchEvent):void
 		{
 			//UI management
-			loginBtn.removeEventListener(MouseEvent.CLICK, transmit);
+			loginBtn.removeEventListener(TouchEvent.TOUCH_TAP, transmit);
 			main.gotoAndStop(5);
 			
 			TweenMax.to(loginBtn.loading, 0.75, {rotation:"-360", ease:Cubic.easeInOut, repeat:-1});
@@ -755,7 +755,7 @@ package
 					loginBtn.loading.alpha = 0;
 					
 					login.statusText.text = "Please check your password";
-					loginBtn.addEventListener(MouseEvent.CLICK, transmit);
+					loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
 				}else{
 					//check for functionality
 					jData = jLoader.data;
@@ -813,7 +813,7 @@ package
 					TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 				
 					loadAccounts();
-					loadSMS();
+					loadSMS("GET");
 				}
 			}
 		}
@@ -1038,7 +1038,7 @@ package
 			if (anonRedir[1] == 2){main.anonContainer.switcher.gotoAndStop(7);main.anonContainer.switcher.destination.text = "Falls unterdrückt umleiten auf Abweisungsnachricht";}
 			
 			//read savingBtn listeners
-			main.saveBtn.addEventListener(MouseEvent.CLICK, reauth);
+			main.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, reauth);
 			main.saveBtn.btn_txt.text = "Saved!";
 			TweenMax.to(main.saveBtn, 0.5, {delay:0.4, x:117, ease:Bounce.easeOut});
 		}
@@ -1162,7 +1162,7 @@ package
 		}
 
 		//r_vars posting
-		private function reauth(event:MouseEvent):void
+		private function reauth(event:TouchEvent):void
 		{
 			//input check and fix
 			if(main.timeContainer.Check.currentFrame == 1)
@@ -1173,7 +1173,7 @@ package
 				jLoader.addEventListener(Event.COMPLETE, transmitRedir);
 				jLoader.load(jSend);
 				
-				main.saveBtn.removeEventListener(MouseEvent.CLICK, reauth);
+				main.saveBtn.removeEventListener(TouchEvent.TOUCH_TAP, reauth);
 				main.saveBtn.btn_txt.text = "Saving";
 				TweenMax.to(main.saveBtn, 0.5, {x:70, ease:Bounce.easeOut});
 				
@@ -1268,16 +1268,44 @@ package
 			main.timeContainer.selecter.fax2mailIcon.email.text = f2mEmail[1];
 		}
 
-		private function sendVoicemail(event:MouseEvent):void
+		private function sendVoicemail(event:TouchEvent):void
 		{
-			main.saveVM.removeEventListener(MouseEvent.CLICK, sendVoicemail);
+			main.saveVM.removeEventListener(TouchEvent.TOUCH_TAP, sendVoicemail);
 			main.saveVM.btn_txt.text = "Saving";
 			TweenMax.to(main.saveVM, 0.5, {x:70, ease:Bounce.easeOut});
 		}
 		
-		private function loadSMS(event:Event = null):void
+		private function loadSMS(method:String):void
 		{
-			smsLoader.addEventListener(Event.COMPLETE, parseSMS);
+			if(method == "GET")
+			{
+				smsSend.method = URLRequestMethod.GET;
+				smsLoader.addEventListener(Event.COMPLETE, parseSMS);
+			}
+
+			if(method == "POST")
+			{
+				sms_vars = new URLVariables();
+
+				sms_vars.message = main.smsContainer2.SMSmessage.text;
+				sms_vars.recipientNumber = main.smsContainer2.recipient.text;
+				
+				sms_vars.numberOfMessageToSendForEachRecipient = "1"
+				sms_vars.numberOfRecipients = "1"
+				sms_vars.numberOfMessageToSend = "1"
+				sms_vars.senderNumber = smsRadioGroup.selectedData;
+
+				smsLoader.addEventListener(Event.COMPLETE, SMSsent);
+				smsSend.method = URLRequestMethod.POST;
+				smsSend.data = sms_vars;
+
+				main.sendBtn.removeEventListener(TouchEvent.TOUCH_TAP, SMS);
+			
+				TweenMax.to(main.sendBtn, 0.5, {delay:0.4, x:65, ease:Bounce.easeOut});
+				main.sendBtn.btn_txt.text = "Sending"
+			}
+
+
 			smsLoader.load(smsSend);
 			
 			function parseSMS(event:Event = null):void
@@ -1285,7 +1313,6 @@ package
 				smsData = new String(smsLoader.data);
 				smsData = smsData.replace(rex,"");
 				
-				//accountsResult = [];				
 				var smsResult:Array = smsSniffer.exec(smsData);
 				
 				while (smsResult != null)
@@ -1295,45 +1322,20 @@ package
 		
 					smsResult = smsSniffer.exec(smsData);
 				}
-				addDashboard("SMS", 5);
+				if(method == "GET"){addDashboard("SMS", 5)};
+			}
+
+			function SMSsent(event:Event = null):void
+			{
+				TweenMax.to(main.sendBtn, 0.5, {delay:0.4, x:120, ease:Bounce.easeOut});
+				main.sendBtn.btn_txt.text = "Sent!"
+				main.sendBtn.addEventListener(TouchEvent.TOUCH_TAP, SMS);
 			}
 		}
 		
-		private function SMS(event:MouseEvent):void
+		private function SMS(event:TouchEvent):void
 		{
-			jLoader.load(jSend);
-			
-			jLoader.addEventListener(Event.COMPLETE, sendSMS);
-			
-			sms_vars.message = main.smsContainer2.SMSmessage.text;
-			sms_vars.recipientNumber = main.smsContainer2.recipient.text;
-			
-			sms_vars.numberOfMessageToSendForEachRecipient = "1"
-			sms_vars.numberOfRecipients = "1"
-			sms_vars.numberOfMessageToSend = "1"
-			sms_vars.senderNumber = smsRadioGroup.selectedData;
-			
-			main.sendBtn.removeEventListener(MouseEvent.CLICK, SMS);
-			
-			TweenMax.to(main.sendBtn, 0.5, {delay:0.4, x:65, ease:Bounce.easeOut});
-			main.sendBtn.btn_txt.text = "Sending"
-				
-			function sendSMS(event:Event = null):void
-			{
-				smsSend.method = URLRequestMethod.POST;
-				smsSend.data = sms_vars;
-				
-				jLoader.removeEventListener(Event.COMPLETE, sendSMS);
-				smsLoader.addEventListener(Event.COMPLETE, SMSsent);
-				
-				function SMSsent(event:Event = null):void
-				{
-					TweenMax.to(main.sendBtn, 0.5, {delay:0.4, x:120, ease:Bounce.easeOut});
-					main.sendBtn.btn_txt.text = "Sent!"
-					main.sendBtn.addEventListener(MouseEvent.CLICK, SMS);
-				}
-				smsLoader.load(smsSend);
-			}
+			loadSMS("POST");
 		}
 		
 		private function loadCDR(event:Event = null):void
@@ -1477,32 +1479,35 @@ package
 
 		}
 
-		/*
-		private function mouseDownHandler(event:MouseEvent):void {
-		 TweenLite.killTweensOf(dashboard);
-		 y1 = y2 = dashboard.y;
+		
+		private function mouseDownHandler(event:TouchEvent):void {
+		 TweenLite.killTweensOf(main);
+		 y1 = y2 = main.y;
 		 t1 = t2 = getTimer();
-		 dashboard.startDrag(false, new Rectangle(bounds.x, -99999, 0, 99999999));
-		 dashboard.addEventListener(Event.ENTER_FRAME, enterFrameHandler);
-		 dashboard.stage.addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
+		 main.startDrag(false, new Rectangle(bounds.x, -99999, 0, 99999999));
+		 main.addEventListener(Event.ENTER_FRAME, enterFrameHandler);
+		 main.stage.addEventListener(TouchEvent.TOUCH_END, mouseUpHandler);
 		}
 
 		private function enterFrameHandler(event:Event):void {
 		 //track velocity using the last 2 frames for more accuracy
 		 y2 = y1;
 		 t2 = t1;
-		 y1 = dashboard.y;
+		 y1 = main.y;
 		 t1 = getTimer();
 		}
 
-		private function mouseUpHandler(event:MouseEvent):void {
-		 dashboard.stopDrag();
-		 dashboard.stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
-		 dashboard.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
+		private function mouseUpHandler(event:TouchEvent):void {
+		 main.stopDrag();
+		 main.stage.removeEventListener(TouchEvent.TOUCH_END, mouseUpHandler);
+		 main.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
 		 var time:Number = (getTimer() - t2) / 1000;
-		 var yVelocity:Number = (dashboard.y - y2) / time;
-		 var yOverlap:Number = Math.max(0, dashboard.height - bounds.height);
-		 ThrowPropsPlugin.to(dashboard, {ease:Strong.easeOut, throwProps:{y:{velocity:yVelocity, max:bounds.top, min:bounds.top - yOverlap, resistance:200}}}, 10, 0.25, 1);
-		}*/
+		 var yVelocity:Number = (main.y - y2) / time;
+		 var yOverlap:Number = Math.max(0, main.height - bounds.height - stage.stageHeight);
+		 if(yOverlap < 0){yOverlap = 0};
+		 ThrowPropsPlugin.to(main, {ease:Strong.easeOut, throwProps:{y:{velocity:yVelocity, max:bounds.top, min:bounds.top - yOverlap, resistance:200}}}, 10, 0.25, 1);
+		 trace(main.scaleY*480);
+		 trace(bounds.top, bounds.top - yOverlap)
+		}
 	}
 }
