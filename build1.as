@@ -182,14 +182,14 @@ package
 		private var manualStatusSubject:RegExp = /manualStatusSubject"value=.([^"]{0,})/;
 		private var manualStatusPrivate:RegExp = /manualStatusPrivate"value=.true"([^\/]{0,})/;
 		private var manualStatusTimeDate:RegExp = /manualStatus(?:from|until)(?:time|date)"value=.([^"]{0,})/gi; //fromdate, fromtime, untildate, untiltime
-		privaet var manualStatusChoice:Regexp = /choiceManualStatus"value="([0-9])"onclick=.controlRedirManualStatus\(\)"([^\/]{0,})/gi; //result[1], selection, result[2], checked
-		private var manualStatusDestination:Regexp = /phoneManualStatus"value="([0-9]{0,15})/i;
+		private var manualStatusChoice:RegExp = /choiceManualStatus"value="([0-9])"onclick=.controlRedirManualStatus\(\)"([^\/]{0,})/gi; //result[1], selection, result[2], checked
+		private var manualStatusDestination:RegExp = /phoneManualStatus"value="([0-9]{0,15})/i;
 
-		private var calenderStatusChoice:Regexp = /choiceCal(Oof|Busy)"value="([0-9]).onclick="[^\)]{0,}\)"\/>/gi;
-		private var calenderDestinationOOF:Regexp = /phoneCal(?:oof|busy)"value="([0-9]{0,15})/gi;
+		private var calenderStatusChoice:RegExp = /choiceCal(?:oof|Busy)"value="([0-9]).onclick="[^"]{0,}"([^"]{0,})/gi
+		private var calenderDestination:RegExp = /phoneCal(?:oof|busy)"value="([0-9]{0,15})/gi;
 
 		//matches featureIDs
-		private var featureSniffer:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="[0-9]{1,10}/g;
+		private var featureSniffer:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="[0-9]{1,10}/gi;
 		private var featureStripper:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="/;
 		
 		//matches F2M email to result[1]
@@ -232,6 +232,9 @@ package
 		private var anonRedir:Array;// =[active, choice];
 		
 		private var redirChoice:Array;// [timeChoice, busyChoice, unregChoice, anonChoice]
+
+		private var calenderManual:Array;// [active, subject, private, dateFrom, timeFrom, dateUntil, timeUntil, choice, destination]
+		private var calenderStatus:Array;// []
 		
 		//avaliable agents
 		private var queueAgent:Array = [];
@@ -830,6 +833,9 @@ package
 			dumpRedir = [];
 			dumpContainer = null;
 			
+			calenderManual = [];
+			calenderStatus = [];
+
 			//reset counters
 			i=0;
 			i2=0;
@@ -886,8 +892,6 @@ package
 				i2 = i2 + 1;
 			}
 
-			trace(busyRedir, "c")
-
 			result = [];
 			dumpRedir = [];
 			result = delaySniffer.exec(redirectionData);
@@ -936,6 +940,64 @@ package
 				featureArray[i3] = dumpContainer;
 				i3 = i3 + 1;
 			}
+
+			//calender
+			result = manualStatusSelected.exec(redirectionData);
+			calenderManual.push(result[1]);
+
+			result = manualStatusSubject.exec(redirectionData);
+			calenderManual.push(result[1]);
+
+			result = manualStatusPrivate.exec(redirectionData);
+			calenderManual.push(result[1]);
+
+			result = manualStatusTimeDate.exec(redirectionData);
+
+			while(result != null)
+			{
+				calenderManual.push(result[1]);
+				result = manualStatusTimeDate.exec(redirectionData);
+			}
+
+			result = manualStatusChoice.exec(redirectionData);
+
+			while(result != null)
+			{
+				if(result[2].search("checked") != -1)
+				{
+					calenderManual.push(result[1]);
+				}
+				result = manualStatusChoice.exec(redirectionData);
+			}
+
+			result = manualStatusDestination.exec(redirectionData);
+			calenderManual.push(result[1]);
+
+			trace(calenderManual);
+			
+			result = calenderStatusChoice.exec(redirectionData);
+
+			while(result != null)
+			{
+				if(result[2].search("checked") != -1)
+				{
+					calenderStatus.push(result[1]);
+				}else{
+					calenderStatus.push("");
+				}
+				result = calenderStatusChoice.exec(redirectionData);
+			}
+
+			result = calenderDestination.exec(redirectionData);
+
+			while(result != null)
+			{
+				calenderStatus.push(result[1])
+				result = calenderDestination.exec(redirectionData);
+			}
+
+			trace(calenderStatus);
+			//trace(redirectionData);
 			if(main.currentFrame == 1){redirectionFlush();}
 		}
 		
@@ -1043,6 +1105,60 @@ package
 			if (main.timeContainer.Check.currentFrame == 2){}
 			if (main.busyContainer.Check.currentFrame == 2){}
 			if (main.unregContainer.Check.currentFrame == 2){}
+
+			//calender vars
+			if(calenderManual[0].search("checked") != -1)
+			{
+				r_vars.uml_manualStatus = "true";
+				r_vars.manualStatusSubject = calenderManual[1];
+				r_vars.manualStatusFromDate = calenderManual[3];
+				r_vars.manualStatusFromTime = calenderManual[4];
+				r_vars.manualStatusUntilDate = calenderManual[5]
+				r_vars.manualStatusUntilTime = calenderManual[6];
+				r_vars.choiceManualStatus = calenderManual[7];
+
+				if(calenderManual[2].search("checked") != -1)
+				{
+					r_vars.manualStatusPrivate = "true";
+				}else{
+					r_vars.manualStatusPrivate = "false";
+				}
+
+				if(calenderManual[7] == "1"){r_vars.phoneManualStatus = calenderManual[8];}
+			}
+
+			i = 0;
+
+			for each(var calender in calenderStatus)
+			{
+				if(calender == 1 && i == 0)
+				{
+					r_vars.uml_calOof = "true";
+					r_vars.choiceCalOof = "1";
+					r_vars.phoneCalOof = calenderStatus[4];
+				}
+				
+				if(calender == 1 && i == 2)
+				{
+					r_vars.uml_calOof = "true";
+					r_vars.choiceCalOof = "2";
+				}
+
+				if(calender == 2 && i == 1)
+				{
+					r_vars.uml_calBusy = "true";
+					r_vars.choiceCalBusy = "1";
+					r_vars.choiceCalPhone = calenderStatus[5];
+				}
+
+				if(calender == 2 && i == 3)
+				{
+					r_vars.uml_calBusy = "true";
+					r_vars.choiceCalBusy = "2";
+				}
+				i = i + 1;
+			}
+			trace(r_vars);
 		}
 
 		//r_vars posting
@@ -1081,6 +1197,7 @@ package
 					{
 						jLoader.removeEventListener(Event.COMPLETE, transmitRedir);
 						redirectionData = new String(rLoader.data);
+						
 						parseRedir();
 
 						//if f2m chosen, post F2M email address, post is deffered to after the rloader to avoid timeouts from the server
@@ -1109,7 +1226,6 @@ package
 
 				f2mURLRequest.method =  URLRequestMethod.POST;
 				f2mURLRequest.data = f2m_vars;
-				trace("postingf2m", f2m_vars, main.timeContainer.selecter.fax2mailIcon.email.text);
 			}
 
 			f2mLoader.addEventListener(Event.COMPLETE, parseF2M);
@@ -1311,8 +1427,6 @@ package
 		
 		private function sendQueue(agentID:String):void
 		{
-			trace("sending");
-
 			queueVars = new URLVariables();
 			
 			queueSend.method = URLRequestMethod.POST;
