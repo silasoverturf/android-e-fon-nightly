@@ -65,6 +65,7 @@ package
 		private var queueActive:Boolean;
 		private var shortDialsActive:Boolean;
 		private var isAdmin:Boolean;
+		private var wrongPW:Boolean;
 		
 		//intermediate dump vars
 		private var dumpRedir:Array = [];
@@ -73,7 +74,9 @@ package
 		//T
 		private var testingArray:Array = ["testing"];
 		private var testingString:String = "";
-		
+		private var myDate:Date = new Date();
+		private var myDate2:Date;
+
 		//analytics
 		private var analyticsVars:URLVariables = new URLVariables();
 		private var analyticsSend:URLRequest = new URLRequest("http://www.timothyoverturf.com/analytics.php");
@@ -283,7 +286,6 @@ package
 			stage.align = StageAlign.TOP_LEFT;
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 
-			trace(stage.stageWidth, stage.stageHeight);
 			bounds = new Rectangle(stage.stageWidth*0.5, 7, 320, 480);
 
 			//bg setup
@@ -323,8 +325,6 @@ package
 			main.stop();
 			main.visible = false;
 			main.alpha = 0;
-
-			trace(main.scaleX, main.scaleY, main.width, main.height*main.scaleY);
 			
 			TweenMax.to(dashboard, 0 , {autoAlpha:0, y:"+1000"})
 
@@ -336,11 +336,12 @@ package
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyHandler);
 
 			//listen for native actions
-			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
-			NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, deactivate);
+			////after change to portal cookies don't expire after set time, loadRedirection no longer needed.
+			//NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
+			//NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, deactivate);
 			NativeApplication.nativeApplication.addEventListener(Event.NETWORK_CHANGE, networkChange);
 			
-			//stage.addEventListener(TouchEvent.TOUCH_TAP, getTarget);
+			stage.addEventListener(TouchEvent.TOUCH_TAP, getTarget);
 
 			//get language
 			trace(Capabilities.languages, Capabilities.os);
@@ -348,8 +349,8 @@ package
 			//if SO invalid, set default, else set SO
 			if (!SO.data.userid)
 			{
-				login.userid_txt.text = "timothy.overturf@e-fon.ch";
-				login.password_txt.text = "underturf4";
+				login.userid_txt.text = "user@example.com";
+				login.password_txt.text = "password";
 			}else{
 				login.userid_txt.text = SO.data.userid;
 				//login.password_txt.text = SO.data.pass;
@@ -371,7 +372,7 @@ package
 				stage.addChild(Overlay);
 			}
 
-			//remove overlay once reauth complete
+			//remove overlay once loadRedirection complete
 			function removeOverlay(event:Event):void
 			{
 				stage.removeChild(Overlay);
@@ -608,11 +609,8 @@ package
 			function addSwipe():void
 			{
 				//swiping
-				trace(main.scaleY + " * " + main.height + " = " + main.scaleY * main.height);
-				trace(stage.stageHeight);
 				if(main.height > stage.stageHeight)
 				{
-					trace("listener added");
 					main.addEventListener(TouchEvent.TOUCH_BEGIN, mouseDownHandler);
 				}
 			}
@@ -621,6 +619,8 @@ package
 		private function getTarget(event:TouchEvent):void
 		{
 			trace(event.target.name);
+			myDate = new Date();
+			trace(myDate.time)
 		}
 		
 		//redirection UI management
@@ -750,6 +750,22 @@ package
 			//get redirection.html, onComplete -> parseRedir
 			function completeHandler(event:Event = null):void
 			{
+				/*
+				
+				dumpContainer = jLoader.data;
+				dumpContainer = dumpContainer.replace(rex, "");
+				trace(dumpContainer)
+				dumpContainer = optionSniffer.exec(dumpContainer);
+				trace(dumpContainer)
+
+				dumpContainer = jLoader.data;
+				dumpContainer = dumpContainer.replace(rex, "");
+				dumpContainer = optionSniffer.exec(dumpContainer);
+				trace(dumpContainer)
+				*/
+				wrongPW = false;
+				isAdmin = false;
+
 				if(jLoader.data.search("password") > -1)
 				{
 					TweenMax.killTweensOf(loginBtn.loading);
@@ -757,7 +773,26 @@ package
 					
 					login.statusText.text = "Please check your password";
 					loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
-				}else{
+					wrongPW = true;
+					trace("wrongPW");
+				}
+
+				//check if admin
+				if(jLoader.data.search("memberOverview") > -1)
+				{
+					TweenMax.killTweensOf(loginBtn.loading);
+					loginBtn.loading.alpha = 0;
+										
+					login.statusText.text = "Administrator accounts are not yet supported";
+
+					loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
+					isAdmin = true;
+					trace("isAdmin");
+				}
+
+				if(isAdmin == false && wrongPW == false)
+				{
+					trace("nothin")
 					//check for functionality
 					jData = jLoader.data;
 					jData = jData.replace(rex, "");
@@ -772,13 +807,6 @@ package
 					
 					//check if shortdials avaliable
 					if(jData.search("shortDials") > -1){shortDialsActive = true;}
-					
-					//check if admin
-					if(jData.search("memberOverview") > -1)
-					{
-						isAdmin = true;
-						loadMembers();
-					}
 
 					//check if numbers are owned
 					if(jData.search("optionvalue") > -1)
@@ -973,8 +1001,6 @@ package
 
 			result = manualStatusDestination.exec(redirectionData);
 			calenderManual.push(result[1]);
-
-			trace(calenderManual);
 			
 			result = calenderStatusChoice.exec(redirectionData);
 
@@ -997,8 +1023,6 @@ package
 				result = calenderDestination.exec(redirectionData);
 			}
 
-			trace(calenderStatus);
-			//trace(redirectionData);
 			if(main.currentFrame == 1){redirectionFlush();}
 		}
 		
@@ -1039,7 +1063,7 @@ package
 			if (anonRedir[1] == 2){main.anonContainer.switcher.gotoAndStop(7);main.anonContainer.switcher.destination.text = "Falls unterdrückt umleiten auf Abweisungsnachricht";}
 			
 			//read savingBtn listeners
-			main.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, reauth);
+			main.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, loadRedirection);
 			main.saveBtn.btn_txt.text = "Saved!";
 			TweenMax.to(main.saveBtn, 0.5, {delay:0.4, x:117, ease:Bounce.easeOut});
 		}
@@ -1047,6 +1071,8 @@ package
 		//UI reverse flushing
 		private function UItoV(event:Event = null):void
 		{
+			myDate = new Date();
+			trace(myDate.time);
 			//reset r_ and f2m_vars
 			r_vars = new URLVariables();
 			
@@ -1159,55 +1185,46 @@ package
 				}
 				i = i + 1;
 			}
-			trace(r_vars);
 		}
 
 		//r_vars posting
-		private function reauth(event:TouchEvent):void
+		private function loadRedirection(event:TouchEvent):void
 		{
 			//input check and fix
 			if(main.timeContainer.Check.currentFrame == 1)
 			{
-				if(main.timeContainer.switcher.currentFrame == 2 && main.timeContainer.switcher.destination.length < 10){trace("timeRedir invalid");}
+				if(main.timeContainer.switcher.currentFrame == 2 && main.timeContainer.switcher.destination.length < 10){}
 			}
-				//reauthorize
-				jLoader.addEventListener(Event.COMPLETE, transmitRedir);
-				jLoader.load(jSend);
+
+			main.saveBtn.removeEventListener(TouchEvent.TOUCH_TAP, loadRedirection);
+			main.saveBtn.btn_txt.text = "Saving";
+			TweenMax.to(main.saveBtn, 0.5, {x:70, ease:Bounce.easeOut});
+			
+			//UItoV flush
+			UItoV();
+		
+			//set method and data
+			redirectionURLRequest.method = URLRequestMethod.POST;
+			redirectionURLRequest.data = r_vars;
+				//listen for r_vars complete
+			rLoader.addEventListener(Event.COMPLETE, getRedir);
 				
-				main.saveBtn.removeEventListener(TouchEvent.TOUCH_TAP, reauth);
-				main.saveBtn.btn_txt.text = "Saving";
-				TweenMax.to(main.saveBtn, 0.5, {x:70, ease:Bounce.easeOut});
+			//post r_vars
+			rLoader.load(redirectionURLRequest);
 				
-				//UItoV flush
-				UItoV();
-				
-				function transmitRedir(event:Event = null):void
+			//reget redir on complete r_vars post...
+			function getRedir(event:Event)
+			{
+				redirectionData = new String(rLoader.data);
+			
+				parseRedir();
+
+				//if f2m chosen, post F2M email address, post is deffered to after the rloader to avoid timeouts from the server
+				if(r_vars.choice1 == "3")
 				{
-					//set method and data
-					redirectionURLRequest.method = URLRequestMethod.POST;
-					redirectionURLRequest.data = r_vars;
-
-					//listen for r_vars complete
-					rLoader.addEventListener(Event.COMPLETE, getRedir);
-					
-					//post r_vars
-					rLoader.load(redirectionURLRequest);
-					
-					//reget redir on complete r_vars post...
-					function getRedir(event:Event)
-					{
-						jLoader.removeEventListener(Event.COMPLETE, transmitRedir);
-						redirectionData = new String(rLoader.data);
-						
-						parseRedir();
-
-						//if f2m chosen, post F2M email address, post is deffered to after the rloader to avoid timeouts from the server
-						if(r_vars.choice1 == "3")
-						{
-							loadF2M("POST")
-						}
-					}
+					loadF2M("POST")
 				}
+			}
 		}
 		
 		private function loadF2M(method:String):void
@@ -1317,7 +1334,7 @@ package
 					smsResult = smsSniffer.exec(smsData);
 				}
 
-				//chick if dashbaord item has been added
+				//check if dashbaord item has been added
 				if(DashboardItems.indexOf("SMS") == -1){addDashboard("SMS", 5)};
 
 				//flush if frame is active
@@ -1479,7 +1496,6 @@ package
 
 		private function loadMembers():void
 		{
-
 		}
 
 		
@@ -1509,12 +1525,10 @@ package
 		 	main.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
 		 	var time:Number = (getTimer() - t2) / 1000;
 		 	var yVelocity:Number = (main.y - y2) / time;
-		 	var grace:Number = stage.stageHeight / 480 * 8
+		 	var grace:Number = stage.stageHeight / 480 * 9;
 		 	var yOverlap:Number = stage.stageHeight - main.height - grace;
 		 	if(yOverlap > 7){yOverlap = 7};
 		 	ThrowPropsPlugin.to(main, {ease:Strong.easeOut, throwProps:{y:{velocity:yVelocity, max:bounds.top, min:yOverlap, resistance:200}}}, 10, 0.25, 1);
-		 	trace(main.scaleY*480);
-		 	trace(bounds.top, bounds.top - yOverlap)
 		}
 	}
 }
