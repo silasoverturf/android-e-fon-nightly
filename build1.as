@@ -1252,15 +1252,11 @@ package
 				result = voicemailPINSnifffer.exec(f2mData);
 				voicemail.push(result[1]);
 
-				if(DashboardItems.indexOf("Voicemail") == -1)
-				{
-					addDashboard("Voicemail", 6);	
-				}
+				//check if dashboard item has been added
+				if(DashboardItems.indexOf("Voicemail") == -1){addDashboard("Voicemail", 6);}
 
-				if(main.currentFrame == 1)
-				{
-					flushF2M();
-				}
+				//flush is frame is active
+				if(main.currentFrame == 1){flushF2M();}
 			}
 		}
 
@@ -1303,12 +1299,9 @@ package
 				main.sendBtn.removeEventListener(TouchEvent.TOUCH_TAP, SMS);
 			
 				TweenMax.to(main.sendBtn, 0.5, {delay:0.4, x:65, ease:Bounce.easeOut});
-				main.sendBtn.btn_txt.text = "Sending"
+				main.sendBtn.btn_txt.text = "Sending";
 			}
 
-
-			smsLoader.load(smsSend);
-			
 			function parseSMS(event:Event = null):void
 			{
 				smsData = new String(smsLoader.data);
@@ -1320,10 +1313,16 @@ package
 				{
 					smsNumberID.push(smsResult[1]);
 					smsNumber.push(smsResult[2]);
-		
+			
 					smsResult = smsSniffer.exec(smsData);
 				}
-				if(method == "GET"){addDashboard("SMS", 5)};
+
+				//chick if dashbaord item has been added
+				if(DashboardItems.indexOf("SMS") == -1){addDashboard("SMS", 5)};
+
+				//flush if frame is active
+				if(main.currentFrame == 2){flushSMS();}
+				smsLoader.removeEventListener(Event.COMPLETE, parseSMS);
 			}
 
 			function SMSsent(event:Event = null):void
@@ -1332,12 +1331,16 @@ package
 				main.sendBtn.btn_txt.text = "Sent!"
 				main.sendBtn.addEventListener(TouchEvent.TOUCH_TAP, SMS);
 			}
+			smsLoader.load(smsSend);
 		}
 		
 		private function SMS(event:TouchEvent):void
 		{
 			loadSMS("POST");
 		}
+
+		private function flushSMS():void
+		{}
 		
 		private function loadCDR(event:Event = null):void
 		{
@@ -1424,7 +1427,6 @@ package
 				}
 				addDashboard("Queue", 2);
 			}
-			//clean queue data
 			queueLoader.load(queueSend);
 		}
 		
