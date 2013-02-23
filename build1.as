@@ -19,6 +19,8 @@ package
 	import flash.utils.getTimer;
 	import flash.text.*;
 
+	//import Mavin;
+
 	TweenPlugin.activate([ThrowPropsPlugin]);
 
 	public class build1 extends MovieClip
@@ -99,6 +101,7 @@ package
 		private var jSend:URLRequest = new URLRequest("https://" + context + "/portal/j_acegi_security_check");
 
 		private var memberURLRequest:URLRequest = new URLRequest("https://" + context + "/portal/memberOverview.html")
+		private var actAsURLRequest:URLRequest;
 		
 		private var redirectionURLRequest:URLRequest = new URLRequest("https://" + context + "/portal/redirection.html");//?selectedPhoneNumberId=selectedNumber;
 		
@@ -115,6 +118,7 @@ package
 		private var jLoader:URLLoader;
 
 		private var memberLoader:URLLoader = new URLLoader;
+		private var actAsLoader:URLLoader = new URLLoader;
 		
 		private var redirectionLoader:URLLoader = new URLLoader;
 		private var rLoader:URLLoader = new URLLoader;
@@ -148,6 +152,12 @@ package
 		private var accountsData:String;
 		
 		////RegExp defenition////
+		//matches memberIDs
+		private var memberIDSniffer:RegExp = /edit&member=([0-9]{0,})/gi;
+
+		//matches memberNames to result[1]
+		private var memberNameSniffer:RegExp = /<td>([^<]{0,})(?:<spanclass='newbutton'>[^<]{0,}<\/span>\([^\)]{0,}\)<\/td>|)<tdwidth=.[0-9]{0,3}/gi;
+
 		//matches connection date[1] and time[2]
 		private var timeSniffer:RegExp = /([0-9]{0,2}[.][0-9]{0,2}[.][0-9]{0,4})([0-9]{0,2}:[0-9]{0,2}:[0-9]{0,2})/g;
 		
@@ -211,7 +221,10 @@ package
 		private var queueSniffer:RegExp =  />([^<]{0,})<\/td><td>[^<]{0,},([^<]{0,})<\/td><td>[^<]{0,}<\/td><td>[^<]{0,}<br\/><\/td><td><spanstyle="color:[0-9a-zA-Z,]{0,};">([a-zA-Z]{0,})<\/span><\/td><td><ahref="javascript:[a-zA-Z]{0,}\(([0-9]{0,})\)"/g; 
 		
 		////Local variable defenition////
-		
+		//member local
+		private var memberIDs:Array = [];
+		private var memberNames:Array = [];
+
 		//f2m local
 		private var f2mEmail:Array;
 		private var f2mDelivery:String;
@@ -318,7 +331,7 @@ package
 			for each(var item in stageObjects)
 			{
 				item.scaleX = stage.stageWidth / 320;
-				item.scaleY = stage.stageHeight / 480;
+				item.scaleY = stage.stageWidth / 320;
 			}
 
 			//hide main
@@ -519,8 +532,8 @@ package
 				{
 					var QueueSnippet:MovieClip = new queueSnippet();
 					QueueSnippet.y = i4 * 57;
-					QueueSnippet.Text.text = queueList[i4] + " als" + "\n" +queueName[i4];
-					//QueueSnippet.agentID.text = queueAgent[i4];
+					QueueSnippet.Text.text = queueList[i4] + " als";
+					QueueSnippet.Text2.text = queueName[i4];
 					
 					if(queueStatus[i4] == "Online")
 					{
@@ -596,16 +609,6 @@ package
 				main.removeEventListener(TouchEvent.TOUCH_BEGIN, mouseDownHandler);
 			}
 
-			function hideDashboard(selection:Number):void
-			{
-				main.gotoAndStop(6);
-				main.gotoAndStop(selection);
-				main.y = 7;
-
-				TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
-				TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
-			}
-
 			function addSwipe():void
 			{
 				//swiping
@@ -614,6 +617,15 @@ package
 					main.addEventListener(TouchEvent.TOUCH_BEGIN, mouseDownHandler);
 				}
 			}
+		}
+
+		private function hideDashboard(selection:Number):void
+		{
+			main.gotoAndStop(6);
+			main.gotoAndStop(selection);
+			main.y = 7;
+			TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+			TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 		}
 		
 		private function getTarget(event:TouchEvent):void
@@ -745,7 +757,7 @@ package
 			
 			//post j_session
 			jLoader.load(jSend);
-			analyticsLoader.load(analyticsSend);
+			//analyticsLoader.load(analyticsSend);
 			
 			//get redirection.html, onComplete -> parseRedir
 			function completeHandler(event:Event = null):void
@@ -780,73 +792,75 @@ package
 				//check if admin
 				if(jLoader.data.search("memberOverview") > -1)
 				{
-					TweenMax.killTweensOf(loginBtn.loading);
-					loginBtn.loading.alpha = 0;
-										
-					login.statusText.text = "Administrator accounts are not yet supported";
-
-					loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
 					isAdmin = true;
 					trace("isAdmin");
+
+					loadMembers();
 				}
 
 				if(isAdmin == false && wrongPW == false)
 				{
-					trace("nothin")
-					//check for functionality
-					jData = jLoader.data;
-					jData = jData.replace(rex, "");
-
-					//check if queue avaliable
-					if(jData.search("Queue") > -1)
-					{
-						queueActive = true;
-						functionCount = functionCount + 1;
-						loadQueue();
-					}
-					
-					//check if shortdials avaliable
-					if(jData.search("shortDials") > -1){shortDialsActive = true;}
-
-					//check if numbers are owned
-					if(jData.search("optionvalue") > -1)
-					{
-						//loadCDR();
-						loadF2M("GET");
-
-						function redirectionHandler(event:Event):void
-						{
-							removeChild(header);
-							removeChild(login);
-							removeChild(loginBtn);
-							
-							main.visible = true;
-							
-							redirectionData = new String(redirectionLoader.data);
-							jLoader.removeEventListener(Event.COMPLETE, completeHandler);
-							parseRedir();
-							addDashboard("Umleitung", 1);
-						}
-						redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);	
-						redirectionLoader.load(redirectionURLRequest);
-
-						//update functino count
-						functionCount = functionCount + 2;
-					}
-					
-					//ui management
-					TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
-					TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
-					TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
-					TweenMax.to(dashboard, 0.5, {delay:0.3,autoAlpha:1, y:"-1000", ease:Cubic.easeInOut});
-					TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
-				
-					loadAccounts();
-					loadSMS("GET");
+					loadData();
 				}
 			}
 		}
 
+		private function loadData(event:Event = null):void
+		{
+			trace("nothin")
+			//check for functionality
+			jData = jLoader.data;
+			jData = jData.replace(rex, "");
+
+			//check if queue avaliable
+			if(jData.search("Queue") > -1)
+			{
+				queueActive = true;
+				functionCount = functionCount + 1;
+				loadQueue();
+			}
+			
+			//check if shortdials avaliable
+			if(jData.search("shortDials") > -1){shortDialsActive = true;}
+
+			//check if numbers are owned
+			if(jData.search("optionvalue") > -1)
+			{
+				//loadCDR();
+				loadF2M("GET");
+
+				function redirectionHandler(event:Event):void
+				{
+					removeChild(header);
+					removeChild(login);
+					removeChild(loginBtn);
+					
+					main.visible = true;
+					
+					redirectionData = new String(redirectionLoader.data);
+					//jLoader.removeEventListener(Event.COMPLETE, completeHandler);
+					parseRedir();
+					addDashboard("Umleitung", 1);
+				}
+				redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);	
+				redirectionLoader.load(redirectionURLRequest);
+
+				//update functino count
+				functionCount = functionCount + 2;
+			}
+			
+			//ui management
+			TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
+			TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
+			TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
+			TweenMax.to(dashboard, 0.5, {delay:0.3,autoAlpha:1, y:"-1000", ease:Cubic.easeInOut});
+			TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
+			TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+			
+			loadAccounts();
+			loadSMS("GET");
+		}
+		
 		//manual parsing of .html
 		private function parseRedir(event:Event = null):void
 		{
@@ -972,6 +986,7 @@ package
 
 			//calender
 			result = manualStatusSelected.exec(redirectionData);
+			if(result != null){
 			calenderManual.push(result[1]);
 
 			result = manualStatusSubject.exec(redirectionData);
@@ -1022,6 +1037,7 @@ package
 				calenderStatus.push(result[1])
 				result = calenderDestination.exec(redirectionData);
 			}
+		}
 
 			if(main.currentFrame == 1){redirectionFlush();}
 		}
@@ -1496,6 +1512,73 @@ package
 
 		private function loadMembers():void
 		{
+			memberURLRequest.method = URLRequestMethod.GET;
+			memberLoader.addEventListener(Event.COMPLETE, parse);
+
+			memberLoader.load(memberURLRequest);
+
+			function parse(event:Event):void
+			{
+				memberData = memberLoader.data;
+				memberData = memberData.replace(rex, "");
+				
+
+				var result:Array = memberIDSniffer.exec(memberData);
+
+				while(result != null)
+				{
+					memberIDs.push(result[1])
+					result = memberIDSniffer.exec(memberData);
+				}
+
+				result = memberNameSniffer.exec(memberData);
+
+				while(result != null)
+				{
+					memberNames.push(result[1]);
+					result = memberNameSniffer.exec(memberData);
+				}
+				trace(memberIDs);
+				trace(memberNames);
+				flushMembers();
+			}
+		}
+
+		private function flushMembers():void
+		{
+			hideDashboard(10);
+
+			i4 = 0;
+
+			for each(var member in memberNames)
+			{
+				var MemberSnippet:MovieClip = new memberSnippet();
+				MemberSnippet.y = i4 * 57;
+				MemberSnippet.Text.text = member;
+				MemberSnippet.name = memberIDs[i4];
+
+				main.memberContainer.addChild(MemberSnippet);
+				i4 = i4 + 1;
+			}
+
+			main.memberContainer.addEventListener(TouchEvent.TOUCH_TAP, memberHandler);
+
+			function memberHandler(event:TouchEvent):void
+			{
+				if(event.target.name == "actAs"){actAs(event.target.parent.name);}
+			}
+
+			TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
+			TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
+			TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
+		}
+
+		private function actAs(actAsMember:String)
+		{
+			actAsURLRequest = new URLRequest("https://" + context + "/portal/actAs.html?member=" + actAsMember);
+
+			actAsLoader.addEventListener(Event.COMPLETE, loadData)
+			actAsLoader.load(actAsURLRequest);
 		}
 
 		
