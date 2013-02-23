@@ -19,8 +19,6 @@ package
 	import flash.utils.getTimer;
 	import flash.text.*;
 
-	//import Mavin;
-
 	TweenPlugin.activate([ThrowPropsPlugin]);
 
 	public class build1 extends MovieClip
@@ -55,7 +53,7 @@ package
 		
 		//ui counter
 		public var xP:Number = -100;
-		public var yP:Number = 130;
+		public var yP:Number = 110;
 		
 		//white space remover
 		private var rex:RegExp = /[\s\r\n]*/gim;
@@ -321,7 +319,7 @@ package
 			loginBtn.y = stage.stageHeight * 0.7;
 
 			dashboard.x = stage.stageWidth / 2;
-			dashboard.y = stage.stageHeight * 0.03;
+			dashboard.y = 0;
 			
 			main.x = stage.stageWidth / 2;
 			main.y = stage.stageHeight * 0.03;
@@ -339,7 +337,8 @@ package
 			main.visible = false;
 			main.alpha = 0;
 			
-			TweenMax.to(dashboard, 0 , {autoAlpha:0, y:"+1000"})
+			dashboard.visible = false;
+			dashboard.alpha = 0;
 
 			//initial listeners;
 			loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
@@ -350,7 +349,7 @@ package
 
 			//listen for native actions
 			////after change to portal cookies don't expire after set time, jession.load no longer needed.
-			//NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
+			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
 			//NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, deactivate);
 			NativeApplication.nativeApplication.addEventListener(Event.NETWORK_CHANGE, networkChange);
 			
@@ -374,9 +373,9 @@ package
 		private function activate(event:Event):void
 		{
 			//check if initial login complete
-			if(jData != null)
+			if(jData != null && 1 == 2)
 			{
-				jLoader.addEventListener(Event.COMPLETE, removeOverlay);
+				//jLoader.addEventListener(Event.COMPLETE, removeOverlay);
 				jLoader.load(jSend);
 				var Overlay:MovieClip = new overlay();
 				Overlay.scaleX = stage.stageWidth / 320;
@@ -386,9 +385,16 @@ package
 			}
 
 			//remove overlay once loadRedirection complete
-			function removeOverlay(event:Event):void
+			/*function removeOverlay(event:Event):void
 			{
 				stage.removeChild(Overlay);
+			}
+			*/
+
+			if(main.currentFrame == 5)
+			{
+				loadQueue("GET");
+				trace("frameActive");
 			}
 		}
 
@@ -433,7 +439,9 @@ package
 		//backBtn handler
 		private function keyHandler(event:KeyboardEvent):void
 		{
-		if(event.keyCode == Keyboard.BACK && programState != "home")
+			trace(programState, isAdmin);
+
+			if(event.keyCode == Keyboard.BACK && programState != "home" && programState != "members")
 			{
 				event.preventDefault();
 				event.stopImmediatePropagation();
@@ -441,6 +449,15 @@ package
 				TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 				programState = "home";
 				main.removeEventListener(TouchEvent.TOUCH_BEGIN, mouseDownHandler);
+			}
+
+			if(event.keyCode == Keyboard.BACK && isAdmin == true && programState == "home" && 1 == 2)
+			{
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				hideDashboard(10);
+				programState = "members";
+				flushMembers();
 			}
 		}
 		
@@ -521,33 +538,13 @@ package
 			
 			if(event.target.name == "Queue")
 			{
-				hideDashboard(5);
-				
-				i4 = 0;
-				
-				for each(var queue in queueList)
-				{
-					var QueueSnippet:MovieClip = new queueSnippet();
-					QueueSnippet.y = i4 * 57;
-					QueueSnippet.Text.text = queueList[i4] + " als";
-					QueueSnippet.Text2.text = queueName[i4];
-					
-					if(queueStatus[i4] == "Online")
-					{
-						QueueSnippet.slider.gotoAndStop(2);
-					}
-					
-					QueueSnippet.name = queueAgent[i4];
-
-					main.queueContainer.addChild(QueueSnippet);
-					i4 = i4 + 1;
-				}
+				flushQueue();
 				
 				main.queueContainer.addEventListener(TouchEvent.TOUCH_TAP, queueHandler);
 				
 				function queueHandler(event:TouchEvent):void
 				{
-					if(event.target.name == "slider"){sendQueue(event.target.parent.name);}
+					if(event.target.name == "slider"){loadQueue(event.target.parent.name);}
 				}
 				addSwipe();
 			}
@@ -716,7 +713,7 @@ package
 		{
 			//UI management
 			loginBtn.removeEventListener(TouchEvent.TOUCH_TAP, transmit);
-			main.gotoAndStop(5);
+			//main.gotoAndStop(5);
 			
 			TweenMax.to(loginBtn.loading, 0.75, {rotation:"-360", ease:Cubic.easeInOut, repeat:-1});
 			TweenMax.to(loginBtn.loading, 0.75, {alpha:1});
@@ -772,7 +769,7 @@ package
 				dumpContainer = optionSniffer.exec(dumpContainer);
 				trace(dumpContainer)
 				*/
-
+				trace(main.alpha);
 				//reset vars
 				wrongPW = false;
 				isAdmin = false;
@@ -829,7 +826,7 @@ package
 			{
 				queueActive = true;
 				functionCount = functionCount + 1;
-				loadQueue();
+				loadQueue("GET");
 			}
 			
 			//check if shortdials avaliable
@@ -865,12 +862,15 @@ package
 			TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
 			TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
 			TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
-			TweenMax.to(dashboard, 0.5, {delay:0.3,autoAlpha:1, y:"-1000", ease:Cubic.easeInOut});
+			
+			TweenMax.to(dashboard, 0.5, {delay:0.3,autoAlpha:1, ease:Cubic.easeInOut});
 			TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 			TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 			
 			loadAccounts();
 			loadSMS("GET");
+
+			programState = "home";
 		}
 
 		//manual parsing of .html
@@ -1457,53 +1457,90 @@ package
 			}
 		}
 		
-		private function loadQueue(event:Event = null):void
+		private function loadQueue(agentID:String):void
 		{
-			queueLoader.addEventListener(Event.COMPLETE, parse);
-			
-			function parse(event:Event):void
-			{
-				queueData = queueLoader.data
-				queueData = queueData.replace(rex, "")
-				
-				//accountsResult = [];				
-				var queueResult:Array = queueSniffer.exec(queueData);
-				while (queueResult != null)
-				{
-					queueAgent.push(queueResult[4]);
-					queueName.push(queueResult[2]);
-					queueStatus.push(queueResult[3]);
-					queueList.push(queueResult[1])
-					
-					queueResult = queueSniffer.exec(queueData);
-				}
-				addDashboard("Queue", 2);
-			}
-			queueLoader.load(queueSend);
-		}
-		
-		private function sendQueue(agentID:String):void
-		{
-			queueVars = new URLVariables();
-			
-			queueSend.method = URLRequestMethod.POST;
-			queueSend.data = queueVars;
-			
 			queueLoader = new URLLoader;
-			
-			queueVars.memberId = agentID;
-			
-			if(queueStatus[queueAgent.indexOf(agentID)] == "Offline")
+
+			if(agentID == "GET")
 			{
-				queueVars.statusId = "10";
-				queueStatus[queueAgent.indexOf(agentID)] = "Online";
-			}else{
-				queueVars.statusId = "40";
-				queueStatus[queueAgent.indexOf(agentID)] = "Offline";
+				queueLoader.addEventListener(Event.COMPLETE, parse);
+				queueSend.method = URLRequestMethod.GET;
+
+				function parse(event:Event):void
+				{
+					queueData = queueLoader.data
+					queueData = queueData.replace(rex, "")
+					
+					//reset locals vars
+					queueAgent = [];
+					queueName = [];
+					queueStatus = [];
+					queueList = [];
+
+					var queueResult:Array = queueSniffer.exec(queueData);
+					while (queueResult != null)
+					{
+						queueAgent.push(queueResult[4]);
+						queueName.push(queueResult[2]);
+						queueStatus.push(queueResult[3]);
+						queueList.push(queueResult[1])
+						
+						queueResult = queueSniffer.exec(queueData);
+					}
+					addDashboard("Queue", 2);
+					if(main.currentFrame == 5){flushQueue()};
+				}
+				trace(main.currentFrame);
 			}
+
+			if(agentID != "GET" && agentID != "POST")
+			{
+				queueVars = new URLVariables();
+				
+				queueSend.method = URLRequestMethod.POST;
+				queueSend.data = queueVars;
+								
+				queueVars.memberId = agentID;
+				
+				if(queueStatus[queueAgent.indexOf(agentID)] == "Offline")
+				{
+					queueVars.statusId = "10";
+					queueStatus[queueAgent.indexOf(agentID)] = "Online";
+				}else{
+					queueVars.statusId = "40";
+					queueStatus[queueAgent.indexOf(agentID)] = "Offline";
+				}
+			}
+			//load
 			queueLoader.load(queueSend);
 		}
 		
+		private function flushQueue():void
+		{
+			trace("flushing queue")
+			hideDashboard(5);
+			
+			i4 = 0;
+			
+			for each(var queue in queueList)
+			{
+				var QueueSnippet:MovieClip = new queueSnippet();
+				QueueSnippet.y = i4 * 57;
+				QueueSnippet.Text.text = queueList[i4] + " als";
+				QueueSnippet.Text2.text = queueName[i4];
+				
+				if(queueStatus[i4] == "Online")
+				{
+					QueueSnippet.slider.gotoAndStop(2);
+				}
+				
+				QueueSnippet.name = queueAgent[i4];
+
+				main.queueContainer.addChild(QueueSnippet);
+				i4 = i4 + 1;
+			}
+		}
+
 		private function loadAccounts(event:Event = null):void
 		{
 			accountsLoader.addEventListener(Event.COMPLETE, parseAccounts);
@@ -1566,6 +1603,7 @@ package
 		private function flushMembers():void
 		{
 			hideDashboard(10);
+			programState = "members";
 
 			i4 = 0;
 
@@ -1595,9 +1633,16 @@ package
 		private function actAs(actAsMember:String)
 		{
 			actAsURLRequest = new URLRequest("https://" + context + "/portal/actAs.html?member=" + actAsMember);
+			actAsLoader = new URLLoader();
 
 			actAsLoader.addEventListener(Event.COMPLETE, loadData)
 			actAsLoader.load(actAsURLRequest);
+
+			TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+			TweenMax.to(dashboard, 0.5, {delay:0.3,autoAlpha:1, ease:Cubic.easeInOut});
+			TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
+
+			dashboard.dashboardTitle.text = memberNames[memberIDs.indexOf(actAsMember)];
 		}
 
 		
