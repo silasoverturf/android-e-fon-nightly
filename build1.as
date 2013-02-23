@@ -349,7 +349,7 @@ package
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyHandler);
 
 			//listen for native actions
-			////after change to portal cookies don't expire after set time, loadRedirection no longer needed.
+			////after change to portal cookies don't expire after set time, jession.load no longer needed.
 			//NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
 			//NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, deactivate);
 			NativeApplication.nativeApplication.addEventListener(Event.NETWORK_CHANGE, networkChange);
@@ -409,8 +409,6 @@ package
 			DashboardItem.x = xP;
 			
 			DashboardItem.gotoAndStop(typeFrame);
-			//DashboardItem.Text.text = type;
-			//DashboardItem.alpha = 0.5;
 			DashboardItem.name = type;
 
 			dashboard.addChild(DashboardItem);
@@ -425,7 +423,6 @@ package
 			i5 = i5 + 1;
 			
 			if(i5 == functionCount){
-				//addDashboard("Settings", 7);
 				TweenMax.to(dashboard.loading, 0.5, {x:"+100", autoAlpha:0, ease:Cubic.easeInOut});
 			}if(i5 < functionCount){
 				TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
@@ -740,13 +737,13 @@ package
 			//add listener so redirection.html can be requested on complete
 			jLoader.addEventListener(Event.COMPLETE, completeHandler);
 			
-			//build server j_session
+			//build j_session
 			j_session.j_username = userID_local;
 			j_session.j_password = password_local;
 			
 			//flush lso
 			SO.data.userid = login.userid_txt.text;
-			//SO.data.pass = login.password_txt.text;
+			SO.data.pass = login.password_txt.text;
 			SO.flush ();
 			
 			//analytics
@@ -759,7 +756,7 @@ package
 			jLoader.load(jSend);
 			//analyticsLoader.load(analyticsSend);
 			
-			//get redirection.html, onComplete -> parseRedir
+			//check if admin, pw
 			function completeHandler(event:Event = null):void
 			{
 				/*
@@ -775,9 +772,12 @@ package
 				dumpContainer = optionSniffer.exec(dumpContainer);
 				trace(dumpContainer)
 				*/
+
+				//reset vars
 				wrongPW = false;
 				isAdmin = false;
 
+				//check pw
 				if(jLoader.data.search("password") > -1)
 				{
 					TweenMax.killTweensOf(loginBtn.loading);
@@ -798,6 +798,7 @@ package
 					loadMembers();
 				}
 
+				//check if !admin & !wrongpw
 				if(isAdmin == false && wrongPW == false)
 				{
 					loadData();
@@ -805,13 +806,24 @@ package
 			}
 		}
 
+		//load userdata
 		private function loadData(event:Event = null):void
 		{
-			trace("nothin")
-			//check for functionality
-			jData = jLoader.data;
-			jData = jData.replace(rex, "");
+			//if admin, use actasloader for functionality checking
+			if(isAdmin == true)
+			{
+				jData = actAsLoader.data;
+			}
 
+			//if !admin, use Jdata for functionality checking
+			if(isAdmin == false)
+			{
+				jData = jLoader.data;
+			}
+
+			//whitespace
+			jData = jData.replace(rex, "");
+			
 			//check if queue avaliable
 			if(jData.search("Queue") > -1)
 			{
@@ -860,7 +872,7 @@ package
 			loadAccounts();
 			loadSMS("GET");
 		}
-		
+
 		//manual parsing of .html
 		private function parseRedir(event:Event = null):void
 		{
@@ -986,59 +998,61 @@ package
 
 			//calender
 			result = manualStatusSelected.exec(redirectionData);
-			if(result != null){
-			calenderManual.push(result[1]);
-
-			result = manualStatusSubject.exec(redirectionData);
-			calenderManual.push(result[1]);
-
-			result = manualStatusPrivate.exec(redirectionData);
-			calenderManual.push(result[1]);
-
-			result = manualStatusTimeDate.exec(redirectionData);
-
-			while(result != null)
+			
+			//only push if avaliable
+			if(result != null)
 			{
 				calenderManual.push(result[1]);
+
+				result = manualStatusSubject.exec(redirectionData);
+				calenderManual.push(result[1]);
+
+				result = manualStatusPrivate.exec(redirectionData);
+				calenderManual.push(result[1]);
+
 				result = manualStatusTimeDate.exec(redirectionData);
-			}
 
-			result = manualStatusChoice.exec(redirectionData);
-
-			while(result != null)
-			{
-				if(result[2].search("checked") != -1)
+				while(result != null)
 				{
 					calenderManual.push(result[1]);
+					result = manualStatusTimeDate.exec(redirectionData);
 				}
+
 				result = manualStatusChoice.exec(redirectionData);
-			}
 
-			result = manualStatusDestination.exec(redirectionData);
-			calenderManual.push(result[1]);
-			
-			result = calenderStatusChoice.exec(redirectionData);
-
-			while(result != null)
-			{
-				if(result[2].search("checked") != -1)
+				while(result != null)
 				{
-					calenderStatus.push(result[1]);
-				}else{
-					calenderStatus.push("");
+					if(result[2].search("checked") != -1)
+					{
+						calenderManual.push(result[1]);
+					}
+					result = manualStatusChoice.exec(redirectionData);
 				}
+
+				result = manualStatusDestination.exec(redirectionData);
+				calenderManual.push(result[1]);
+				
 				result = calenderStatusChoice.exec(redirectionData);
-			}
 
-			result = calenderDestination.exec(redirectionData);
+				while(result != null)
+				{
+					if(result[2].search("checked") != -1)
+					{
+						calenderStatus.push(result[1]);
+					}else{
+						calenderStatus.push("");
+					}
+					result = calenderStatusChoice.exec(redirectionData);
+				}
 
-			while(result != null)
-			{
-				calenderStatus.push(result[1])
 				result = calenderDestination.exec(redirectionData);
-			}
-		}
 
+				while(result != null)
+				{
+					calenderStatus.push(result[1])
+					result = calenderDestination.exec(redirectionData);
+				}
+			}
 			if(main.currentFrame == 1){redirectionFlush();}
 		}
 		
@@ -1150,56 +1164,61 @@ package
 			if (main.unregContainer.Check.currentFrame == 2){}
 
 			//calender vars
-			if(calenderManual[0].search("checked") != -1)
+			//only search if calender avaliabe
+			if(calenderStatus.length > 1)
 			{
-				r_vars.uml_manualStatus = "true";
-				r_vars.manualStatusSubject = calenderManual[1];
-				r_vars.manualStatusFromDate = calenderManual[3];
-				r_vars.manualStatusFromTime = calenderManual[4];
-				r_vars.manualStatusUntilDate = calenderManual[5]
-				r_vars.manualStatusUntilTime = calenderManual[6];
-				r_vars.choiceManualStatus = calenderManual[7];
-
-				if(calenderManual[2].search("checked") != -1)
+				//only set r_vars if calender avaliabe
+				if(calenderManual[0].search("checked") != -1)
 				{
-					r_vars.manualStatusPrivate = "true";
-				}else{
-					r_vars.manualStatusPrivate = "false";
+					r_vars.uml_manualStatus = "true";
+					r_vars.manualStatusSubject = calenderManual[1];
+					r_vars.manualStatusFromDate = calenderManual[3];
+					r_vars.manualStatusFromTime = calenderManual[4];
+					r_vars.manualStatusUntilDate = calenderManual[5]
+					r_vars.manualStatusUntilTime = calenderManual[6];
+					r_vars.choiceManualStatus = calenderManual[7];
+
+					if(calenderManual[2].search("checked") != -1)
+					{
+						r_vars.manualStatusPrivate = "true";
+					}else{
+						r_vars.manualStatusPrivate = "false";
+					}
+
+					if(calenderManual[7] == "1"){r_vars.phoneManualStatus = calenderManual[8];}
 				}
 
-				if(calenderManual[7] == "1"){r_vars.phoneManualStatus = calenderManual[8];}
-			}
+				i = 0;
 
-			i = 0;
+				for each(var calender in calenderStatus)
+				{
+					if(calender == 1 && i == 0)
+					{
+						r_vars.uml_calOof = "true";
+						r_vars.choiceCalOof = "1";
+						r_vars.phoneCalOof = calenderStatus[4];
+					}
+					
+					if(calender == 1 && i == 2)
+					{
+						r_vars.uml_calOof = "true";
+						r_vars.choiceCalOof = "2";
+					}
 
-			for each(var calender in calenderStatus)
-			{
-				if(calender == 1 && i == 0)
-				{
-					r_vars.uml_calOof = "true";
-					r_vars.choiceCalOof = "1";
-					r_vars.phoneCalOof = calenderStatus[4];
-				}
-				
-				if(calender == 1 && i == 2)
-				{
-					r_vars.uml_calOof = "true";
-					r_vars.choiceCalOof = "2";
-				}
+					if(calender == 2 && i == 1)
+					{
+						r_vars.uml_calBusy = "true";
+						r_vars.choiceCalBusy = "1";
+						r_vars.choiceCalPhone = calenderStatus[5];
+					}
 
-				if(calender == 2 && i == 1)
-				{
-					r_vars.uml_calBusy = "true";
-					r_vars.choiceCalBusy = "1";
-					r_vars.choiceCalPhone = calenderStatus[5];
+					if(calender == 2 && i == 3)
+					{
+						r_vars.uml_calBusy = "true";
+						r_vars.choiceCalBusy = "2";
+					}
+					i = i + 1;
 				}
-
-				if(calender == 2 && i == 3)
-				{
-					r_vars.uml_calBusy = "true";
-					r_vars.choiceCalBusy = "2";
-				}
-				i = i + 1;
 			}
 		}
 
