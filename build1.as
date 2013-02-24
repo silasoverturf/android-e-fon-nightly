@@ -83,7 +83,7 @@ package
 		private var analyticsLoader:URLLoader = new URLLoader();
 		
 		//user settings
-		private var context:String = "web.e-fon.ch";//e.g. web.e-fon.ch
+		private var context:String = "web.e-fon.ch/portal";//e.g. web.e-fon.ch/portal/, dev01.e-fon.ch/portal_12q3/
 
 		/*variable assigning designation
 		j_session
@@ -96,21 +96,21 @@ package
 		*///network stack variables////
 		
 		//url requests
-		private var jSend:URLRequest = new URLRequest("https://" + context + "/portal/j_acegi_security_check");
+		private var jSend:URLRequest = new URLRequest("https://" + context + "/j_acegi_security_check");
 
-		private var memberURLRequest:URLRequest = new URLRequest("https://" + context + "/portal/memberOverview.html")
+		private var memberURLRequest:URLRequest = new URLRequest("https://" + context + "/memberOverview.html")
 		private var actAsURLRequest:URLRequest;
 		
-		private var redirectionURLRequest:URLRequest = new URLRequest("https://" + context + "/portal/redirection.html");//?selectedPhoneNumberId=selectedNumber;
+		private var redirectionURLRequest:URLRequest = new URLRequest("https://" + context + "/redirection.html");//?selectedPhoneNumberId=selectedNumber;
 		
-		private var f2mURLRequest:URLRequest = new URLRequest("https://" + context + "/portal/notifications.html");//?selectedPhoneNumberId=selectedNumber;
+		private var f2mURLRequest:URLRequest = new URLRequest("https://" + context + "/notifications.html");//?selectedPhoneNumberId=selectedNumber;
 		
-		private var smsSend:URLRequest = new URLRequest("https://" + context + "/portal/SMSSender.html");
-		private var queueSend:URLRequest = new URLRequest("https://" + context + "/portal/callCenterQueueMemberStatus.html");
+		private var smsSend:URLRequest = new URLRequest("https://" + context + "/SMSSender.html");
+		private var queueSend:URLRequest = new URLRequest("https://" + context + "/callCenterQueueMemberStatus.html");
 		
-		private var accountsSend:URLRequest = new URLRequest("https://" + context + "/portal/accounts.html");
+		private var accountsSend:URLRequest = new URLRequest("https://" + context + "/accounts.html");
 		
-		private var cdrSend:URLRequest = new URLRequest("https://" + context + "/portal/cdrs.html");
+		private var cdrSend:URLRequest = new URLRequest("https://" + context + "/cdrs.html");
 		
 		//url loaders
 		private var jLoader:URLLoader;
@@ -212,6 +212,12 @@ package
 		//matches asssigned accounts to result[1]
 		private var accountsSniffer:RegExp = /tdwidth="100px">([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([^"]{0,})"\/><\/td><td>/g;
 		
+		//matches ip address to result[1]
+		private var IPSniffer:RegExp = /[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}/i;
+
+		//matches date to result[1], time to result[2]
+		private var dateSniffer:RegExp = /([0-9]{0,2}\.[0-9]{0,2}\.[0-9]{0,4})([0-9]{0,2}:[0-9]{0,2})/i;
+
 		//matches SMS option
 		private var smsSniffer:RegExp = /optionvalue="([0-9a-z]{0,15})">([0-9a-zA-Z]{1,10})/gi;
 		
@@ -375,7 +381,7 @@ package
 			//check if initial login complete
 			if(jData != null && 1 == 2)
 			{
-				//jLoader.addEventListener(Event.COMPLETE, removeOverlay);
+				jLoader.addEventListener(Event.COMPLETE, removeOverlay);
 				jLoader.load(jSend);
 				var Overlay:MovieClip = new overlay();
 				Overlay.scaleX = stage.stageWidth / 320;
@@ -384,12 +390,12 @@ package
 				stage.addChild(Overlay);
 			}
 
-			//remove overlay once loadRedirection complete
-			/*function removeOverlay(event:Event):void
+			
+			function removeOverlay(event:Event):void
 			{
 				stage.removeChild(Overlay);
 			}
-			*/
+			
 
 			if(main.currentFrame == 5)
 			{
@@ -517,22 +523,7 @@ package
 			
 			if(event.target.name == "Accounts")
 			{
-				hideDashboard(4);
-				
-				i4 = 0;
-				
-				for each(var eg in accountID)
-				{
-					var EGSnippet:MovieClip = new egSnippet();
-					EGSnippet.y = i4 * 120;
-					EGSnippet.head.text = accountID[i4];
-					EGSnippet.plz.text = accountZIP[i4];
-					EGSnippet.clip.text = accountCLIP[i4];
-					EGSnippet.regState.text = accountStatus[i4];
-
-					main.egContainer.addChild(EGSnippet);
-					i4 = i4 + 1;
-				}
+				flushAccount();
 				addSwipe();
 			}
 			
@@ -541,32 +532,34 @@ package
 				flushQueue();
 				
 				main.queueContainer.addEventListener(TouchEvent.TOUCH_TAP, queueHandler);
-				
+				//main.refreshBtn.addEventListener(TouchEvent.TOUCH_TAP, refreshHandler);
+
 				function queueHandler(event:TouchEvent):void
 				{
 					if(event.target.name == "slider"){loadQueue(event.target.parent.name);}
 				}
 				addSwipe();
+
+				function refreshHandler(event:TouchEvent):void
+				{
+
+				}
 			}
 
 			if(event.target.name == "Voicemail")
 			{
-				hideDashboard(8);
-
-				main.email.text = voicemail[0];
-				main.greeting.text = voicemail[1];
-				main.PIN.text = voicemail[2];
-
 				main.callButton.addEventListener(TouchEvent.TOUCH_TAP, callVoicemail);
-				main.callButton.btn_txt.text = "043 500 9990";
-
 				//main.saveVM.addEventListener(TouchEvent.TOUCH_TAP, sendVoicemail);
 
 				function callVoicemail(event:TouchEvent)
 				{
 					navigateToURL(new URLRequest("tel:0435009990"))
 				}
+
+				function sendVoicemail(event:TouchEvent):void{loadVoicemail("POST")};
+
 				addSwipe();
+				flushVoicemail();
 			}
 
 			if(event.target.name == "Settings")
@@ -756,20 +749,6 @@ package
 			//check if admin, pw
 			function completeHandler(event:Event = null):void
 			{
-				/*
-				
-				dumpContainer = jLoader.data;
-				dumpContainer = dumpContainer.replace(rex, "");
-				trace(dumpContainer)
-				dumpContainer = optionSniffer.exec(dumpContainer);
-				trace(dumpContainer)
-
-				dumpContainer = jLoader.data;
-				dumpContainer = dumpContainer.replace(rex, "");
-				dumpContainer = optionSniffer.exec(dumpContainer);
-				trace(dumpContainer)
-				*/
-				trace(main.alpha);
 				//reset vars
 				wrongPW = false;
 				isAdmin = false;
@@ -867,7 +846,7 @@ package
 			TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 			TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 			
-			loadAccounts();
+			loadAccounts("GET");
 			loadSMS("GET");
 
 			programState = "home";
@@ -1057,7 +1036,7 @@ package
 		}
 		
 		//UI flushing
-		private function redirectionFlush(event:Event = null):void
+		private function redirectionFlush():void
 		{
 			//reset
 			main.timeContainer.switcher.gotoAndStop(2);
@@ -1307,7 +1286,7 @@ package
 				//check if dashboard item has been added
 				if(DashboardItems.indexOf("Voicemail") == -1){addDashboard("Voicemail", 6);}
 
-				//flush is frame is active
+				//flush if frame is active
 				if(main.currentFrame == 1){flushF2M();}
 			}
 		}
@@ -1317,11 +1296,22 @@ package
 			main.timeContainer.selecter.fax2mailIcon.email.text = f2mEmail[1];
 		}
 
-		private function sendVoicemail(event:TouchEvent):void
+		private function loadVoicemail(method:String):void
 		{
 			main.saveVM.removeEventListener(TouchEvent.TOUCH_TAP, sendVoicemail);
 			main.saveVM.btn_txt.text = "Saving";
 			TweenMax.to(main.saveVM, 0.5, {x:70, ease:Bounce.easeOut});
+		}
+
+		private function flushVoicemail():void
+		{
+			hideDashboard(8);
+
+			main.email.text = voicemail[0];
+			main.greeting.text = voicemail[1];
+			main.PIN.text = voicemail[2];
+
+			main.callButton.btn_txt.text = "043 500 9990";
 		}
 		
 		private function loadSMS(method:String):void
@@ -1511,6 +1501,11 @@ package
 					queueStatus[queueAgent.indexOf(agentID)] = "Offline";
 				}
 			}
+
+			if(agentID == "POST")
+			{
+				trace("Function variable must be AgentID if POST is to be called")
+			}
 			//load
 			queueLoader.load(queueSend);
 		}
@@ -1541,28 +1536,78 @@ package
 			}
 		}
 
-		private function loadAccounts(event:Event = null):void
+		private function loadAccounts(method:String):void
 		{
-			accountsLoader.addEventListener(Event.COMPLETE, parseAccounts);
-			accountsLoader.load(accountsSend);
-				
-			function parseAccounts(event:Event):void
+			if(method == "GET")
 			{
-				accountsData = new String(accountsLoader.data);
-				
-				accountsData = accountsData.replace(rex,"");
-				
-				var accountsResult:Array = accountsSniffer.exec(accountsData);
-				while (accountsResult != null)
-				{
-					accountID.push(accountsResult[2]);
-					accountCLIP.push(accountsResult[3]);
-					accountZIP.push(accountsResult[5]);
-					accountStatus.push(accountsResult[6]);
+				accountsLoader.addEventListener(Event.COMPLETE, parse);
+				accountsLoader.load(accountsSend);
 					
-					accountsResult = accountsSniffer.exec(accountsData);
+				function parse(event:Event):void
+				{
+					accountsData = new String(accountsLoader.data);
+					
+					accountsData = accountsData.replace(rex,"");
+					
+					accountID = [];
+					accountCLIP = [];
+					accountZIP = [];
+					accountStatus = [];
+
+					var accountsResult:Array = accountsSniffer.exec(accountsData);
+					while (accountsResult != null)
+					{
+						accountID.push(accountsResult[2]);
+						accountCLIP.push(accountsResult[3]);
+						accountZIP.push(accountsResult[5]);
+						accountStatus.push(accountsResult[6]);
+						
+						accountsResult = accountsSniffer.exec(accountsData);
+					}
+
+					//check if dashboard item has been added
+					if(DashboardItems.indexOf("Accounts") == -1){addDashboard("Accounts", 3);}
+
+					//flush if frame is active
+					if(main.currentFrame == 4){flushAccount();}
 				}
-				addDashboard("Accounts", 3);
+			}
+
+			if(method == "POST")
+			{
+				trace("Posting to /accountConfig.html is currently not supported")
+			}
+		}
+
+		private function flushAccount():void
+		{
+			hideDashboard(4);
+			
+			i4 = 0;
+			
+			for each(var eg in accountID)
+			{
+				var EGSnippet:MovieClip = new egSnippet();
+
+				EGSnippet.y = i4 * 120;
+				EGSnippet.head.text = accountID[i4];
+				EGSnippet.plz.text = accountZIP[i4];
+				EGSnippet.clip.text = accountCLIP[i4];
+				if(accountStatus[i4].length > 30)
+				{
+					var result:Array = dateSniffer.exec(accountStatus[i4]);
+					trace(accountStatus[i4]);
+					trace(IPSniffer.exec(accountStatus[i4]))
+					trace(result);
+					EGSnippet.regState.text = "Registriert von " + IPSniffer.exec(accountStatus[i4]);
+					EGSnippet.regState2.text = "bis " + result[1] + " um " + result[2];
+				}else{
+					EGSnippet.regState.text = "Nicht registriert"
+					EGSnippet.regState2.text = "";
+				}
+
+				main.egContainer.addChild(EGSnippet);
+				i4 = i4 + 1;
 			}
 		}
 
@@ -1632,7 +1677,7 @@ package
 
 		private function actAs(actAsMember:String)
 		{
-			actAsURLRequest = new URLRequest("https://" + context + "/portal/actAs.html?member=" + actAsMember);
+			actAsURLRequest = new URLRequest("https://" + context + "/actAs.html?member=" + actAsMember);
 			actAsLoader = new URLLoader();
 
 			actAsLoader.addEventListener(Event.COMPLETE, loadData)
@@ -1675,7 +1720,7 @@ package
 		 	var grace:Number = stage.stageHeight / 480 * 9;
 		 	var yOverlap:Number = stage.stageHeight - main.height - grace;
 		 	if(yOverlap > 7){yOverlap = 7};
-		 	ThrowPropsPlugin.to(main, {ease:Strong.easeOut, throwProps:{y:{velocity:yVelocity, max:bounds.top, min:yOverlap, resistance:200}}}, 10, 0.25, 1);
+		 	ThrowPropsPlugin.to(main, {ease:Strong.easeOut, throwProps:{y:{velocity:yVelocity, max:bounds.top, min:yOverlap, resistance:200}}}, 10, 0.25, 0);
 		}
 	}
 }
