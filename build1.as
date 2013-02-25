@@ -19,6 +19,8 @@ package
 	import flash.utils.getTimer;
 	import flash.text.*;
 
+	//import Mavin;
+
 	TweenPlugin.activate([ThrowPropsPlugin]);
 
 	public class build1 extends MovieClip
@@ -294,6 +296,10 @@ package
 
 		public function build1()
 		{
+			//var mavin:Mavin = new Mavin();
+			//var testingString = mavin.authorize();
+			//trace(mavin.invaldPW)
+
 			//set label tf
 			robotoLabel.color = 0xFFFFFF;
 			robotoLabel.font = "Roboto";
@@ -704,6 +710,7 @@ package
 		//handle listeners, builds j_session, posts and requests redirection.html
 		private function transmit(event:TouchEvent):void
 		{
+			trace("testingString", testingString);
 			//UI management
 			loginBtn.removeEventListener(TouchEvent.TOUCH_TAP, transmit);
 			//main.gotoAndStop(5);
@@ -783,7 +790,7 @@ package
 		}
 
 		//load userdata
-		private function loadData(event:Event = null):void
+		public function loadData(event:Event = null):void
 		{
 			//if admin, use actasloader for functionality checking
 			if(isAdmin == true)
@@ -1298,7 +1305,7 @@ package
 
 		private function loadVoicemail(method:String):void
 		{
-			main.saveVM.removeEventListener(TouchEvent.TOUCH_TAP, sendVoicemail);
+			//main.saveVM.removeEventListener(TouchEvent.TOUCH_TAP, sendVoicemail);
 			main.saveVM.btn_txt.text = "Saving";
 			TweenMax.to(main.saveVM, 0.5, {x:70, ease:Bounce.easeOut});
 		}
