@@ -624,8 +624,6 @@ package
 		private function getTarget(event:TouchEvent):void
 		{
 			trace(event.target.name);
-			myDate = new Date();
-			trace(myDate.time)
 		}
 		
 		//redirection UI management
@@ -710,10 +708,8 @@ package
 		//handle listeners, builds j_session, posts and requests redirection.html
 		private function transmit(event:TouchEvent):void
 		{
-			trace("testingString", testingString);
 			//UI management
 			loginBtn.removeEventListener(TouchEvent.TOUCH_TAP, transmit);
-			//main.gotoAndStop(5);
 			
 			TweenMax.to(loginBtn.loading, 0.75, {rotation:"-360", ease:Cubic.easeInOut, repeat:-1});
 			TweenMax.to(loginBtn.loading, 0.75, {alpha:1});
@@ -731,7 +727,7 @@ package
 
 			jLoader = new URLLoader;
 			
-			//add listener so redirection.html can be requested on complete
+			//add listener so loadData() can be requested on complete
 			jLoader.addEventListener(Event.COMPLETE, completeHandler);
 			
 			//build j_session
@@ -769,15 +765,12 @@ package
 					login.statusText.text = "Please check your password";
 					loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
 					wrongPW = true;
-					trace("wrongPW");
 				}
 
 				//check if admin
 				if(jLoader.data.search("memberOverview") > -1)
 				{
 					isAdmin = true;
-					trace("isAdmin");
-
 					loadMembers();
 				}
 
@@ -882,7 +875,7 @@ package
 			i2=0;
 			i3=0;
 			
-			///remove whitespace
+			//remove whitespace
 			redirectionData = redirectionData.replace(rex,"");
 			
 			var result:Array = choiceSniffer.exec(redirectionData);
@@ -1228,13 +1221,13 @@ package
 			redirectionURLRequest.method = URLRequestMethod.POST;
 			redirectionURLRequest.data = r_vars;
 				//listen for r_vars complete
-			rLoader.addEventListener(Event.COMPLETE, getRedir);
+			rLoader.addEventListener(Event.COMPLETE, parse);
 				
 			//post r_vars
 			rLoader.load(redirectionURLRequest);
 				
 			//reget redir on complete r_vars post...
-			function getRedir(event:Event)
+			function parse(event:Event)
 			{
 				redirectionData = new String(rLoader.data);
 			
@@ -1456,7 +1449,7 @@ package
 		
 		private function loadQueue(agentID:String):void
 		{
-			queueLoader = new URLLoader;
+			queueLoader = new URLLoader();
 
 			if(agentID == "GET")
 			{
@@ -1475,6 +1468,7 @@ package
 					queueList = [];
 
 					var queueResult:Array = queueSniffer.exec(queueData);
+
 					while (queueResult != null)
 					{
 						queueAgent.push(queueResult[4]);
@@ -1484,7 +1478,8 @@ package
 						
 						queueResult = queueSniffer.exec(queueData);
 					}
-					addDashboard("Queue", 2);
+
+					if(DashboardItems.indexOf("Queue") == -1){addDashboard("Queue", 2)};
 					if(main.currentFrame == 5){flushQueue()};
 				}
 				trace(main.currentFrame);
@@ -1511,15 +1506,15 @@ package
 
 			if(agentID == "POST")
 			{
-				trace("Function variable must be AgentID if POST is to be called")
+				trace("Function variable must be AgentID if POST is to be method")
 			}
+			
 			//load
 			queueLoader.load(queueSend);
 		}
 		
 		private function flushQueue():void
 		{
-			trace("flushing queue")
 			hideDashboard(5);
 			
 			i4 = 0;
@@ -1628,8 +1623,7 @@ package
 			function parse(event:Event):void
 			{
 				memberData = memberLoader.data;
-				memberData = memberData.replace(rex, "");
-				
+				memberData = memberData.replace(rex, "");				
 
 				var result:Array = memberIDSniffer.exec(memberData);
 
