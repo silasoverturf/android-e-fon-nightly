@@ -21,16 +21,16 @@ Will be updated once iOS nightly build is ready.
 ##Mavin.as (currently being implemented)
 Currently all functions that contain server communications are being rewritten (Issue #7) into a separate class, Mavin.as. Calling the function will look like this ```load[page](method);```. The respective functions will return the desired server side variables.
 
-#Authorization
+###Authorization
 ```Actionscript
 mavin.addEventListener(Event.AUTHORIZED, getAuthStatus)
 var authorization:String = mavin.authorize(username, password);
 ```
 
-Mavin will parse the return data from the initial authoriztion and detect avaliabe functionality, loading respective modules. At any point load functions can be called, e.g ```ActionScript mavin.loadRedirection(method)```. For most modules the conventional POST or GET methods can be used, otherwise Mavin will inform you, for example ```ActionScript mavin.loadQueue("POST")``` must contain the AgentID within the function variable.
+Mavin will parse the return data from the initial authorization loader, detect available functionality, and loading respective modules. At any point load functions can be called, e.g ```ActionScript mavin.loadRedirection(method)```. For most modules the conventional POST or GET methods can be used, otherwise Mavin will inform you, for example ```ActionScript mavin.loadQueue("POST")``` must contain the AgentID within the function variable.
 
 ##Screen scaling
-The .fla is designed for a 320x480, although not optimal the .as will attempt to scale all vectors appropriatly. scaleX forcefully scales to the width and scaleY matches X:
+The .fla is designed for a 320x480, although not optimal the .as will attempt to scale all vectors appropriately. scaleX forcefully scales to the width and scaleY matches X:
 ```Actionscript
 for each(var item in stageObjects)
 {
