@@ -18,43 +18,23 @@ The build1.fla and build.as are the main Flash documents and program class. The 
 
 Will be updated once iOS nightly build is ready.
 
-##Server communication functions
-Currently almost all functions that contain server communications are being rewritten (Issue#7). Calling the function will look like this ```load[page](method);```. Depending on method and current app status a ```flush[page]();``` will also be called. All local -> server variable setting will also be handled within the main function.
+##Mavin.as (currently being implemented)
+Currently all functions that contain server communications are being rewritten (Issue #7) into a separate class, Mavin.as. Calling the function will look like this ```load[page](method);```. The respective functions will return the desired server side variables.
 
-```ActionScript
-private function load[page](method:String):void
-  	{
-			if(method == "GET")
-			{
-				[page]URLRequest.method = URLRequestMethod.GET;	
-			}
-
-			if(method == "POST")
-			{
-				[page]_vars = new URLVariables();
-
-				[page]_vars.variable = "";
-
-				[page]URLRequest.method =  URLRequestMethod.POST;
-				[page]URLRequest.data = [page]_vars;
-			}
-
-			[page]Loader.addEventListener(Event.COMPLETE, parse[page]);
-			[page]Loader.load([page]URLRequest);
-
-			function parse[page](event:Event = null):void
-			{
-			  //RegExp parsing
-
-				if(main.currentFrame == [page].frame)
-				{
-					flush[page]();
-				}
-			}
-		}
+#Authorization
+```Actionscript
+mavin.addEventListener(Event.AUTHORIZED, getAuthStatus)
+var authorization:String = mavin.authorize(username, password);
 ```
 
-##Program Concept
+Mavin will parse the return data from the initial authoriztion and detect avaliabe functionality, loading respective modules. At any point load functions can be called, e.g ```ActionScript mavin.loadRedirection(method)```. For most modules the conventional POST or GET methods can be used, otherwise Mavin will inform you, for example ```ActionScript mavin.loadQueue("POST")``` must contain the AgentID within the function variable.
 
-The app is compiled with Flash Pro, currently with Air 3.5. UI Structure is defined in the .fla file and all other functions like UI flushing, variable posting and .html parsing are handled by the .as class file. When compiled to Android with Air the Actionscript is interpreted by Adobe's AVM. On iOS all functions are handled by the LLVM compiled by Flash Pro.
-
+##Screen scaling
+The .fla is designed for a 320x480, although not optimal the .as will attempt to scale all vectors appropriatly. scaleX forcefully scales to the width and scaleY matches X:
+```Actionscript
+for each(var item in stageObjects)
+{
+	item.scaleX = stage.stageWidth / 320;
+	item.scaleY = stage.stageWidth / 320;
+}
+```

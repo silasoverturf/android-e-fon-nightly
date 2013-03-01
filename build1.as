@@ -513,7 +513,6 @@ package
 					SMSRadio.radio.group = smsRadioGroup;
 					
 					SMSRadio.radio.setStyle("textFormat", robotoLabel);
-					//QueueSnippet.agentID.text = queueAgent[i4];
 
 					main.smsContainer.addChild(SMSRadio);
 					i4 = i4 + 1;

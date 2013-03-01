@@ -112,6 +112,46 @@ package
 			mavinState = "home";
 		}
 
+		public function loadAccounts(method:String):void
+		{
+			if(method == "GET")
+			{
+				accountsLoader.addEventListener(Event.COMPLETE, parse);
+				accountsLoader.load(accountsSend);
+					
+				function parse(event:Event):Array
+				{
+					var accountsData:String = new String(accountsLoader.data);
+					
+					accountsData = accountsData.replace(rex,"");
+					
+					var accountID:Array = [];
+					var accountCLIP:Array = [];
+					var accountZIP:Array = [];
+					var accountStatus:Array = [];
+
+					var accountsResult:Array = accountsSniffer.exec(accountsData);
+					while (accountsResult != null)
+					{
+						accountID.push(accountsResult[2]);
+						accountCLIP.push(accountsResult[3]);
+						accountZIP.push(accountsResult[5]);
+						accountStatus.push(accountsResult[6]);
+						
+						accountsResult = accountsSniffer.exec(accountsData);
+					}
+
+					return accountID, accountCLIP, accountZIP, accountStatus
+				}
+			}
+
+			if(method == "POST")
+			{
+				trace("Posting to /accountConfig.html is currently not supported")
+			}
+		}
+
+
 		//just for testing;
 		public function doMath(value1:Number, value2:Number)
 		{
