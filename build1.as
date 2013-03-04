@@ -76,6 +76,7 @@ package
 		//T
 		private var testingArray:Array = ["testing"];
 		private var testingString:String = "";
+		private var testingBoolean:Boolean;
 		private var myDate:Date = new Date();
 		private var myDate2:Date;
 
@@ -115,8 +116,6 @@ package
 		private var cdrSend:URLRequest = new URLRequest("https://" + context + "/cdrs.html");
 		
 		//url loaders
-		private var jLoader:URLLoader;
-
 		private var memberLoader:URLLoader = new URLLoader;
 		private var actAsLoader:URLLoader = new URLLoader;
 		
@@ -294,11 +293,11 @@ package
 		public var mc:Sprite = new Sprite();
 		public var t1:uint, t2:uint, y1:Number, y2:Number;
 
+		var mavin:Mavin = new Mavin();
+
 		public function build1()
 		{
-			//var mavin:Mavin = new Mavin();
-			//var testingString = mavin.authorize();
-			//trace(mavin.invaldPW)
+			
 
 			//set label tf
 			robotoLabel.color = 0xFFFFFF;
@@ -387,8 +386,8 @@ package
 			//check if initial login complete
 			if(jData != null && 1 == 2)
 			{
-				jLoader.addEventListener(Event.COMPLETE, removeOverlay);
-				jLoader.load(jSend);
+				//jLoader.addEventListener(Event.COMPLETE, removeOverlay);
+				//jLoader.load(jSend);
 				var Overlay:MovieClip = new overlay();
 				Overlay.scaleX = stage.stageWidth / 320;
 				Overlay.scaleY = stage.stageHeight / 480;
@@ -553,6 +552,7 @@ package
 
 			if(event.target.name == "Voicemail")
 			{
+				flushVoicemail();
 				main.callButton.addEventListener(TouchEvent.TOUCH_TAP, callVoicemail);
 				//main.saveVM.addEventListener(TouchEvent.TOUCH_TAP, sendVoicemail);
 
@@ -564,7 +564,6 @@ package
 				function sendVoicemail(event:TouchEvent):void{loadVoicemail("POST")};
 
 				addSwipe();
-				flushVoicemail();
 			}
 
 			if(event.target.name == "Settings")
@@ -716,23 +715,9 @@ package
 			TweenMax.to(dashboard.loading.loading, 0.75, {rotation:"-360", ease:Cubic.easeInOut, repeat:-1});
 
 			//flush local j_session w/ text fields
-			userID_local = login.userid_txt.text;
-			password_local = login.password_txt.text;
+			mavin.authorize(login.userid_txt.text,login.password_txt.text);
+			mavin.addEventListener("authComplete", checkAuthStatus);
 
-			j_session = new URLVariables();
-
-			jSend.method = URLRequestMethod.POST;
-			jSend.data = j_session;
-
-			jLoader = new URLLoader;
-			
-			//add listener so loadData() can be requested on complete
-			jLoader.addEventListener(Event.COMPLETE, completeHandler);
-			
-			//build j_session
-			j_session.j_username = userID_local;
-			j_session.j_password = password_local;
-			
 			//flush lso
 			SO.data.userid = login.userid_txt.text;
 			SO.data.pass = login.password_txt.text;
@@ -744,38 +729,33 @@ package
 			
 			analyticsVars.email = userID_local;
 			
-			//post j_session
-			jLoader.load(jSend);
-			//analyticsLoader.load(analyticsSend);
-			
 			//check if admin, pw
-			function completeHandler(event:Event = null):void
+			function checkAuthStatus(event:Event):void
 			{
-				//reset vars
-				wrongPW = false;
-				isAdmin = false;
+				//dump mavin data to local var
+				dumpContainer = mavin.jLoader.data;
 
 				//check pw
-				if(jLoader.data.search("password") > -1)
+				if(mavin.invalidPW == true)
 				{
 					TweenMax.killTweensOf(loginBtn.loading);
 					loginBtn.loading.alpha = 0;
 					
 					login.statusText.text = "Please check your password";
 					loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
-					wrongPW = true;
 				}
 
 				//check if admin
-				if(jLoader.data.search("memberOverview") > -1)
+				if(mavin.isAdmin == true)
 				{
-					isAdmin = true;
+					mavin.removeEventListener("authComplete", checkAuthStatus);
 					loadMembers();
 				}
 
 				//check if !admin & !wrongpw
-				if(isAdmin == false && wrongPW == false)
+				if(mavin.isAdmin == false && mavin.invalidPW == false)
 				{
+					mavin.removeEventListener("authComplete", checkAuthStatus);
 					loadData();
 				}
 			}
@@ -793,7 +773,7 @@ package
 			//if !admin, use Jdata for functionality checking
 			if(isAdmin == false)
 			{
-				jData = jLoader.data;
+				jData = mavin.jLoader.data;
 			}
 
 			//whitespace
@@ -818,9 +798,9 @@ package
 
 				function redirectionHandler(event:Event):void
 				{
-					removeChild(header);
-					removeChild(login);
-					removeChild(loginBtn);
+					//removeChild(header);
+					//removeChild(login);
+					//removeChild(loginBtn);
 					
 					main.visible = true;
 					
@@ -1457,7 +1437,8 @@ package
 
 				function parse(event:Event):void
 				{
-					queueData = queueLoader.data
+					queueData = queueLoader.data;
+					trace(queueData);
 					queueData = queueData.replace(rex, "")
 					
 					//reset locals vars
