@@ -80,7 +80,7 @@ package
 		private var accountsLoader:URLLoader = new URLLoader;
 		private var accountsData:String;
 
-		public var user:Number;                //memberID
+		public var user:String;                //memberID
 
 		public var redirectionTime:Object = {};//active, choice, desination, delay
 		public var redirectionBusy:Object = {};//active, choice, desination
@@ -91,7 +91,7 @@ package
 		public var calenderOOF:Object = {};    //active, choice, desination
 		public var calenderBusy:Object = {};   //active, chocie, desination
 
-		public var f2mEmail:String;            //email address
+		public var f2mEmail:Array;            //email address
 		public var voicemail:Object = {};      //email address, greeting, pin
 
 		public var smsMessage:Object = {};     //recipient, number, message
@@ -220,12 +220,13 @@ package
 		//redirection
 		public function loadRedirection(method:String):void
 		{
-			trace("loadRedirection");
+			debug("loadRedirection");
 		}
 
 		//f2m
 		public function loadF2M(method:String):void
 		{
+			debug("loading F2M")
 			if(method == "GET")
 			{
 				f2mURLRequest.method = URLRequestMethod.GET;	
@@ -237,17 +238,15 @@ package
 
 				f2mVars.reload = "";
 				f2mVars.selectedPhoneNumberId = user;
-				f2mVars.fax2emailEmail = f2mEmail;
+				f2mVars.fax2emailEmail = f2mEmail[1];
 
 				f2mURLRequest.method =  URLRequestMethod.POST;
 				f2mURLRequest.data = f2mVars;
 			}
-
-			f2mLoader.addEventListener(Event.COMPLETE, parseF2M);
-			f2mLoader.load(f2mURLRequest);
 			
-			function parseF2M(event:Event = null):void
+			function parse(event:Event):void
 			{
+				f2mLoader.removeEventListener(Event.COMPLETE, parse)
 				//parse F2M
 				f2mData = new String(f2mLoader.data);
 				f2mData = f2mData.replace(rex,"");
@@ -265,11 +264,17 @@ package
 
 				result = voicemailPINSnifffer.exec(f2mData);
 				voicemail.PIN = result[1];
+
+				trace(f2mEmail);
+				dispatchEvent(new Event("f2mLoadComplete"));
 			}
+
+			f2mLoader.addEventListener(Event.COMPLETE, parse);
+			f2mLoader.load(f2mURLRequest);
 		}
 
 		//loadQueue
-		private function loadQueue(agentID:String):void
+		public function loadQueue(agentID:String):void
 		{
 			queueLoader = new URLLoader();
 			queueVars = new URLVariables();
@@ -335,8 +340,10 @@ package
 		}
 
 		//
-		private function loadSMS(method:String):void
+		public function loadSMS(method:String):void
 		{
+			trace("loadingSMS");
+
 			if(method == "GET")
 			{
 				smsSend.method = URLRequestMethod.GET;
@@ -365,6 +372,9 @@ package
 				
 				var smsResult:Array = smsSniffer.exec(smsData);
 				
+				smsNumberID = [];
+				smsNumber = [];
+
 				while (smsResult != null)
 				{
 					smsNumberID.push(smsResult[1]);
@@ -372,6 +382,8 @@ package
 			
 					smsResult = smsSniffer.exec(smsData);
 				}
+				trace("eventDispatched")
+				dispatchEvent(new Event("smsLoadComplete"));
 			}
 			smsLoader.addEventListener(Event.COMPLETE, parse);
 			smsLoader.load(smsSend);
@@ -405,6 +417,7 @@ package
 						
 						result = accountsSniffer.exec(accountsData);
 					}
+					dispatchEvent(new Event("accountLoadComplete"));
 				}
 			}
 

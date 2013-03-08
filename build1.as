@@ -297,8 +297,6 @@ package
 
 		public function build1()
 		{
-			
-
 			//set label tf
 			robotoLabel.color = 0xFFFFFF;
 			robotoLabel.font = "Roboto";
@@ -501,12 +499,12 @@ package
 				
 				i4 = 0;
 				
-				for each(var clip in smsNumber)
+				for each(var clip in mavin.smsNumber)
 				{
 					var SMSRadio:MovieClip = new smsRadio();
 					SMSRadio.y = i4 * 28;
-					SMSRadio.radio.label = smsNumber[i4];
-					SMSRadio.radio.value = smsNumberID[i4];
+					SMSRadio.radio.label = mavin.smsNumber[i4];
+					SMSRadio.radio.value = mavin.smsNumberID[i4];
 					SMSRadio.radio.group = smsRadioGroup;
 					
 					SMSRadio.radio.setStyle("textFormat", robotoLabel);
@@ -792,7 +790,8 @@ package
 			if(jData.search("optionvalue") > -1)
 			{
 				//loadCDR();
-				loadF2M("GET");
+				mavin.loadF2M("GET");
+				//mavin.addEventListener("f2mLoadComplete", flushF2M);
 
 				function redirectionHandler(event:Event):void
 				{
@@ -824,9 +823,15 @@ package
 			TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 			
 			loadAccounts("GET");
-			loadSMS("GET");
+			//mavin.loadSMS("GET");
+			mavin.addEventListener("smsLoadComplete", addSMS)
 
 			programState = "home";
+		}
+
+		private function addSMS(event:Event):void
+		{
+			addDashboard("SMS", 5);
 		}
 
 		//manual parsing of .html
@@ -1211,7 +1216,9 @@ package
 				//if f2m chosen, post F2M email address, post is deffered to after the rloader to avoid timeouts from the server
 				if(r_vars.choice1 == "3")
 				{
-					loadF2M("POST")
+					mavin.f2mEmail[1] = main.timeContainer.selecter.fax2mailIcon.email.text;
+					mavin.user = numberID;
+					mavin.loadF2M("POST")
 				}
 			}
 		}
@@ -1268,7 +1275,8 @@ package
 
 		private function flushF2M():void
 		{
-			main.timeContainer.selecter.fax2mailIcon.email.text = f2mEmail[1];
+			trace(mavin.f2mEmail[1]);
+			main.timeContainer.selecter.fax2mailIcon.email.text = mavin.f2mEmail[1];
 		}
 
 		private function loadVoicemail(method:String):void
@@ -1289,6 +1297,7 @@ package
 			main.callButton.btn_txt.text = "043 500 9990";
 		}
 		
+		/*
 		private function loadSMS(method:String):void
 		{
 			if(method == "GET")
@@ -1350,10 +1359,12 @@ package
 			}
 			smsLoader.load(smsSend);
 		}
+		*/
 		
 		private function SMS(event:TouchEvent):void
 		{
-			loadSMS("POST");
+			mavin.smsMessage = {message:main.smsContainer2.SMSmessage.text, recipient:main.smsContainer2.recipient.text, number:smsRadioGroup.selectedData}
+			mavin.loadSMS("POST");
 		}
 
 		private function flushSMS():void
