@@ -404,8 +404,6 @@ package
 
 			if(main.currentFrame == 5)
 			{
-				loadQueue("GET");
-				trace("frameActive");
 			}
 		}
 
@@ -621,7 +619,7 @@ package
 		
 		private function getTarget(event:TouchEvent):void
 		{
-			trace(event.target.name);
+			//trace(event.target.name);
 		}
 		
 		//redirection UI management
@@ -1059,8 +1057,6 @@ package
 		//UI reverse flushing
 		private function UItoV(event:Event = null):void
 		{
-			myDate = new Date();
-			trace(myDate.time);
 			//reset r_ and f2m_vars
 			r_vars = new URLVariables();
 			
@@ -1438,7 +1434,6 @@ package
 				function parse(event:Event):void
 				{
 					queueData = queueLoader.data;
-					trace(queueData);
 					queueData = queueData.replace(rex, "")
 					
 					//reset locals vars
@@ -1462,7 +1457,6 @@ package
 					if(DashboardItems.indexOf("Queue") == -1){addDashboard("Queue", 2)};
 					if(main.currentFrame == 5){flushQueue()};
 				}
-				trace(main.currentFrame);
 			}
 
 			if(agentID != "GET" && agentID != "POST")
@@ -1488,7 +1482,7 @@ package
 			{
 				trace("Function variable must be AgentID if POST is to be method")
 			}
-			
+
 			//load
 			queueLoader.load(queueSend);
 		}
@@ -1578,9 +1572,6 @@ package
 				if(accountStatus[i4].length > 30)
 				{
 					var result:Array = dateSniffer.exec(accountStatus[i4]);
-					trace(accountStatus[i4]);
-					trace(IPSniffer.exec(accountStatus[i4]))
-					trace(result);
 					EGSnippet.regState.text = "Registriert von " + IPSniffer.exec(accountStatus[i4]);
 					EGSnippet.regState2.text = "bis " + result[1] + " um " + result[2];
 				}else{
@@ -1620,8 +1611,6 @@ package
 					memberNames.push(result[1]);
 					result = memberNameSniffer.exec(memberData);
 				}
-				trace(memberIDs);
-				trace(memberNames);
 				flushMembers();
 			}
 		}
