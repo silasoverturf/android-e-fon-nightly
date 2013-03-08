@@ -23,7 +23,7 @@ package
 
 	TweenPlugin.activate([ThrowPropsPlugin]);
 
-	public class build1 extends MovieClip
+	public class Main extends MovieClip
 	{
 		//set multitouch mode for TouchEvents
 		Multitouch.inputMode=MultitouchInputMode.TOUCH_POINT;
@@ -295,7 +295,7 @@ package
 
 		var mavin:Mavin = new Mavin();
 
-		public function build1()
+		public function Main()
 		{
 			//set label tf
 			robotoLabel.color = 0xFFFFFF;
@@ -446,8 +446,6 @@ package
 		//backBtn handler
 		private function keyHandler(event:KeyboardEvent):void
 		{
-			trace(programState, isAdmin);
-
 			if(event.keyCode == Keyboard.BACK && programState != "home" && programState != "members")
 			{
 				event.preventDefault();
@@ -822,9 +820,10 @@ package
 			TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 			TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 			
-			loadAccounts("GET");
+			//loadAccounts("GET");
 			//mavin.loadSMS("GET");
 			mavin.addEventListener("smsLoadComplete", addSMS)
+			mavin.addEventListener("accountLoadComplete", addAccount)
 
 			programState = "home";
 		}
@@ -832,6 +831,11 @@ package
 		private function addSMS(event:Event):void
 		{
 			addDashboard("SMS", 5);
+		}
+
+		private function addAccount(event:Event):void
+		{
+			addDashboard("Accounts", 3);
 		}
 
 		//manual parsing of .html
@@ -1275,7 +1279,6 @@ package
 
 		private function flushF2M():void
 		{
-			trace(mavin.f2mEmail[1]);
 			main.timeContainer.selecter.fax2mailIcon.email.text = mavin.f2mEmail[1];
 		}
 
@@ -1523,67 +1526,24 @@ package
 			}
 		}
 
-		private function loadAccounts(method:String):void
-		{
-			if(method == "GET")
-			{
-				accountsLoader.addEventListener(Event.COMPLETE, parse);
-				accountsLoader.load(accountsSend);
-					
-				function parse(event:Event):void
-				{
-					accountsData = new String(accountsLoader.data);
-					
-					accountsData = accountsData.replace(rex,"");
-					
-					accountID = [];
-					accountCLIP = [];
-					accountZIP = [];
-					accountStatus = [];
-
-					var accountsResult:Array = accountsSniffer.exec(accountsData);
-					while (accountsResult != null)
-					{
-						accountID.push(accountsResult[2]);
-						accountCLIP.push(accountsResult[3]);
-						accountZIP.push(accountsResult[5]);
-						accountStatus.push(accountsResult[6]);
-						
-						accountsResult = accountsSniffer.exec(accountsData);
-					}
-
-					//check if dashboard item has been added
-					if(DashboardItems.indexOf("Accounts") == -1){addDashboard("Accounts", 3);}
-
-					//flush if frame is active
-					if(main.currentFrame == 4){flushAccount();}
-				}
-			}
-
-			if(method == "POST")
-			{
-				trace("Posting to /accountConfig.html is currently not supported")
-			}
-		}
-
 		private function flushAccount():void
 		{
 			hideDashboard(4);
 			
 			i4 = 0;
 			
-			for each(var eg in accountID)
+			for each(var Account in mavin.accountArray)
 			{
 				var EGSnippet:MovieClip = new egSnippet();
 
 				EGSnippet.y = i4 * 120;
-				EGSnippet.head.text = accountID[i4];
-				EGSnippet.plz.text = accountZIP[i4];
-				EGSnippet.clip.text = accountCLIP[i4];
-				if(accountStatus[i4].length > 30)
+				EGSnippet.head.text = Account.uid;
+				EGSnippet.plz.text = Account.zip;
+				EGSnippet.clip.text = Account.clip;
+				if(Account.status.length > 30)
 				{
-					var result:Array = dateSniffer.exec(accountStatus[i4]);
-					EGSnippet.regState.text = "Registriert von " + IPSniffer.exec(accountStatus[i4]);
+					var result:Array = dateSniffer.exec(Account.status);
+					EGSnippet.regState.text = "Registriert von " + IPSniffer.exec(Account.status);
 					EGSnippet.regState2.text = "bis " + result[1] + " um " + result[2];
 				}else{
 					EGSnippet.regState.text = "Nicht registriert"

@@ -103,10 +103,7 @@ package
 		public var queueStatus:Array;
 		public var queueList:Array;
 
-		public var accountID:Array;
-		public var accountCLIP:Array;
-		public var accountZIP:Array;
-		public var accountStatus:Array;
+		public var accountArray:Array;
 
 		public function Mavin()
 		{
@@ -265,7 +262,6 @@ package
 				result = voicemailPINSnifffer.exec(f2mData);
 				voicemail.PIN = result[1];
 
-				trace(f2mEmail);
 				dispatchEvent(new Event("f2mLoadComplete"));
 			}
 
@@ -382,7 +378,6 @@ package
 			
 					smsResult = smsSniffer.exec(smsData);
 				}
-				trace("eventDispatched")
 				dispatchEvent(new Event("smsLoadComplete"));
 			}
 			smsLoader.addEventListener(Event.COMPLETE, parse);
@@ -402,21 +397,15 @@ package
 					
 					accountsData = accountsData.replace(rex,"");
 					
-					accountID = [];
-					accountCLIP = [];
-					accountZIP = [];
-					accountStatus = [];
+					accountArray = [];
 
 					var result:Array = accountsSniffer.exec(accountsData);
 					while (result != null)
 					{
-						accountID.push(result[2]);
-						accountCLIP.push(result[3]);
-						accountZIP.push(result[5]);
-						accountStatus.push(result[6]);
-						
+						accountArray.push({uid:result[2], clip:result[3], name:result[4], zip:result[5], status:result[6]})
 						result = accountsSniffer.exec(accountsData);
 					}
+
 					dispatchEvent(new Event("accountLoadComplete"));
 				}
 			}
