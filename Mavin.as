@@ -19,6 +19,7 @@ package
 		public var hasQueue:Boolean = false;
 		public var hasShortDial:Boolean = false;
 
+		private var rex:RegExp = /[\s\r\n]*/gim;
 		//
 		public var invalidPW:Boolean;
 		public var isAdmin:Boolean;
@@ -30,17 +31,54 @@ package
 		public var checkLoader:URLLoader = new URLLoader;
 		public var checkRex:RegExp = /;.>([^<]{0,})/;
 
+		//RegExp
+		
+		//matches F2M email to result[1]
+		private var f2mSniffer:RegExp = /name=.fax2emailEmail"value="([0-9a-zA-Z][-._a-zA-Z0-9]*@(?:[0-9a-zA-Z][-._0-9a-zA-Z]*\.)+[a-zA-Z]{2,4})/;
+
+		//matches voicemail values to result[1]
+		private var voicemailEmailSniffer:RegExp = /voicemailEmail"value=.([^"]{0,})/;
+		private var voicemailGreetingSniffer:RegExp = /voicemailAnrede"style="width:400px"value=.([^"]{0,})/;
+		private var voicemailPINSnifffer:RegExp = /voicemailPin"style="width:100px"value="([0-9]{0,})/;
+		
+		private var smsSniffer:RegExp = /optionvalue="([0-9a-z]{0,15})">([0-9a-zA-Z]{1,10})/gi;
+
+		private var queueSniffer:RegExp =  />([^<]{0,})<\/td><td>[^<]{0,},([^<]{0,})<\/td><td>[^<]{0,}<\/td><td>[^<]{0,}<br\/><\/td><td><spanstyle="color:[0-9a-zA-Z,]{0,};">([a-zA-Z]{0,})<\/span><\/td><td><ahref="javascript:[a-zA-Z]{0,}\(([0-9]{0,})\)"/g; 
+
+		private var accountsSniffer:RegExp = /tdwidth="100px">([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([^"]{0,})"\/><\/td><td>/g;
+
 		//session
 		private var jSend:URLRequest = new URLRequest("https://" + realm + context +"/j_acegi_security_check");
-		private var jLoader:URLLoader;
+		public var jLoader:URLLoader;
 		private var jSession:URLVariables;
 		private var jData:String;
+
+		//act as
+		private var actAsURLRequest:URLRequest;
+		private var actAsLoader:URLLoader;
+
+		//f2m
+		private var f2mURLRequest:URLRequest = new URLRequest("https://" + realm + context + "/notifications.html");
+		private var f2mLoader:URLLoader = new URLLoader;
+		private var f2mVars:URLVariables;
+		private var f2mData:String;
 
 		//queue
 		private var queueSend:URLRequest = new URLRequest("https://" + realm + context + "/callCenterQueueMemberStatus.html");
 		private var queueLoader:URLLoader;
 		private var queueVars:URLVariables;
 		private var queueData:String;
+
+		//sms
+		private var smsSend:URLRequest = new URLRequest("https://" + realm + context + "/SMSSender.html");
+		private var smsLoader:URLLoader = new URLLoader;
+		private var smsVars:URLVariables;
+		private var smsData:String;
+
+		//accounts
+		private var accountsSend:URLRequest = new URLRequest("https://" + realm + context + "/accounts.html");
+		private var accountsLoader:URLLoader = new URLLoader;
+		private var accountsData:String;
 
 		public var user:Number;                //memberID
 
@@ -54,11 +92,21 @@ package
 		public var calenderBusy:Object = {};   //active, chocie, desination
 
 		public var f2mEmail:String;            //email address
+		public var voicemail:Object = {};      //email address, greeting, pin
+
+		public var smsMessage:Object = {};     //recipient, number, message
+		public var smsNumber:Array;
+		public var smsNumberID:Array;
 
 		public var queueAgent:Array;
 		public var queueName:Array;
 		public var queueStatus:Array;
 		public var queueList:Array;
+
+		public var accountID:Array;
+		public var accountCLIP:Array;
+		public var accountZIP:Array;
+		public var accountStatus:Array;
 
 		public function Mavin()
 		{
@@ -126,7 +174,7 @@ package
 			//if !admin, use Jdata for functionality checking
 			if(isAdmin == false)
 			{
-				jData = mavin.jLoader.data;
+				jData = jLoader.data;
 			}
 
 			//whitespace
@@ -159,6 +207,67 @@ package
 			debug("loading user modules")
 		}
 		
+		//actAs
+		public function actAs(actAsMember:String)
+		{
+			actAsLoader = new URLLoader();
+			actAsURLRequest = new URLRequest("https://" + context + "/actAs.html?member=" + actAsMember);
+
+			actAsLoader.addEventListener(Event.COMPLETE, loadData)
+			actAsLoader.load(actAsURLRequest);
+		}
+
+		//redirection
+		public function loadRedirection(method:String):void
+		{
+			trace("loadRedirection");
+		}
+
+		//f2m
+		public function loadF2M(method:String):void
+		{
+			if(method == "GET")
+			{
+				f2mURLRequest.method = URLRequestMethod.GET;	
+			}
+			
+			if(method == "POST")
+			{
+				f2mVars = new URLVariables();
+
+				f2mVars.reload = "";
+				f2mVars.selectedPhoneNumberId = user;
+				f2mVars.fax2emailEmail = f2mEmail;
+
+				f2mURLRequest.method =  URLRequestMethod.POST;
+				f2mURLRequest.data = f2mVars;
+			}
+
+			f2mLoader.addEventListener(Event.COMPLETE, parseF2M);
+			f2mLoader.load(f2mURLRequest);
+			
+			function parseF2M(event:Event = null):void
+			{
+				//parse F2M
+				f2mData = new String(f2mLoader.data);
+				f2mData = f2mData.replace(rex,"");
+				f2mEmail = f2mSniffer.exec(f2mData);
+
+				//parse Voicemail
+				var result:Array;
+				voicemail = [];
+
+				result = voicemailEmailSniffer.exec(f2mData);
+				voicemail.email = result[1]
+				
+				result = voicemailGreetingSniffer.exec(f2mData);
+				voicemail.greeting = result[1];
+
+				result = voicemailPINSnifffer.exec(f2mData);
+				voicemail.PIN = result[1];
+			}
+		}
+
 		//loadQueue
 		private function loadQueue(agentID:String):void
 		{
@@ -183,7 +292,7 @@ package
 
 					var result:Array = queueSniffer.exec(queueData);
 
-					while (queueResult != null)
+					while (result != null)
 					{
 						queueAgent.push(result[4]);
 						queueName.push(result[2]);
@@ -192,7 +301,7 @@ package
 						
 						result = queueSniffer.exec(queueData);
 					}
-					dispatchEvent(new Event("queueGetComplete"));
+					dispatchEvent(new Event("queueLoadComplete"));
 				}
 			}
 
@@ -213,7 +322,7 @@ package
 					queueVars.statusId = "40";
 					queueStatus[queueAgent.indexOf(agentID)] = "Offline";
 				}
-				dispatchEvent(new Event("queuePostComplete"));
+				dispatchEvent(new Event("queueLoadComplete"));
 			}
 
 			if(agentID == "POST")
@@ -223,6 +332,86 @@ package
 
 			//load
 			queueLoader.load(queueSend);
+		}
+
+		//
+		private function loadSMS(method:String):void
+		{
+			if(method == "GET")
+			{
+				smsSend.method = URLRequestMethod.GET;
+			}
+
+			if(method == "POST")
+			{
+				smsVars = new URLVariables();
+
+				smsVars.message = smsMessage.message;
+				smsVars.recipientNumber = smsMessage.recipient;
+				
+				smsVars.numberOfMessageToSendForEachRecipient = "1"
+				smsVars.numberOfRecipients = "1"
+				smsVars.numberOfMessageToSend = "1"
+				smsVars.senderNumber = smsMessage.number;
+
+				smsSend.method = URLRequestMethod.POST;
+				smsSend.data = smsVars;
+			}
+
+			function parse(event:Event = null):void
+			{
+				smsData = new String(smsLoader.data);
+				smsData = smsData.replace(rex,"");
+				
+				var smsResult:Array = smsSniffer.exec(smsData);
+				
+				while (smsResult != null)
+				{
+					smsNumberID.push(smsResult[1]);
+					smsNumber.push(smsResult[2]);
+			
+					smsResult = smsSniffer.exec(smsData);
+				}
+			}
+			smsLoader.addEventListener(Event.COMPLETE, parse);
+			smsLoader.load(smsSend);
+		}
+
+		public function loadAccounts(method:String):void
+		{
+			if(method == "GET")
+			{
+				accountsLoader.addEventListener(Event.COMPLETE, parse);
+				accountsLoader.load(accountsSend);
+					
+				function parse(event:Event):void
+				{
+					accountsData = accountsLoader.data;
+					
+					accountsData = accountsData.replace(rex,"");
+					
+					accountID = [];
+					accountCLIP = [];
+					accountZIP = [];
+					accountStatus = [];
+
+					var result:Array = accountsSniffer.exec(accountsData);
+					while (result != null)
+					{
+						accountID.push(result[2]);
+						accountCLIP.push(result[3]);
+						accountZIP.push(result[5]);
+						accountStatus.push(result[6]);
+						
+						result = accountsSniffer.exec(accountsData);
+					}
+				}
+			}
+
+			if(method == "POST")
+			{
+				debug("Posting to /accountConfig.html is currently not supported");
+			}
 		}
 
 		//just for testing;
