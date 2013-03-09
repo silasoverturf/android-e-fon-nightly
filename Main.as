@@ -534,7 +534,7 @@ package
 
 				function queueHandler(event:TouchEvent):void
 				{
-					if(event.target.name == "slider"){loadQueue(event.target.parent.name);}
+					if(event.target.name == "slider"){mavin.loadQueue(event.target.parent.name);}
 				}
 				addSwipe();
 
@@ -772,17 +772,6 @@ package
 
 			//whitespace
 			jData = jData.replace(rex, "");
-			
-			//check if queue avaliable
-			if(jData.search("Queue") > -1)
-			{
-				queueActive = true;
-				functionCount = functionCount + 1;
-				loadQueue("GET");
-			}
-			
-			//check if shortdials avaliable
-			if(jData.search("shortDials") > -1){shortDialsActive = true;}
 
 			//check if numbers are owned
 			if(jData.search("optionvalue") > -1)
@@ -822,8 +811,9 @@ package
 			
 			//loadAccounts("GET");
 			//mavin.loadSMS("GET");
-			mavin.addEventListener("smsLoadComplete", addSMS)
-			mavin.addEventListener("accountLoadComplete", addAccount)
+			mavin.addEventListener("smsLoadComplete", addSMS);
+			mavin.addEventListener("accountLoadComplete", addAccount);
+			mavin.addEventListener("queueLoadComplete", addQueue);
 
 			programState = "home";
 		}
@@ -836,6 +826,13 @@ package
 		private function addAccount(event:Event):void
 		{
 			addDashboard("Accounts", 3);
+		}
+
+		private function addQueue(event:Event):void
+		{
+			trace("adding Queue")
+			mavin.removeEventListener("queueLoadComplete", addQueue);
+			addDashboard("Queue", 2);
 		}
 
 		//manual parsing of .html
@@ -1300,70 +1297,6 @@ package
 			main.callButton.btn_txt.text = "043 500 9990";
 		}
 		
-		/*
-		private function loadSMS(method:String):void
-		{
-			if(method == "GET")
-			{
-				smsSend.method = URLRequestMethod.GET;
-				smsLoader.addEventListener(Event.COMPLETE, parseSMS);
-			}
-
-			if(method == "POST")
-			{
-				sms_vars = new URLVariables();
-
-				sms_vars.message = main.smsContainer2.SMSmessage.text;
-				sms_vars.recipientNumber = main.smsContainer2.recipient.text;
-				
-				sms_vars.numberOfMessageToSendForEachRecipient = "1"
-				sms_vars.numberOfRecipients = "1"
-				sms_vars.numberOfMessageToSend = "1"
-				sms_vars.senderNumber = smsRadioGroup.selectedData;
-
-				smsLoader.addEventListener(Event.COMPLETE, SMSsent);
-				smsSend.method = URLRequestMethod.POST;
-				smsSend.data = sms_vars;
-
-				main.sendBtn.removeEventListener(TouchEvent.TOUCH_TAP, SMS);
-			
-				TweenMax.to(main.sendBtn, 0.5, {delay:0.4, x:65, ease:Bounce.easeOut});
-				main.sendBtn.btn_txt.text = "Sending";
-			}
-
-			function parseSMS(event:Event = null):void
-			{
-				smsData = new String(smsLoader.data);
-				smsData = smsData.replace(rex,"");
-				
-				var smsResult:Array = smsSniffer.exec(smsData);
-				
-				while (smsResult != null)
-				{
-					smsNumberID.push(smsResult[1]);
-					smsNumber.push(smsResult[2]);
-			
-					smsResult = smsSniffer.exec(smsData);
-				}
-
-				//check if dashbaord item has been added
-				if(DashboardItems.indexOf("SMS") == -1){addDashboard("SMS", 5)};
-
-				//flush if frame is active
-				if(main.currentFrame == 2){flushSMS();}
-				smsLoader.removeEventListener(Event.COMPLETE, parseSMS);
-			}
-
-			function SMSsent(event:Event = null):void
-			{
-				TweenMax.to(main.sendBtn, 0.5, {delay:0.4, x:120, ease:Bounce.easeOut});
-				main.sendBtn.btn_txt.text = "Sent!"
-				main.sendBtn.addEventListener(TouchEvent.TOUCH_TAP, SMS);
-			}
-			smsLoader.load(smsSend);
-		}
-		*/
-		
 		private function SMS(event:TouchEvent):void
 		{
 			mavin.smsMessage = {message:main.smsContainer2.SMSmessage.text, recipient:main.smsContainer2.recipient.text, number:smsRadioGroup.selectedData}
@@ -1436,90 +1369,25 @@ package
 			}
 		}
 		
-		private function loadQueue(agentID:String):void
-		{
-			queueLoader = new URLLoader();
-
-			if(agentID == "GET")
-			{
-				queueLoader.addEventListener(Event.COMPLETE, parse);
-				queueSend.method = URLRequestMethod.GET;
-
-				function parse(event:Event):void
-				{
-					queueData = queueLoader.data;
-					queueData = queueData.replace(rex, "")
-					
-					//reset locals vars
-					queueAgent = [];
-					queueName = [];
-					queueStatus = [];
-					queueList = [];
-
-					var queueResult:Array = queueSniffer.exec(queueData);
-
-					while (queueResult != null)
-					{
-						queueAgent.push(queueResult[4]);
-						queueName.push(queueResult[2]);
-						queueStatus.push(queueResult[3]);
-						queueList.push(queueResult[1])
-						
-						queueResult = queueSniffer.exec(queueData);
-					}
-
-					if(DashboardItems.indexOf("Queue") == -1){addDashboard("Queue", 2)};
-					if(main.currentFrame == 5){flushQueue()};
-				}
-			}
-
-			if(agentID != "GET" && agentID != "POST")
-			{
-				queueVars = new URLVariables();
-				
-				queueSend.method = URLRequestMethod.POST;
-				queueSend.data = queueVars;
-								
-				queueVars.memberId = agentID;
-				
-				if(queueStatus[queueAgent.indexOf(agentID)] == "Offline")
-				{
-					queueVars.statusId = "10";
-					queueStatus[queueAgent.indexOf(agentID)] = "Online";
-				}else{
-					queueVars.statusId = "40";
-					queueStatus[queueAgent.indexOf(agentID)] = "Offline";
-				}
-			}
-
-			if(agentID == "POST")
-			{
-				trace("Function variable must be AgentID if POST is to be method")
-			}
-
-			//load
-			queueLoader.load(queueSend);
-		}
-		
 		private function flushQueue():void
 		{
 			hideDashboard(5);
 			
 			i4 = 0;
 			
-			for each(var queue in queueList)
+			for each(var queue in mavin.queueList)
 			{
 				var QueueSnippet:MovieClip = new queueSnippet();
 				QueueSnippet.y = i4 * 57;
-				QueueSnippet.Text.text = queueList[i4] + " als";
-				QueueSnippet.Text2.text = queueName[i4];
+				QueueSnippet.Text.text = mavin.queueList[i4] + " als";
+				QueueSnippet.Text2.text = mavin.queueName[i4];
 				
-				if(queueStatus[i4] == "Online")
+				if(mavin.queueStatus[i4] == "Online")
 				{
 					QueueSnippet.slider.gotoAndStop(2);
 				}
 				
-				QueueSnippet.name = queueAgent[i4];
+				QueueSnippet.name = mavin.queueAgent[i4];
 
 				main.queueContainer.addChild(QueueSnippet);
 				i4 = i4 + 1;

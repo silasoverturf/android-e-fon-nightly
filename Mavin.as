@@ -272,6 +272,8 @@ package
 		//loadQueue
 		public function loadQueue(agentID:String):void
 		{
+			debug("loading Queue");
+
 			queueLoader = new URLLoader();
 			queueVars = new URLVariables();
 
@@ -282,6 +284,8 @@ package
 
 				function parse(event:Event):void
 				{
+					debug("parsing Queue")
+
 					queueData = queueLoader.data;
 					queueData = queueData.replace(rex, "")
 					
@@ -298,7 +302,7 @@ package
 						queueAgent.push(result[4]);
 						queueName.push(result[2]);
 						queueStatus.push(result[3]);
-						queueList.push(result[1])
+						queueList.push(result[1]);
 						
 						result = queueSniffer.exec(queueData);
 					}
