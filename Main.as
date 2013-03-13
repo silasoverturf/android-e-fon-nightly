@@ -19,7 +19,7 @@ package
 	import flash.utils.getTimer;
 	import flash.text.*;
 
-	//import Mavin;
+	import Mavin;
 
 	TweenPlugin.activate([ThrowPropsPlugin]);
 
@@ -293,7 +293,7 @@ package
 		public var mc:Sprite = new Sprite();
 		public var t1:uint, t2:uint, y1:Number, y2:Number;
 
-		var mavin:Mavin = new Mavin();
+		var mavin:Mavin = new Mavin(0);
 
 		public function Main()
 		{
@@ -555,7 +555,8 @@ package
 					navigateToURL(new URLRequest("tel:0435009990"))
 				}
 
-				function sendVoicemail(event:TouchEvent):void{loadVoicemail("POST")};
+				function sendVoicemail(event:TouchEvent):void{//loadVoicemail("POST")
+				};
 
 				addSwipe();
 			}
@@ -709,8 +710,8 @@ package
 			TweenMax.to(dashboard.loading.loading, 0.75, {rotation:"-360", ease:Cubic.easeInOut, repeat:-1});
 
 			//flush local j_session w/ text fields
-			mavin.authorize(login.userid_txt.text,login.password_txt.text);
 			mavin.addEventListener("authComplete", checkAuthStatus);
+			mavin.authorize(login.userid_txt.text,login.password_txt.text);
 
 			//flush lso
 			SO.data.userid = login.userid_txt.text;
@@ -751,6 +752,10 @@ package
 				{
 					mavin.removeEventListener("authComplete", checkAuthStatus);
 					loadData();
+
+					mavin.addEventListener("smsLoadComplete", addSMS);
+					mavin.addEventListener("accountLoadComplete", addAccount);
+					mavin.addEventListener("queueLoadComplete", addQueue);
 				}
 			}
 		}
@@ -758,14 +763,8 @@ package
 		//load userdata
 		public function loadData(event:Event = null):void
 		{
-			//if admin, use actasloader for functionality checking
-			if(isAdmin == true)
-			{
-				jData = actAsLoader.data;
-			}
-
 			//if !admin, use Jdata for functionality checking
-			if(isAdmin == false)
+			if(mavin.isAdmin == false)
 			{
 				jData = mavin.jLoader.data;
 			}
@@ -776,16 +775,8 @@ package
 			//check if numbers are owned
 			if(jData.search("optionvalue") > -1)
 			{
-				//loadCDR();
-				mavin.loadF2M("GET");
-				//mavin.addEventListener("f2mLoadComplete", flushF2M);
-
 				function redirectionHandler(event:Event):void
-				{
-					//removeChild(header);
-					//removeChild(login);
-					//removeChild(loginBtn);
-					
+				{	
 					main.visible = true;
 					
 					redirectionData = new String(redirectionLoader.data);
@@ -808,12 +799,6 @@ package
 			TweenMax.to(dashboard, 0.5, {delay:0.3,autoAlpha:1, ease:Cubic.easeInOut});
 			TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 			TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
-			
-			//loadAccounts("GET");
-			//mavin.loadSMS("GET");
-			mavin.addEventListener("smsLoadComplete", addSMS);
-			mavin.addEventListener("accountLoadComplete", addAccount);
-			mavin.addEventListener("queueLoadComplete", addQueue);
 
 			programState = "home";
 		}
@@ -821,16 +806,17 @@ package
 		private function addSMS(event:Event):void
 		{
 			addDashboard("SMS", 5);
+			mavin.removeEventListener("smsLoadComplete", addSMS);
 		}
 
 		private function addAccount(event:Event):void
 		{
 			addDashboard("Accounts", 3);
+			mavin.removeEventListener("accountLoadComplete", addAccount);
 		}
 
 		private function addQueue(event:Event):void
 		{
-			trace("adding Queue")
 			mavin.removeEventListener("queueLoadComplete", addQueue);
 			addDashboard("Queue", 2);
 		}
@@ -861,6 +847,8 @@ package
 			//remove whitespace
 			redirectionData = redirectionData.replace(rex,"");
 			
+			trace(redirectionData);
+
 			var result:Array = choiceSniffer.exec(redirectionData);
 			var result2:Array = featureSniffer.exec(redirectionData);
 			
@@ -1223,67 +1211,10 @@ package
 				}
 			}
 		}
-		
-		private function loadF2M(method:String):void
-		{
-			if(method == "GET")
-			{
-				f2mURLRequest.method = URLRequestMethod.GET;	
-			}
-			
-			if(method == "POST")
-			{
-				f2m_vars = new URLVariables();
-
-				f2m_vars.reload = "";
-				f2m_vars.selectedPhoneNumberId =  numberID;
-				f2m_vars.fax2emailEmail = main.timeContainer.selecter.fax2mailIcon.email.text;
-
-				f2mURLRequest.method =  URLRequestMethod.POST;
-				f2mURLRequest.data = f2m_vars;
-			}
-
-			f2mLoader.addEventListener(Event.COMPLETE, parseF2M);
-			f2mLoader.load(f2mURLRequest);
-			
-			function parseF2M(event:Event = null):void
-			{
-				//parse F2M
-				f2mData = new String(f2mLoader.data);
-				f2mData = f2mData.replace(rex,"");
-				f2mEmail = f2mSniffer.exec(f2mData);
-
-				//parse Voicemail
-				var result:Array;
-				voicemail = [];
-
-				result = voicemailEmailSniffer.exec(f2mData);
-				voicemail.push(result[1]);
-				
-				result = voicemailGreetingSniffer.exec(f2mData);
-				voicemail.push(result[1]);
-
-				result = voicemailPINSnifffer.exec(f2mData);
-				voicemail.push(result[1]);
-
-				//check if dashboard item has been added
-				if(DashboardItems.indexOf("Voicemail") == -1){addDashboard("Voicemail", 6);}
-
-				//flush if frame is active
-				if(main.currentFrame == 1){flushF2M();}
-			}
-		}
 
 		private function flushF2M():void
 		{
 			main.timeContainer.selecter.fax2mailIcon.email.text = mavin.f2mEmail[1];
-		}
-
-		private function loadVoicemail(method:String):void
-		{
-			//main.saveVM.removeEventListener(TouchEvent.TOUCH_TAP, sendVoicemail);
-			main.saveVM.btn_txt.text = "Saving";
-			TweenMax.to(main.saveVM, 0.5, {x:70, ease:Bounce.easeOut});
 		}
 
 		private function flushVoicemail():void
@@ -1301,72 +1232,6 @@ package
 		{
 			mavin.smsMessage = {message:main.smsContainer2.SMSmessage.text, recipient:main.smsContainer2.recipient.text, number:smsRadioGroup.selectedData}
 			mavin.loadSMS("POST");
-		}
-
-		private function flushSMS():void
-		{}
-		
-		private function loadCDR(event:Event = null):void
-		{
-			jData = jData.replace(rex,"");
-			phoneNumber = userNumberSniffer.exec(jData);
-			
-			cdr_vars = new URLVariables();
-			
-			cdr_vars.selector = "missed";
-			cdr_vars.accountCode = phoneNumber[1];
-			cdr_vars.periodFromDate = "01.02.2013";
-			cdr_vars.periodFromTime = "00:00:00";
-			cdr_vars.periodUntilDate = "03.02.2013";
-			cdr_vars.periodUntilTime = "23:59:59";
-			cdr_vars.orderBy = "cdr.startDate desc";
-			cdr_vars.size = "50";
-			cdr_vars.showExcel = 
-			cdr_vars.offset = "0";
-			
-			cdrSend.method = URLRequestMethod.POST;
-			cdrSend.data = cdr_vars;
-			
-			cdrLoader = new URLLoader;
-			
-			cdrLoader.addEventListener(Event.COMPLETE, loadOutgoing);
-			cdrLoader.load(cdrSend);
-			
-			function loadOutgoing():void
-			{
-				cdrData = cdrLoader.data.replace(rex,"");
-				
-				cdr_vars.selector = "outgoing";
-				cdrSend.data = cdr_vars;
-				
-				cdrLoader = new URLLoader;
-				
-				cdrLoader.removeEventListener(Event.COMPLETE, loadOutgoing);
-				cdrLoader.addEventListener(Event.COMPLETE, loadIncoming);
-				cdrLoader.load(cdrSend);
-				
-				function loadIncoming():void
-				{
-					cdrData = cdrLoader.data.replace(rex,"");
-				
-					cdr_vars.selector = "incoming";
-					cdr_vars.selectionType = "1";
-					
-					cdrSend.data = cdr_vars;
-				
-					cdrLoader = new URLLoader;
-				
-					cdrLoader.removeEventListener(Event.COMPLETE, loadIncoming);
-					cdrLoader.addEventListener(Event.COMPLETE, returnIncoming);
-					cdrLoader.load(cdrSend);
-					
-					function returnIncoming():void
-					{
-						cdrData = cdrLoader.data.replace(rex,"");
-						addDashboard("CDR", 4);
-					}
-				}
-			}
 		}
 		
 		private function flushQueue():void

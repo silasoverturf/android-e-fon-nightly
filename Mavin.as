@@ -33,6 +33,27 @@ package
 
 		//RegExp
 		
+		//matches memberIDs
+		private var memberIDSniffer:RegExp = /edit&member=([0-9]{0,})/gi;
+
+		//matches memberNames to result[1]
+		private var memberNameSniffer:RegExp = /<td>([^<]{0,})(?:<spanclass='newbutton'>[^<]{0,}<\/span>\([^\)]{0,}\)<\/td>|)<tdwidth=.[0-9]{0,3}/gi;
+
+		//matches optionId to result[1];
+		private var optionSniffer:RegExp = /optionvalue="([0-9]{4,8})/;
+
+		//matches delay to result[1];
+		private var delaySniffer:RegExp = /name="delay1"size="5"value="([0-9]{1,2})/;
+
+		//matches destination to result[1];
+		private var destinationSniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="([0-9]{3,15})/g;
+
+		//redirection checked, matches redir type to result[1], redir selection to result[2];
+		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(1|3|Backuprouting|AnonSuppression)"value="([0-9]{0,4})"(?:onclick="controlRedir(?:Normal|Busy|Backup)\(\)|)("checked="checked"|")/gi;
+
+		//matches features to result[1]
+		private var featureSniffer:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="([0-9]{1,10})/gi;
+
 		//matches F2M email to result[1]
 		private var f2mSniffer:RegExp = /name=.fax2emailEmail"value="([0-9a-zA-Z][-._a-zA-Z0-9]*@(?:[0-9a-zA-Z][-._0-9a-zA-Z]*\.)+[a-zA-Z]{2,4})/;
 
@@ -56,6 +77,17 @@ package
 		//act as
 		private var actAsURLRequest:URLRequest;
 		private var actAsLoader:URLLoader;
+
+		//members
+		private var memberURLRequest:URLRequest = new URLRequest("https://" + realm + context + "/memberOverview.html");
+		private var memberLoader:URLLoader = new URLLoader;
+		private var memberData:String;
+
+		//redirection
+		private var redirectionURLRequest:URLRequest = new URLRequest("https://" + realm + context + "/redirection.html");
+		private var redirectionLoader:URLLoader = new URLLoader;
+		private var rVars:URLVariables;
+		private var redirectionData:String;
 
 		//f2m
 		private var f2mURLRequest:URLRequest = new URLRequest("https://" + realm + context + "/notifications.html");
@@ -82,14 +114,16 @@ package
 
 		public var user:String;                //memberID
 
-		public var redirectionTime:Object = {};//active, choice, desination, delay
-		public var redirectionBusy:Object = {};//active, choice, desination
-		public var redirectionUnre:Object = {};//active, choice, desination
-		public var redirectionAnon:Object = {};//active, choice, desination
+		public var redirectionTime:Object = {};//active, choice, destination, delay
+		public var redirectionBusy:Object = {};//active, choice, destination
+		public var redirectionUnre:Object = {};//active, choice, destination
+		public var redirectionAnon:Object = {};//active, choice, destination
 
-		public var calenderManual:Object = {}; //active, choice, desination, private, subject, fromTime, fromDate, untilTime, untilDate
-		public var calenderOOF:Object = {};    //active, choice, desination
-		public var calenderBusy:Object = {};   //active, chocie, desination
+		public var calenderManual:Object = {}; //active, choice, destination, private, subject, fromTime, fromDate, untilTime, untilDate
+		public var calenderOOF:Object = {};    //active, choice, destination
+		public var calenderBusy:Object = {};   //active, chocie, destination
+
+		public var featureArray:Array;
 
 		public var f2mEmail:Array;            //email address
 		public var voicemail:Object = {};      //email address, greeting, pin
@@ -103,19 +137,26 @@ package
 		public var queueStatus:Array;
 		public var queueList:Array;
 
+		public var memberArray:Array;
+
 		public var accountArray:Array;
 
-		public function Mavin()
+		public function Mavin(debugL:Number)
 		{
-			checkLoader.load(checkSend);
-			checkLoader.addEventListener(Event.COMPLETE, parse);
+			debugLevel = debugL;
 
-			var result:Array;
-
-			function parse(event:Event):void
+			if(debugLevel == 1)
 			{
-				result = checkRex.exec(checkLoader.data)
-				debug(result[1]  + ", Mavin is ready");
+				checkLoader.load(checkSend);
+				checkLoader.addEventListener(Event.COMPLETE, parse);
+
+				var result:Array;
+
+				function parse(event:Event):void
+				{
+					result = checkRex.exec(checkLoader.data)
+					debug(result[1]  + ", Mavin is ready");
+				}
 			}
 		}
 
@@ -148,7 +189,7 @@ package
 
 				if(jData.search("password") > -1){invalidPW = true;debug("Password is invalid")}
 
-				if(jData.search("memberOverview") > -1){isAdmin = true;debug("User is admin")}
+				if(jData.search("memberOverview") > -1){isAdmin = true;debug("User is admin, waiting for actAs();")}
 
 				if(invalidPW == false && isAdmin == false)
 				{
@@ -195,13 +236,11 @@ package
 			{
 				hasPhoneNumber = true;
 				loadF2M("GET");
-				loadRedirection("POST");
+				loadRedirection("GET");
 			}
 		 
 			loadAccounts("GET");
 			loadSMS("GET");
-
-			debug("loading user modules")
 		}
 		
 		//actAs
@@ -210,14 +249,135 @@ package
 			actAsLoader = new URLLoader();
 			actAsURLRequest = new URLRequest("https://" + context + "/actAs.html?member=" + actAsMember);
 
-			actAsLoader.addEventListener(Event.COMPLETE, loadData)
+			actAsLoader.addEventListener(Event.COMPLETE, loadData);
+			actAsLoader.addEventListener(Event.COMPLETE, parse);
+
 			actAsLoader.load(actAsURLRequest);
+
+			function parse(event:Event):void
+			{
+				actAsLoader.removeEventListener(Event.COMPLETE, loadData);
+				actAsLoader.removeEventListener(Event.COMPLETE, parse);
+
+				debug("acting as " + actAsMember);
+			}
+		}
+
+		public function loadMembers(method:String):void
+		{
+			memberURLRequest.method = URLRequestMethod.GET;
+			memberLoader.addEventListener(Event.COMPLETE, parse);
+
+			memberLoader.load(memberURLRequest);
+
+			function parse(event:Event):void
+			{
+				memberData = memberLoader.data;
+				memberData = memberData.replace(rex, "");				
+
+				var result:Array = memberIDSniffer.exec(memberData);
+				var result2:Array = memberNameSniffer.exec(memberData);
+
+				memberArray = [];
+
+				while(result != null)
+				{
+					memberArray.push({id:result[1], name:result2[1]});
+					
+					result = memberIDSniffer.exec(memberData);
+					result2 = memberNameSniffer.exec(memberData);
+				}
+				dispatchEvent(new Event("loadMemberComplete"))
+			}
 		}
 
 		//redirection
 		public function loadRedirection(method:String):void
 		{
-			debug("loadRedirection");
+			redirectionLoader.addEventListener(Event.COMPLETE, parse);	
+			redirectionLoader.load(redirectionURLRequest);
+
+			function parse(event:Event):void
+			{	
+				redirectionData = redirectionLoader.data;
+				//reset all local vars
+				redirectionTime = {active:0, choice:0, destination:null, delay:99};
+				redirectionBusy = {active:0, choice:0, destination:null};
+				redirectionUnre = {active:0, choice:0, destination:null};
+				redirectionAnon = {active:0, choice:0, destination:null};
+
+				featureArray = [];
+
+				//reset counters
+				var i:Number = 0;
+				var i2:Number = 0;
+				var i3:Number = 0;
+				
+				//remove whitespace
+				redirectionData = redirectionData.replace(rex,"");
+				
+				var result:Array = choiceSniffer.exec(redirectionData);
+				var result2:Array = destinationSniffer.exec(redirectionData);
+				
+				//gets all choices with choiceSniffer
+				while (result != null)
+				{
+					trace(result)
+					if(result[1] == "1" && result[3].search("checked") != -1)
+					{
+						redirectionTime.active = 1;
+						redirectionTime.choice = result[2];
+						redirectionTime.destination = result2[1];
+					}
+
+					if(result[1] == "3" && result[3].search("checked") != -1)
+					{
+						redirectionBusy.active = 1;
+						redirectionBusy.choice = result[2];
+						redirectionBusy.destination = result2[1];
+					}
+
+					if(result[1] == "Backuprouting" && result[3].search("checked") != -1)
+					{
+						redirectionUnre.active = 1;
+						redirectionUnre.choice = result[2];
+						redirectionUnre.destination = result2[1];
+					}
+
+					if(result[1] == "AnonSuppression" && result[3].search("checked") != -1)
+					{
+						redirectionAnon.active = 1;
+						redirectionAnon.choice = result[2];
+					}
+					result = choiceSniffer.exec(redirectionData);
+					result2 = destinationSniffer.exec(redirectionData);
+				}
+
+				//redirectionTime.delay
+				result = delaySniffer.exec(redirectionData);
+
+				redirectionTime.delay = result[1];
+
+				//get userId
+				result = optionSniffer.exec(redirectionData);
+
+				user = result[1];
+
+				//set feature ids
+				result = featureSniffer.exec(redirectionData);
+
+				while(result != null)
+				{
+					featureArray.push(result[1]);
+					result = featureSniffer.exec(redirectionData);
+				}
+
+				trace(featureArray)
+				
+				dispatchEvent(new Event("redirectionLoadComplete"));
+				
+				trace(redirectionTime.active, redirectionTime.choice, redirectionTime.delay, redirectionTime.destination);
+			}
 		}
 
 		//f2m
@@ -418,6 +578,71 @@ package
 			{
 				debug("Posting to /accountConfig.html is currently not supported");
 			}
+		}
+
+		private function loadCDR(event:Event = null):void
+		{
+			/*
+			jData = jData.replace(rex,"");
+			phoneNumber = userNumberSniffer.exec(jData);
+			
+			cdr_vars = new URLVariables();
+			
+			cdr_vars.selector = "missed";
+			cdr_vars.accountCode = phoneNumber[1];
+			cdr_vars.periodFromDate = "01.02.2013";
+			cdr_vars.periodFromTime = "00:00:00";
+			cdr_vars.periodUntilDate = "03.02.2013";
+			cdr_vars.periodUntilTime = "23:59:59";
+			cdr_vars.orderBy = "cdr.startDate desc";
+			cdr_vars.size = "50";
+			cdr_vars.showExcel = 
+			cdr_vars.offset = "0";
+			
+			cdrSend.method = URLRequestMethod.POST;
+			cdrSend.data = cdr_vars;
+			
+			cdrLoader = new URLLoader;
+			
+			cdrLoader.addEventListener(Event.COMPLETE, loadOutgoing);
+			cdrLoader.load(cdrSend);
+			
+			function loadOutgoing():void
+			{
+				cdrData = cdrLoader.data.replace(rex,"");
+				
+				cdr_vars.selector = "outgoing";
+				cdrSend.data = cdr_vars;
+				
+				cdrLoader = new URLLoader;
+				
+				cdrLoader.removeEventListener(Event.COMPLETE, loadOutgoing);
+				cdrLoader.addEventListener(Event.COMPLETE, loadIncoming);
+				cdrLoader.load(cdrSend);
+				
+				function loadIncoming():void
+				{
+					cdrData = cdrLoader.data.replace(rex,"");
+				
+					cdr_vars.selector = "incoming";
+					cdr_vars.selectionType = "1";
+					
+					cdrSend.data = cdr_vars;
+				
+					cdrLoader = new URLLoader;
+				
+					cdrLoader.removeEventListener(Event.COMPLETE, loadIncoming);
+					cdrLoader.addEventListener(Event.COMPLETE, returnIncoming);
+					cdrLoader.load(cdrSend);
+					
+					function returnIncoming():void
+					{
+						cdrData = cdrLoader.data.replace(rex,"");
+						addDashboard("CDR", 4);
+					}
+				}
+			}
+			*/
 		}
 
 		//just for testing;
