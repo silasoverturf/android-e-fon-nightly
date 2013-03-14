@@ -14,6 +14,7 @@ package
 		public var context:String = "/portal"
 
 		public var debugLevel:Number = 1;
+		private var dumpArray:Array = [];
 
  		public var hasPhoneNumber:Boolean = false;
 		public var hasQueue:Boolean = false;
@@ -50,6 +51,17 @@ package
 
 		//redirection checked, matches redir type to result[1], redir selection to result[2];
 		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(1|3|Backuprouting|AnonSuppression)"value="([0-9]{0,4})"(?:onclick="controlRedir(?:Normal|Busy|Backup)\(\)|)("checked="checked"|")/gi;
+
+		//matches calender choices
+		private var manualStatusSelected:RegExp = /uml_manualStatus"value="true"onclick="[^"]{0,}"([^\/]{0,})/;
+		private var manualStatusSubject:RegExp = /manualStatusSubject"value=.([^"]{0,})/;
+		private var manualStatusPrivate:RegExp = /manualStatusPrivate"value=.true"([^\/]{0,})/;
+		private var manualStatusTimeDate:RegExp = /manualStatus(?:from|until)(?:time|date)"value=.([^"]{0,})/gi; //fromdate, fromtime, untildate, untiltime
+		private var manualStatusChoice:RegExp = /choiceManualStatus"value="([0-9])"onclick=.controlRedirManualStatus\(\)"([^\/]{0,})/gi; //result[1], selection, result[2], checked
+		private var manualStatusDestination:RegExp = /phoneManualStatus"value="([0-9]{0,15})/i;
+
+		private var calenderStatusChoice:RegExp = /name="choiceCal(Busy|Oof)"value="([0-9])"onclick="[^"]{0,}("checked="checked|")/gi
+		private var calenderDestination:RegExp = /phoneCal(?:oof|busy)"value="([0-9]{0,15})/gi;
 
 		//matches features to result[1]
 		private var featureSniffer:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="([0-9]{1,10})/gi;
@@ -294,8 +306,79 @@ package
 		//redirection
 		public function loadRedirection(method:String):void
 		{
-			redirectionLoader.addEventListener(Event.COMPLETE, parse);	
-			redirectionLoader.load(redirectionURLRequest);
+			if(method == "GET")
+			{
+				redirectionURLRequest.method = URLRequestMethod.GET;
+			}
+
+			if(method == "POST")
+			{
+				//build rvars
+				rVars = new URLVariables();
+				
+				rVars._uml_normal1 = "visible";
+				rVars._uml_busy = "visible";
+				rVars._uml_backuprouting = "visible";
+				rVars._uml_anonSuppression = "visible";
+				rVars._uml_manualStatus = "visible";
+				rVars._manualStatusPrivate = "visible";
+				rVars._uml_calOof = "visible";
+				rVars.reload = "";
+				rVars._uml_calBusy = "visible";
+
+				//flush featureIDs
+				rVars.featureId1 = featureArray[0];
+				rVars.featureId2 = featureArray[1];
+				rVars.featureId3 = featureArray[2];
+				rVars.featureId4 = featureArray[3];
+				rVars.featureIdBackuprouting = featureArray[4];
+				rVars.featureIdAnonSuppression = featureArray[5];
+				rVars.selectedPhoneNumberId = user;
+
+				if(redirectionTime.active == "1")
+				{
+					rVars.uml_normal1 = "true";
+					rVars.delay1 = redirectionTime.delay;
+					rVars.choice1 = redirectionTime.choice;
+
+					if(redirectionTime.choice == "1")
+					{
+						rVars.phone1 = redirectionTime.destination;
+					}
+				}
+
+				if(redirectionBusy.active == "1")
+				{
+					rVars.uml_busy = "true";
+					rVars.choice3 = redirectionBusy.choice;
+
+					if(redirectionBusy.choice == "1")
+					{
+						rVars.phone3 = redirectionBusy.destination;
+					}
+				}
+
+
+				if(redirectionUnre.active == "1")
+				{
+					rVars.uml_backuprouting = "true";
+					rVars.choiceBackuprouting = redirectionUnre.choice;
+
+					if(redirectionUnre.choice == "1")
+					{
+						rVars.backupNumber = redirectionUnre.destination;
+					}
+				}
+
+				if(redirectionAnon.active == "1")
+				{
+					rVars.uml_busy = "true";
+					rVars.choiceAnonSuppression = redirectionAnon.choice;
+				}
+
+				redirectionURLRequest.method =  URLRequestMethod.POST;
+				redirectionURLRequest.data = rVars;
+			}
 
 			function parse(event:Event):void
 			{	
@@ -372,12 +455,88 @@ package
 					result = featureSniffer.exec(redirectionData);
 				}
 
-				trace(featureArray)
+				//calender manual status
+				result = manualStatusSelected.exec(redirectionData);
+			
+				//only push if avaliable
+				if(result != null)
+				{
+					calenderManual.active = result[1];
+
+					result = manualStatusSubject.exec(redirectionData);
+					calenderManual.subject = result[1];
+
+					result = manualStatusPrivate.exec(redirectionData);
+					calenderManual.private = result[1];
+
+					result = manualStatusTimeDate.exec(redirectionData);
+
+					dumpArray = [];
+
+					while(result != null)
+					{
+						dumpArray.push(result[1]);
+						result = manualStatusTimeDate.exec(redirectionData);
+					}
+
+					calenderManual.fromTime = dumpArray[0];
+					calenderManual.fromDate = dumpArray[1];
+					calenderManual.untilTime = dumpArray[2];
+					calenderManual.untilDate = dumpArray[3];
+
+					result = manualStatusChoice.exec(redirectionData);
+
+					while(result != null)
+					{
+						if(result[2].search("checked") != -1)
+						{
+							calenderManual.choice = result[1];
+						}
+						result = manualStatusChoice.exec(redirectionData);
+					}
+
+					result = manualStatusDestination.exec(redirectionData);
+					calenderManual.destination = result[1];
+				}
+
+				result = calenderStatusChoice.exec(redirectionData);
+
+				while(result != null)
+				{
+					if(result[3].search("checked") != -1)
+					{
+						if(result[1] == "Busy")
+						{
+							calenderBusy.active = "true";
+							calenderBusy.choice = result[2];
+						}
+
+						if(result[1] == "Oof")
+						{
+							calenderOOF.active = "true";
+							calenderOOF.choice = result[2];
+						}
+					}
+					result = calenderStatusChoice.exec(redirectionData);
+				}
+
+				dumpArray = [];
+
+				result = calenderDestination.exec(redirectionData);
+
+				while(result != null)
+				{
+					dumpArray.push(result[1])
+					result = calenderDestination.exec(redirectionData);
+				}
+
+				calenderBusy.destination = dumpArray[0];
+				calenderOOF.destination = dumpArray[1];
 				
 				dispatchEvent(new Event("redirectionLoadComplete"));
-				
-				trace(redirectionTime.active, redirectionTime.choice, redirectionTime.delay, redirectionTime.destination);
 			}
+			redirectionLoader.addEventListener(Event.COMPLETE, parse);	
+			redirectionLoader.load(redirectionURLRequest);
 		}
 
 		//f2m
