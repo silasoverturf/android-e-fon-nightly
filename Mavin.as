@@ -52,6 +52,8 @@ package
 		//redirection checked, matches redir type to result[1], redir selection to result[2];
 		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(1|3|Backuprouting|AnonSuppression)"value="([0-9]{0,4})"(?:onclick="controlRedir(?:Normal|Busy|Backup)\(\)|)("checked="checked"|")/gi;
 
+		private var userNumberSniffer:RegExp = /optionvalue="([0-9]{1,15})/;
+
 		//matches calender choices
 		private var manualStatusSelected:RegExp = /uml_manualStatus"value="true"onclick="[^"]{0,}"([^\/]{0,})/;
 		private var manualStatusSubject:RegExp = /manualStatusSubject"value=.([^"]{0,})/;
@@ -100,6 +102,12 @@ package
 		private var redirectionLoader:URLLoader = new URLLoader;
 		private var rVars:URLVariables;
 		private var redirectionData:String;
+
+		//cdr
+		private var cdrSend:URLRequest = new URLRequest("https://" + realm + context + "/cdrs.html");
+		private var cdrLoader:URLLoader = new URLLoader;
+		private var cdrVars:URLVariables;
+		private var cdrData:String;
 
 		//f2m
 		private var f2mURLRequest:URLRequest = new URLRequest("https://" + realm + context + "/notifications.html");
@@ -153,22 +161,17 @@ package
 
 		public var accountArray:Array;
 
-		public function Mavin(debugL:Number)
+		public function Mavin()
 		{
-			debugLevel = debugL;
+			checkLoader.load(checkSend);
+			checkLoader.addEventListener(Event.COMPLETE, parse);
 
-			if(debugLevel == 1)
+			var result:Array;
+
+			function parse(event:Event):void
 			{
-				checkLoader.load(checkSend);
-				checkLoader.addEventListener(Event.COMPLETE, parse);
-
-				var result:Array;
-
-				function parse(event:Event):void
-				{
-					result = checkRex.exec(checkLoader.data)
-					debug(result[1]  + ", Mavin is ready");
-				}
+				result = checkRex.exec(checkLoader.data)
+				debug(result[1]  + ", Mavin is ready");
 			}
 		}
 
@@ -383,6 +386,7 @@ package
 			function parse(event:Event):void
 			{	
 				redirectionData = redirectionLoader.data;
+
 				//reset all local vars
 				redirectionTime = {active:0, choice:0, destination:null, delay:99};
 				redirectionBusy = {active:0, choice:0, destination:null};
@@ -535,6 +539,8 @@ package
 				
 				dispatchEvent(new Event("redirectionLoadComplete"));
 			}
+			redirectionLoader = new URLLoader();
+
 			redirectionLoader.addEventListener(Event.COMPLETE, parse);	
 			redirectionLoader.load(redirectionURLRequest);
 		}
@@ -739,69 +745,75 @@ package
 			}
 		}
 
-		private function loadCDR(event:Event = null):void
+		private function loadCDR(method:String):void
 		{
-			/*
-			jData = jData.replace(rex,"");
-			phoneNumber = userNumberSniffer.exec(jData);
-			
-			cdr_vars = new URLVariables();
-			
-			cdr_vars.selector = "missed";
-			cdr_vars.accountCode = phoneNumber[1];
-			cdr_vars.periodFromDate = "01.02.2013";
-			cdr_vars.periodFromTime = "00:00:00";
-			cdr_vars.periodUntilDate = "03.02.2013";
-			cdr_vars.periodUntilTime = "23:59:59";
-			cdr_vars.orderBy = "cdr.startDate desc";
-			cdr_vars.size = "50";
-			cdr_vars.showExcel = 
-			cdr_vars.offset = "0";
-			
-			cdrSend.method = URLRequestMethod.POST;
-			cdrSend.data = cdr_vars;
-			
-			cdrLoader = new URLLoader;
-			
-			cdrLoader.addEventListener(Event.COMPLETE, loadOutgoing);
-			cdrLoader.load(cdrSend);
-			
-			function loadOutgoing():void
+			if(hasPhoneNumber == false){debug("hasPhoneNumber is false")}
+			if(hasPhoneNumber == true && method == "GET"){deubg("posting to /cdrs.html is not supported by e-fon")}
+			if(hasPhoneNumber == true && method == "GET")
 			{
-				cdrData = cdrLoader.data.replace(rex,"");
+				jData = jData.replace(rex,"");
 				
-				cdr_vars.selector = "outgoing";
-				cdrSend.data = cdr_vars;
+				result:Array = userNumberSniffer.exec(jData);
+
+				cdrVars = new URLVariables();
+				
+				cdrVars.selector = "missed";
+				cdrVars.accountCode = result[1];
+				cdrVars.periodFromDate = "01.02.2013";
+				cdrVars.periodFromTime = "00:00:00";
+				cdrVars.periodUntilDate = "03.02.2013";
+				cdrVars.periodUntilTime = "23:59:59";
+				cdrVars.orderBy = "cdr.startDate desc";
+				cdrVars.size = "50";
+				cdrVars.showExcel = 
+				cdrVars.offset = "0";
+				
+				cdrSend.method = URLRequestMethod.POST;
+				cdrSend.data = cdrVars;
 				
 				cdrLoader = new URLLoader;
 				
-				cdrLoader.removeEventListener(Event.COMPLETE, loadOutgoing);
-				cdrLoader.addEventListener(Event.COMPLETE, loadIncoming);
+				cdrLoader.addEventListener(Event.COMPLETE, loadOutgoing);
 				cdrLoader.load(cdrSend);
 				
-				function loadIncoming():void
+				function loadOutgoing():void
 				{
 					cdrData = cdrLoader.data.replace(rex,"");
-				
-					cdr_vars.selector = "incoming";
-					cdr_vars.selectionType = "1";
 					
-					cdrSend.data = cdr_vars;
-				
+					cdrVars.selector = "outgoing";
+					cdrSend.data = cdrVars;
+					
 					cdrLoader = new URLLoader;
-				
-					cdrLoader.removeEventListener(Event.COMPLETE, loadIncoming);
-					cdrLoader.addEventListener(Event.COMPLETE, returnIncoming);
+					
+					cdrLoader.removeEventListener(Event.COMPLETE, loadOutgoing);
+					cdrLoader.addEventListener(Event.COMPLETE, loadIncoming);
 					cdrLoader.load(cdrSend);
 					
-					function returnIncoming():void
+					function loadIncoming():void
 					{
 						cdrData = cdrLoader.data.replace(rex,"");
-						addDashboard("CDR", 4);
+					
+						cdrVars.selector = "incoming";
+						cdrVars.selectionType = "1";
+						
+						cdrSend.data = cdrVars;
+					
+						cdrLoader = new URLLoader;
+					
+						cdrLoader.removeEventListener(Event.COMPLETE, loadIncoming);
+						cdrLoader.addEventListener(Event.COMPLETE, returnIncoming);
+						cdrLoader.load(cdrSend);
+						
+						function returnIncoming():void
+						{
+							cdrData = cdrLoader.data.replace(rex,"");
+							addDashboard("CDR", 4);
+
+							dispatchEvent(new Event("cdrLoadComplete"))
+						}
 					}
 				}
 			}
-			*/
 		}
 
 		//just for testing;
@@ -811,6 +823,13 @@ package
 
 			trace(dump)
 			return dump;
+		}
+
+		public function setup(setupObject:Object)
+		{
+			if(setupObject.debugLevel != null){debugLevel == setupObject.debugLevel}
+			if(setupObject.realm != null){realm = setupObject.realm}
+			if(setupObject.context != null){context = setupObject.context}
 		}
 
 		private function debug(debugMessage:String):void
