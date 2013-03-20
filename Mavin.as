@@ -177,7 +177,7 @@ package
 
 		public function authorize(user:String, password:String):void
 		{
-			debug("Mavin is authorizing");
+			debug("Mavin is authorizing"); 
 
 			userID_local = user;
 			password_local = password;
@@ -377,6 +377,11 @@ package
 				{
 					rVars.uml_busy = "true";
 					rVars.choiceAnonSuppression = redirectionAnon.choice;
+				}
+
+				if(redirectionTime.active == "1" && redirectionTime.choice == "3")
+				{
+					loadF2M("POST");
 				}
 
 				redirectionURLRequest.method =  URLRequestMethod.POST;

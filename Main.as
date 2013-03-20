@@ -455,15 +455,6 @@ package
 				programState = "home";
 				main.removeEventListener(TouchEvent.TOUCH_BEGIN, mouseDownHandler);
 			}
-
-			if(event.keyCode == Keyboard.BACK && isAdmin == true && programState == "home" && 1 == 2)
-			{
-				event.preventDefault();
-				event.stopImmediatePropagation();
-				hideDashboard(10);
-				programState = "members";
-				flushMembers();
-			}
 		}
 		
 		//dashboard UI managment
@@ -744,7 +735,7 @@ package
 				if(mavin.isAdmin == true)
 				{
 					mavin.removeEventListener("authComplete", checkAuthStatus);
-					loadMembers();
+					//admin not supported
 				}
 
 				//check if !admin & !wrongpw
@@ -764,11 +755,7 @@ package
 		//load userdata
 		public function loadData(event:Event = null):void
 		{
-			//if !admin, use Jdata for functionality checking
-			if(mavin.isAdmin == false)
-			{
-				jData = mavin.jLoader.data;
-			}
+			jData = mavin.jLoader.data;
 
 			//whitespace
 			jData = jData.replace(rex, "");
@@ -1291,37 +1278,6 @@ package
 
 				main.egContainer.addChild(EGSnippet);
 				i4 = i4 + 1;
-			}
-		}
-
-		private function loadMembers():void
-		{
-			memberURLRequest.method = URLRequestMethod.GET;
-			memberLoader.addEventListener(Event.COMPLETE, parse);
-
-			memberLoader.load(memberURLRequest);
-
-			function parse(event:Event):void
-			{
-				memberData = memberLoader.data;
-				memberData = memberData.replace(rex, "");				
-
-				var result:Array = memberIDSniffer.exec(memberData);
-
-				while(result != null)
-				{
-					memberIDs.push(result[1])
-					result = memberIDSniffer.exec(memberData);
-				}
-
-				result = memberNameSniffer.exec(memberData);
-
-				while(result != null)
-				{
-					memberNames.push(result[1]);
-					result = memberNameSniffer.exec(memberData);
-				}
-				flushMembers();
 			}
 		}
 
