@@ -137,7 +137,7 @@ package
 		public var redirectionTime:Object = {};//active, choice, destination, delay
 		public var redirectionBusy:Object = {};//active, choice, destination
 		public var redirectionUnre:Object = {};//active, choice, destination
-		public var redirectionAnon:Object = {};//active, choice, destination
+		public var redirectionAnon:Object = {};//active, choice
 
 		public var calenderManual:Object = {}; //active, choice, destination, private, subject, fromTime, fromDate, untilTime, untilDate
 		public var calenderOOF:Object = {};    //active, choice, destination
@@ -316,6 +316,9 @@ package
 
 			if(method == "POST")
 			{
+				//never trust user input
+
+
 				//build rvars
 				rVars = new URLVariables();
 				
@@ -396,7 +399,7 @@ package
 				redirectionTime = {active:0, choice:0, destination:null, delay:99};
 				redirectionBusy = {active:0, choice:0, destination:null};
 				redirectionUnre = {active:0, choice:0, destination:null};
-				redirectionAnon = {active:0, choice:0, destination:null};
+				redirectionAnon = {active:0, choice:0};
 
 				featureArray = [];
 
@@ -753,12 +756,12 @@ package
 		private function loadCDR(method:String):void
 		{
 			if(hasPhoneNumber == false){debug("hasPhoneNumber is false")}
-			if(hasPhoneNumber == true && method == "GET"){deubg("posting to /cdrs.html is not supported by e-fon")}
+			if(hasPhoneNumber == true && method == "GET"){debug("posting to /cdrs.html is not supported by e-fon")}
 			if(hasPhoneNumber == true && method == "GET")
 			{
 				jData = jData.replace(rex,"");
 				
-				result:Array = userNumberSniffer.exec(jData);
+				var result:Array = userNumberSniffer.exec(jData);
 
 				cdrVars = new URLVariables();
 				
@@ -812,7 +815,6 @@ package
 						function returnIncoming():void
 						{
 							cdrData = cdrLoader.data.replace(rex,"");
-							addDashboard("CDR", 4);
 
 							dispatchEvent(new Event("cdrLoadComplete"))
 						}

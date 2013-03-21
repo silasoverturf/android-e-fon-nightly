@@ -142,14 +142,8 @@ package
 
 		//raw .html data (URLLoader.data)
 		private var jData:String;
-		private var memberData:String;
-		private var cdrData:String;
 		private var redirectionData:String;
-		private var f2mData:String;
-		private var smsData:String;
-		private var queueData:String;
-		private var accountsData:String;
-		
+
 		////RegExp defenition////
 		//matches memberIDs
 		private var memberIDSniffer:RegExp = /edit&member=([0-9]{0,})/gi;
@@ -218,12 +212,6 @@ package
 
 		//matches date to result[1], time to result[2]
 		private var dateSniffer:RegExp = /([0-9]{0,2}\.[0-9]{0,2}\.[0-9]{0,4})([0-9]{0,2}:[0-9]{0,2})/i;
-
-		//matches SMS option
-		private var smsSniffer:RegExp = /optionvalue="([0-9a-z]{0,15})">([0-9a-zA-Z]{1,10})/gi;
-		
-		//matches queue info
-		private var queueSniffer:RegExp =  />([^<]{0,})<\/td><td>[^<]{0,},([^<]{0,})<\/td><td>[^<]{0,}<\/td><td>[^<]{0,}<br\/><\/td><td><spanstyle="color:[0-9a-zA-Z,]{0,};">([a-zA-Z]{0,})<\/span><\/td><td><ahref="javascript:[a-zA-Z]{0,}\(([0-9]{0,})\)"/g; 
 		
 		////Local variable defenition////
 		//member local
@@ -255,36 +243,6 @@ package
 		private var calenderManual:Array;// [active, subject, private, dateFrom, timeFrom, dateUntil, timeUntil, choice, destination]
 		private var calenderStatus:Array;// []
 		
-		//avaliable agents
-		private var queueAgent:Array = [];
-		private var queueName:Array = [];
-		private var queueList:Array = [];
-		private var queueStatus:Array = [];
-		
-		//assigned accounts
-		private var accounts:Array = [];
-		private var accountN:Array = [];
-		private var accountID:Array = [];
-		private var accountCLIP:Array = [];
-		private var accountANON:Array = [];
-		private var accountZIP:Array = [];
-		private var accountStatus:Array = [];
-		private var accountMisc:Array = [];
-		
-		//sms options
-		private var smsNumberID:Array = [];
-		private var smsNumber:Array = [];
-		
-		private var smsResult:Array = [];
-		
-		//cdr vars
-		private var phoneNumber:Array = [];
-		
-		private var cdrTime:Array = [];
-		private var cdrDur:Array = [];
-		private var cdrDest:Array = [];
-		private var cdrPrice:Array = [];
-		
 		////Display stack////
 		private var smsRadioGroup:RadioButtonGroup = new RadioButtonGroup("SMSRadioGroup");
 
@@ -293,7 +251,7 @@ package
 		public var mc:Sprite = new Sprite();
 		public var t1:uint, t2:uint, y1:Number, y2:Number;
 
-		var mavin:Mavin = new Mavin(0);
+		var mavin:Mavin = new Mavin();
 
 		public function Main()
 		{
@@ -474,7 +432,7 @@ package
 				main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest2);
 				main.unregContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest3);
 				main.anonContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest4);
-				flushRedir();
+				flushRedirection();
 				flushF2M();
 				addSwipe();
 			}
@@ -742,53 +700,28 @@ package
 				if(mavin.isAdmin == false && mavin.invalidPW == false)
 				{
 					mavin.removeEventListener("authComplete", checkAuthStatus);
-					loadData();
 
 					mavin.addEventListener("smsLoadComplete", addSMS);
 					mavin.addEventListener("accountLoadComplete", addAccount);
 					mavin.addEventListener("queueLoadComplete", addQueue);
 					mavin.addEventListener("redirectionLoadComplete", addRedirection);
-				}
-			}
-		}
+					mavin.addEventListener("f2mLoadComplete", addVoicemail);
 
-		//load userdata
-		public function loadData(event:Event = null):void
-		{
-			jData = mavin.jLoader.data;
-
-			//whitespace
-			jData = jData.replace(rex, "");
-
-			//check if numbers are owned
-			if(jData.search("optionvalue") > -1)
-			{
-				function redirectionHandler(event:Event):void
-				{	
-					main.visible = true;
+					//ui management
+					TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
+					TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
+					TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
 					
-					redirectionData = new String(redirectionLoader.data);
-					//jLoader.removeEventListener(Event.COMPLETE, completeHandler);
-					parseRedir();
-					//addDashboard("Umleitung", 1);
+					TweenMax.to(dashboard, 0.5, {delay:0.3,autoAlpha:1, ease:Cubic.easeInOut});
+					TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
+					TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+
+					programState = "home";
+
+					if(mavin.hasPhoneNumber == true){functionCount = functionCount + 2}
+					if(mavin.hasQueue == true){functionCount = functionCount + 1}
 				}
-				redirectionLoader.addEventListener(Event.COMPLETE, redirectionHandler);	
-				redirectionLoader.load(redirectionURLRequest);
-
-				//update functino count
-				functionCount = functionCount + 2;
 			}
-			
-			//ui management
-			TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
-			TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
-			TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
-			
-			TweenMax.to(dashboard, 0.5, {delay:0.3,autoAlpha:1, ease:Cubic.easeInOut});
-			TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
-			TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
-
-			programState = "home";
 		}
 
 		private function addSMS(event:Event):void
@@ -813,6 +746,12 @@ package
 		{
 			mavin.removeEventListener("redirectionLoadComplete", addRedirection);
 			addDashboard("Umleitung", 1);
+		}
+
+		private function addVoicemail(event:Event):void
+		{
+			mavin.removeEventListener("f2mLoadComplete", addVoicemail);
+			addDashboard("Voicemail", 6);
 		}
 
 		//manual parsing of .html
@@ -995,11 +934,11 @@ package
 					result = calenderDestination.exec(redirectionData);
 				}
 			}
-			if(main.currentFrame == 1){flushRedir();}
+			if(main.currentFrame == 1){flushRedirection();}
 		}
 		
 		//UI flushing
-		private function flushRedir():void
+		private function flushRedirection():void
 		{
 			//reset
 			main.timeContainer.switcher.gotoAndStop(2);
@@ -1214,9 +1153,9 @@ package
 		{
 			hideDashboard(8);
 
-			main.email.text = voicemail[0];
-			main.greeting.text = voicemail[1];
-			main.PIN.text = voicemail[2];
+			main.email.text = mavin.voicemail.email;
+			main.greeting.text = mavin.voicemail.greeting;
+			main.PIN.text = mavin.voicemail.PIN;
 
 			main.callButton.btn_txt.text = "043 500 9990";
 		}
@@ -1303,7 +1242,7 @@ package
 
 			function memberHandler(event:TouchEvent):void
 			{
-				if(event.target.name == "actAs"){actAs(event.target.parent.name);}
+				if(event.target.name == "actAs"){mavin.actAs(event.target.parent.name);}
 			}
 
 			TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
@@ -1311,21 +1250,49 @@ package
 			TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
 		}
 
-		private function actAs(actAsMember:String)
+		private function saveRedir(event:TouchEvent):void
 		{
-			actAsURLRequest = new URLRequest("https://" + context + "/actAs.html?member=" + actAsMember);
-			actAsLoader = new URLLoader();
+			//reset mavin redir vars
+			mavin.redirectionTime.active = "0";
+			mavin.redirectionBusy.active = "0";
+			mavin.redirectionUnre.active = "0";
+			mavin.redirectionAnon.active = "0";
 
-			actAsLoader.addEventListener(Event.COMPLETE, loadData)
-			actAsLoader.load(actAsURLRequest);
+			if (main.timeContainer.Check.currentFrame == 1)
+			{
+				//if(main)
+				mavin.redirectionTime.active = "1";
+				mavin.redirectionTime.delay = main.timeContainer.switcher.Delay.text;
+				mavin.redirectionTime.designation = main.timeContainer.switcher.destination.text;
 
-			TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
-			TweenMax.to(dashboard, 0.5, {delay:0.3,autoAlpha:1, ease:Cubic.easeInOut});
-			TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
+				if(main.timeContainer.switcher.currentFrame == 2){mavin.redirectionTime.choice = "1"};
+				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Voicemail"){mavin.redirectionTime.choice = "2"};
+				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Fax2Mail")(mavin.redirectionTime.choice = "3");
+			}
+			
+			if (main.busyContainer.Check.currentFrame == 1)
+			{
+				mavin.redirectionBusy.active = "1";
+				mavin.redirectionBusy.destination = main.busyContainer.switcher.destination.text;
 
-			dashboard.dashboardTitle.text = memberNames[memberIDs.indexOf(actAsMember)];
+				if(main.busyContainer.switcher.currentFrame == 4){mavin.redirectionBusy.choice = "1";}
+				if(main.busyContainer.switcher.currentFrame == 5){mavin.redirectionBusy.choice = "2";}
+			}
+			
+			if (main.unregContainer.Check.currentFrame == 1)
+			{
+				r_vars.uml_backuprouting = true
+				if(main.unregContainer.switcher.currentFrame == 6){r_vars.choiceBackuprouting = "1";r_vars.backupNumber = main.unregContainer.switcher.destination.text}
+				if(main.unregContainer.switcher.currentFrame == 7){r_vars.choiceBackuprouting = "2"}
+			}
+			
+			if (main.anonContainer.Check.currentFrame == 1)
+			{
+				r_vars.uml_anonSuppression = true
+				if(main.anonContainer.switcher.currentFrame == 1){r_vars.choiceAnonSuppression = "1";}
+				if(main.anonContainer.switcher.currentFrame == 7){r_vars.choiceAnonSuppression = "2";}
+			}	
 		}
-
 		
 		private function mouseDownHandler(event:TouchEvent):void
 		{
