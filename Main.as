@@ -77,136 +77,9 @@ package
 		private var testingArray:Array = ["testing"];
 		private var testingString:String = "";
 		private var testingBoolean:Boolean;
-		private var myDate:Date = new Date();
-		private var myDate2:Date;
-
-		//analytics
-		private var analyticsVars:URLVariables = new URLVariables();
-		private var analyticsSend:URLRequest = new URLRequest("http://www.timothyoverturf.com/analytics.php");
-		private var analyticsLoader:URLLoader = new URLLoader();
 		
 		//user settings
-		private var context:String = "web.e-fon.ch/portal";//e.g. web.e-fon.ch/portal/, dev01.e-fon.ch/portal_12q3/
 
-		/*variable assigning designation
-		j_session
-		members
-		redirection
-		fax2mail
-		voicemail
-		sms
-		queue
-		*///network stack variables////
-		
-		//url requests
-		private var jSend:URLRequest = new URLRequest("https://" + context + "/j_acegi_security_check");
-
-		private var memberURLRequest:URLRequest = new URLRequest("https://" + context + "/memberOverview.html")
-		private var actAsURLRequest:URLRequest;
-		
-		private var redirectionURLRequest:URLRequest = new URLRequest("https://" + context + "/redirection.html");//?selectedPhoneNumberId=selectedNumber;
-		
-		private var f2mURLRequest:URLRequest = new URLRequest("https://" + context + "/notifications.html");//?selectedPhoneNumberId=selectedNumber;
-		
-		private var smsSend:URLRequest = new URLRequest("https://" + context + "/SMSSender.html");
-		private var queueSend:URLRequest = new URLRequest("https://" + context + "/callCenterQueueMemberStatus.html");
-		
-		private var accountsSend:URLRequest = new URLRequest("https://" + context + "/accounts.html");
-		
-		private var cdrSend:URLRequest = new URLRequest("https://" + context + "/cdrs.html");
-		
-		//url loaders
-		private var memberLoader:URLLoader = new URLLoader;
-		private var actAsLoader:URLLoader = new URLLoader;
-		
-		private var redirectionLoader:URLLoader = new URLLoader;
-		private var rLoader:URLLoader = new URLLoader;
-		
-		private var f2mLoader:URLLoader = new URLLoader;
-		private var vmLoader:URLLoader = new URLLoader;
-		
-		private var smsLoader:URLLoader = new URLLoader;
-		private var queueLoader:URLLoader = new URLLoader;
-		private var accountsLoader:URLLoader = new URLLoader;
-		private var cdrLoader:URLLoader = new URLLoader;
-		
-		//url variables
-		private var j_session:URLVariables;
-		
-		private var r_vars:URLVariables;
-		private var f2m_vars:URLVariables;
-		private var vm_vars:URLVariables;
-		private var sms_vars:URLVariables = new URLVariables;
-		private var queueVars:URLVariables;//memberID+10->in,20->wait,30->pause,40->out
-		private var cdr_vars:URLVariables;
-
-		//raw .html data (URLLoader.data)
-		private var jData:String;
-		private var redirectionData:String;
-
-		////RegExp defenition////
-		//matches memberIDs
-		private var memberIDSniffer:RegExp = /edit&member=([0-9]{0,})/gi;
-
-		//matches memberNames to result[1]
-		private var memberNameSniffer:RegExp = /<td>([^<]{0,})(?:<spanclass='newbutton'>[^<]{0,}<\/span>\([^\)]{0,}\)<\/td>|)<tdwidth=.[0-9]{0,3}/gi;
-
-		//matches connection date[1] and time[2]
-		private var timeSniffer:RegExp = /([0-9]{0,2}[.][0-9]{0,2}[.][0-9]{0,4})([0-9]{0,2}:[0-9]{0,2}:[0-9]{0,2})/g;
-		
-		//matches destination sniffer in cdr, number[1] and "ziel"[2]
-		private var destSniffer:RegExp = /([0-9]{1,15})<\/td><td>([^<]{0,})/g;
-		
-		//matches time of call in cdr, time[1]
-		private var durSniffer:RegExp = />([0-9]{1,2}:[0-9]{2}:[0-9]{2})/g;
-		
-		//matches price of call in cdr, price[1]
-		private var priceSniffer:RegExp = />([0-9]{1,3}[.][0-9]{1,2})</g;
-		
-		//matches selectedNumber ID
-		private var optionSniffer:RegExp = /optionvalue="[0-9]{4,8}/;
-		private var optionStripper:RegExp = /optionvalue="/;
-		
-		//matches selectedNumber
-		private var userNumberSniffer:RegExp = /optionvalue="([0-9]{1,15})/;
-		
-		//matches destinations
-		private var delaySniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="([0-9]{3,15})/g;
-		private var bloatStripper:RegExp = /(?:phone1|phone3|backupNumber)"value="/g;
-		
-		//matches checked
-		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(?:1|3|Backuprouting|AnonSuppression)"value="[0-9]{0,4}"(?:onclick="controlRedir(?:Normal|Busy|Backup)\(\)"|)(?:checked="checked"|)/g;
-		
-		//matches timeRedir delay
-		private var numberSniffer:RegExp = /name="delay1"size="5"value="[0-9]{1,2}/;
-		private var numberStripper:RegExp = /name="delay1"size="5"value="/;
-		
-		//matches calender choices
-		private var manualStatusSelected:RegExp = /uml_manualStatus"value="true"onclick="[^"]{0,}"([^\/]{0,})/;
-		private var manualStatusSubject:RegExp = /manualStatusSubject"value=.([^"]{0,})/;
-		private var manualStatusPrivate:RegExp = /manualStatusPrivate"value=.true"([^\/]{0,})/;
-		private var manualStatusTimeDate:RegExp = /manualStatus(?:from|until)(?:time|date)"value=.([^"]{0,})/gi; //fromdate, fromtime, untildate, untiltime
-		private var manualStatusChoice:RegExp = /choiceManualStatus"value="([0-9])"onclick=.controlRedirManualStatus\(\)"([^\/]{0,})/gi; //result[1], selection, result[2], checked
-		private var manualStatusDestination:RegExp = /phoneManualStatus"value="([0-9]{0,15})/i;
-
-		private var calenderStatusChoice:RegExp = /choiceCal(?:oof|Busy)"value="([0-9]).onclick="[^"]{0,}"([^"]{0,})/gi
-		private var calenderDestination:RegExp = /phoneCal(?:oof|busy)"value="([0-9]{0,15})/gi;
-
-		//matches featureIDs
-		private var featureSniffer:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="[0-9]{1,10}/gi;
-		private var featureStripper:RegExp = /featureId(?:1|2|3|4|Backuprouting|AnonSuppression)"value="/;
-		
-		//matches F2M email to result[1]
-		private var f2mSniffer:RegExp = /name="fax2emailEmail"value="([0-9a-zA-Z][-._a-zA-Z0-9]*@(?:[0-9a-zA-Z][-._0-9a-zA-Z]*\.)+[a-zA-Z]{2,4})/;
-
-		//matches voicemail email to result[1]
-		private var voicemailEmailSniffer:RegExp = /voicemailEmail"value=.([^"]{0,})/;
-		private var voicemailGreetingSniffer:RegExp = /voicemailAnrede"style="width:400px"value=.([^"]{0,})/;
-		private var voicemailPINSnifffer:RegExp = /voicemailPin"style="width:100px"value="([0-9]{0,})/;
-		
-		//matches asssigned accounts to result[1]
-		private var accountsSniffer:RegExp = /tdwidth="100px">([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([^"]{0,})"\/><\/td><td>/g;
-		
 		//matches ip address to result[1]
 		private var IPSniffer:RegExp = /[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}/i;
 
@@ -315,10 +188,9 @@ package
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyHandler);
 
 			//listen for native actions
-			////after change to portal cookies don't expire after set time, jession.load no longer needed.
-			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
+			//after change to portal cookies don't expire after set time, jession.load no longer needed.
+			//NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
 			//NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, deactivate);
-			NativeApplication.nativeApplication.addEventListener(Event.NETWORK_CHANGE, networkChange);
 			
 			stage.addEventListener(TouchEvent.TOUCH_TAP, getTarget);
 
@@ -332,36 +204,13 @@ package
 				login.password_txt.text = "password";
 			}else{
 				login.userid_txt.text = SO.data.userid;
-				//login.password_txt.text = SO.data.pass;
+				login.password_txt.text = SO.data.pass;
 			}
 		}
 		
 		//reactivation
 		private function activate(event:Event):void
-		{
-			//check if initial login complete
-			if(jData != null && 1 == 2)
-			{
-				//jLoader.addEventListener(Event.COMPLETE, removeOverlay);
-				//jLoader.load(jSend);
-				var Overlay:MovieClip = new overlay();
-				Overlay.scaleX = stage.stageWidth / 320;
-				Overlay.scaleY = stage.stageHeight / 480;
-				
-				stage.addChild(Overlay);
-			}
-
-			
-			function removeOverlay(event:Event):void
-			{
-				stage.removeChild(Overlay);
-			}
-			
-
-			if(main.currentFrame == 5)
-			{
-			}
-		}
+		{}
 
 		//deactivation
 		private function deactivate(event:Event):void
@@ -667,12 +516,6 @@ package
 			SO.data.pass = login.password_txt.text;
 			SO.flush ();
 			
-			//analytics
-			analyticsSend.method = URLRequestMethod.POST;
-			analyticsSend.data = analyticsVars;
-			
-			analyticsVars.email = userID_local;
-			
 			//check if admin, pw
 			function checkAuthStatus(event:Event):void
 			{
@@ -753,189 +596,6 @@ package
 			mavin.removeEventListener("f2mLoadComplete", addVoicemail);
 			addDashboard("Voicemail", 6);
 		}
-
-		//manual parsing of .html
-		private function parseRedir(event:Event = null):void
-		{
-			//reset all local vars
-			featureArray = [];
-			timeRedir = [0,0,""];
-			busyRedir = [0,0,""];
-			unregRedir = [0,0,""];
-			anonRedir = [0,0];
-			
-			redirChoice = ["","","",""];
-			timeDelay = null;
-			dumpRedir = [];
-			dumpContainer = null;
-			
-			calenderManual = [];
-			calenderStatus = [];
-
-			//reset counters
-			i=0;
-			i2=0;
-			i3=0;
-			
-			//remove whitespace
-			redirectionData = redirectionData.replace(rex,"");
-
-			var result:Array = choiceSniffer.exec(redirectionData);
-			var result2:Array = featureSniffer.exec(redirectionData);
-			
-			//gets all choices with choiceSniffer
-			while (result != null)
-			{
-				dumpRedir.push(result);
-				result = choiceSniffer.exec(redirectionData);
-			}
-			
-			//dumps to appropriate localized arrary
-			for each (var dumpVar in dumpRedir)
-			{
-				dumpContainer = dumpRedir[i2];
-
-				if(dumpRedir.length == 9)
-				{
-					if (dumpContainer.search("checked") != -1)
-					{
-						if (i2 == 0){timeRedir = [1,1];}
-						if (i2 == 1){timeRedir = [1,2];}
-						if (i2 == 2){timeRedir = [1,3];}
-						if (i2 == 3){busyRedir = [1,1];}
-						if (i2 == 4){busyRedir = [1,2];}
-						if (i2 == 5){unregRedir = [1,1];}
-						if (i2 == 6){unregRedir = [1,2];}
-						if (i2 == 7){anonRedir = [1,1];}
-						if (i2 == 8){anonRedir = [1,2];}
-					}
-				}
-
-				if(dumpRedir.length == 8)
-				{
-					if (dumpContainer.search("checked") != -1)
-					{
-						if (i2 == 0){timeRedir = [1,1];}
-						if (i2 == 1){timeRedir = [1,2];}
-						if (i2 == 2){busyRedir = [1,1];}
-						if (i2 == 3){busyRedir = [1,2];}
-						if (i2 == 4){unregRedir = [1,1];}
-						if (i2 == 5){unregRedir = [1,2];}
-						if (i2 == 6){anonRedir = [1,1];}
-						if (i2 == 7){anonRedir = [1,2];}
-					}
-				}
-				i2 = i2 + 1;
-			}
-
-			result = [];
-			dumpRedir = [];
-			result = delaySniffer.exec(redirectionData);
-			
-			//gets delay with delaySniffer
-			while (result != null)
-			{
-				dumpRedir.push(result[1]);
-				result = delaySniffer.exec(redirectionData);
-			}
-			
-			//clean up of delayVar
-			for each (var delayVar in dumpRedir)
-			{
-				dumpContainer = dumpRedir[i3];
-				if (i3 == 0){timeRedir[2] = dumpContainer;}
-				if (i3 == 1){busyRedir[2] = dumpContainer;}
-				if (i3 == 2){unregRedir[2] = dumpContainer;}
-				
-				i3 = i3 + 1;
-			}
-
-			//get timeDelay
-			timeDelay = numberSniffer.exec(redirectionData);
-			timeRedir.push(timeDelay.replace(numberStripper, ""));
-			
-			//get selected numberID
-			numberID = optionSniffer.exec(redirectionData);
-			numberID = numberID.replace(optionStripper, "");
-			
-			//reset counter
-			i3 = 0;
-			
-			//sniff for feature vars
-			while (result2 != null)
-			{
-				featureArray.push(result2);
-				result2 = featureSniffer.exec(redirectionData);
-			}
-			
-			//clean up feature vars
-			for each(var featureVar in featureArray)
-			{
-				dumpContainer = featureArray[i3];
-				dumpContainer = dumpContainer.replace(featureStripper,"");
-				featureArray[i3] = dumpContainer;
-				i3 = i3 + 1;
-			}
-
-			//calender
-			result = manualStatusSelected.exec(redirectionData);
-			
-			//only push if avaliable
-			if(result != null)
-			{
-				calenderManual.push(result[1]);
-
-				result = manualStatusSubject.exec(redirectionData);
-				calenderManual.push(result[1]);
-
-				result = manualStatusPrivate.exec(redirectionData);
-				calenderManual.push(result[1]);
-
-				result = manualStatusTimeDate.exec(redirectionData);
-
-				while(result != null)
-				{
-					calenderManual.push(result[1]);
-					result = manualStatusTimeDate.exec(redirectionData);
-				}
-
-				result = manualStatusChoice.exec(redirectionData);
-
-				while(result != null)
-				{
-					if(result[2].search("checked") != -1)
-					{
-						calenderManual.push(result[1]);
-					}
-					result = manualStatusChoice.exec(redirectionData);
-				}
-
-				result = manualStatusDestination.exec(redirectionData);
-				calenderManual.push(result[1]);
-				
-				result = calenderStatusChoice.exec(redirectionData);
-
-				while(result != null)
-				{
-					if(result[2].search("checked") != -1)
-					{
-						calenderStatus.push(result[1]);
-					}else{
-						calenderStatus.push("");
-					}
-					result = calenderStatusChoice.exec(redirectionData);
-				}
-
-				result = calenderDestination.exec(redirectionData);
-
-				while(result != null)
-				{
-					calenderStatus.push(result[1])
-					result = calenderDestination.exec(redirectionData);
-				}
-			}
-			if(main.currentFrame == 1){flushRedirection();}
-		}
 		
 		//UI flushing
 		private function flushRedirection():void
@@ -973,175 +633,11 @@ package
 			//anonRedir flush
 			if (mavin.redirectionAnon.choice == 1){main.anonContainer.switcher.gotoAndStop(1);main.anonContainer.switcher.Text.text = "Falls unterdrückt umleiten auf Voicemail";}
 			if (mavin.redirectionAnon.choice == 2){main.anonContainer.switcher.gotoAndStop(7);main.anonContainer.switcher.destination.text = "Falls unterdrückt umleiten auf Abweisungsnachricht";}
-			
+
 			//read savingBtn listeners
-			main.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, loadRedirection);
+			main.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, saveRedir);
 			main.saveBtn.btn_txt.text = "Saved!";
 			TweenMax.to(main.saveBtn, 0.5, {delay:0.4, x:117, ease:Bounce.easeOut});
-		}
-		
-		//UI reverse flushing
-		private function UItoV(event:Event = null):void
-		{
-			//reset r_ and f2m_vars
-			r_vars = new URLVariables();
-			
-			//r_vars static constructor
-			r_vars._uml_normal1 = "visible";
-			r_vars._uml_busy = "visible";
-			r_vars._uml_backuprouting = "visible";
-			r_vars._uml_anonSuppression = "visible";
-			r_vars._uml_manualStatus = "visible";
-			r_vars._manualStatusPrivate = "visible";
-			r_vars._uml_calOof = "visible";
-			r_vars.reload = "";
-			r_vars._uml_calBusy = "visible";
-			
-			//flush featureIDs
-			r_vars.featureId1 = featureArray[0];
-			r_vars.featureId2 = featureArray[1];
-			r_vars.featureId3 = featureArray[2];
-			r_vars.featureId4 = featureArray[3];
-			r_vars.featureIdBackuprouting = featureArray[4];
-			r_vars.featureIdAnonSuppression = featureArray[5];
-			r_vars.selectedPhoneNumberId = numberID;
-
-			//r_vars conditionals constructor
-			if (main.timeContainer.Check.currentFrame == 1)
-			{
-				//if(main)
-				r_vars.uml_normal1 = true;
-				r_vars.delay1 = main.timeContainer.switcher.Delay.text;
-				
-				if(main.timeContainer.switcher.currentFrame == 2){r_vars.choice1 = "1";r_vars.phone1 = main.timeContainer.switcher.destination.text};
-				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Voicemail"){r_vars.choice1 = "2"};
-				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Fax2Mail")(r_vars.choice1 = "3");
-			}
-			
-			if (main.busyContainer.Check.currentFrame == 1)
-			{
-				r_vars.uml_busy = true
-				if(main.busyContainer.switcher.currentFrame == 4){r_vars.choice3 = "1";r_vars.phone3 = main.busyContainer.switcher.destination.text}
-				if(main.busyContainer.switcher.currentFrame == 5){r_vars.choice3 = "2"}
-			}
-			
-			if (main.unregContainer.Check.currentFrame == 1)
-			{
-				r_vars.uml_backuprouting = true
-				if(main.unregContainer.switcher.currentFrame == 6){r_vars.choiceBackuprouting = "1";r_vars.backupNumber = main.unregContainer.switcher.destination.text}
-				if(main.unregContainer.switcher.currentFrame == 7){r_vars.choiceBackuprouting = "2"}
-			}
-			
-			if (main.anonContainer.Check.currentFrame == 1)
-			{
-				r_vars.uml_anonSuppression = true
-				if(main.anonContainer.switcher.currentFrame == 1){r_vars.choiceAnonSuppression = "1";}
-				if(main.anonContainer.switcher.currentFrame == 7){r_vars.choiceAnonSuppression = "2";}
-			}
-			
-			if (main.timeContainer.Check.currentFrame == 2){}
-			if (main.busyContainer.Check.currentFrame == 2){}
-			if (main.unregContainer.Check.currentFrame == 2){}
-
-			//calender vars
-			//only search if calender avaliabe
-			if(calenderStatus.length > 1)
-			{
-				//only set r_vars if calender avaliabe
-				if(calenderManual[0].search("checked") != -1)
-				{
-					r_vars.uml_manualStatus = "true";
-					r_vars.manualStatusSubject = calenderManual[1];
-					r_vars.manualStatusFromDate = calenderManual[3];
-					r_vars.manualStatusFromTime = calenderManual[4];
-					r_vars.manualStatusUntilDate = calenderManual[5]
-					r_vars.manualStatusUntilTime = calenderManual[6];
-					r_vars.choiceManualStatus = calenderManual[7];
-
-					if(calenderManual[2].search("checked") != -1)
-					{
-						r_vars.manualStatusPrivate = "true";
-					}else{
-						r_vars.manualStatusPrivate = "false";
-					}
-
-					if(calenderManual[7] == "1"){r_vars.phoneManualStatus = calenderManual[8];}
-				}
-
-				i = 0;
-
-				for each(var calender in calenderStatus)
-				{
-					if(calender == 1 && i == 0)
-					{
-						r_vars.uml_calOof = "true";
-						r_vars.choiceCalOof = "1";
-						r_vars.phoneCalOof = calenderStatus[4];
-					}
-					
-					if(calender == 1 && i == 2)
-					{
-						r_vars.uml_calOof = "true";
-						r_vars.choiceCalOof = "2";
-					}
-
-					if(calender == 2 && i == 1)
-					{
-						r_vars.uml_calBusy = "true";
-						r_vars.choiceCalBusy = "1";
-						r_vars.choiceCalPhone = calenderStatus[5];
-					}
-
-					if(calender == 2 && i == 3)
-					{
-						r_vars.uml_calBusy = "true";
-						r_vars.choiceCalBusy = "2";
-					}
-					i = i + 1;
-				}
-			}
-		}
-
-		//r_vars posting
-		private function loadRedirection(event:TouchEvent):void
-		{
-			//input check and fix
-			if(main.timeContainer.Check.currentFrame == 1)
-			{
-				if(main.timeContainer.switcher.currentFrame == 2 && main.timeContainer.switcher.destination.length < 10){}
-			}
-
-			main.saveBtn.removeEventListener(TouchEvent.TOUCH_TAP, loadRedirection);
-			main.saveBtn.btn_txt.text = "Saving";
-			TweenMax.to(main.saveBtn, 0.5, {x:70, ease:Bounce.easeOut});
-			
-			//UItoV flush
-			UItoV();
-		
-			//set method and data
-			redirectionURLRequest.method = URLRequestMethod.POST;
-			redirectionURLRequest.data = r_vars;
-				//listen for r_vars complete
-			rLoader.addEventListener(Event.COMPLETE, parse);
-				
-			//post r_vars
-			rLoader.load(redirectionURLRequest);
-				
-			//reget redir on complete r_vars post...
-			function parse(event:Event)
-			{
-				redirectionData = new String(rLoader.data);
-			
-				parseRedir();
-
-				//if f2m chosen, post F2M email address, post is deffered to after the rloader to avoid timeouts from the server
-				if(r_vars.choice1 == "3")
-				{
-					mavin.f2mEmail[1] = main.timeContainer.selecter.fax2mailIcon.email.text;
-					mavin.user = numberID;
-					mavin.loadF2M("POST")
-				}
-			}
 		}
 
 		private function flushF2M():void
@@ -1266,8 +762,8 @@ package
 				mavin.redirectionTime.designation = main.timeContainer.switcher.destination.text;
 
 				if(main.timeContainer.switcher.currentFrame == 2){mavin.redirectionTime.choice = "1"};
-				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Voicemail"){mavin.redirectionTime.choice = "2"};
-				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Fax2Mail")(mavin.redirectionTime.choice = "3");
+				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Voicemail"){mavin.redirectionTime.choice = "2";}
+				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Fax2Mail"){mavin.redirectionTime.choice = "3";}
 			}
 			
 			if (main.busyContainer.Check.currentFrame == 1)
@@ -1281,17 +777,27 @@ package
 			
 			if (main.unregContainer.Check.currentFrame == 1)
 			{
-				r_vars.uml_backuprouting = true
-				if(main.unregContainer.switcher.currentFrame == 6){r_vars.choiceBackuprouting = "1";r_vars.backupNumber = main.unregContainer.switcher.destination.text}
-				if(main.unregContainer.switcher.currentFrame == 7){r_vars.choiceBackuprouting = "2"}
+				mavin.redirectionUnre = "1";
+				mavin.redirectionUnre = main.unregContainer.switcher.destination.text;
+
+				if(main.unregContainer.switcher.currentFrame == 6){mavin.redirectionUnre.choice = "1";}
+				if(main.unregContainer.switcher.currentFrame == 7){mavin.redirectionUnre.choice = "2";}
 			}
 			
 			if (main.anonContainer.Check.currentFrame == 1)
 			{
-				r_vars.uml_anonSuppression = true
-				if(main.anonContainer.switcher.currentFrame == 1){r_vars.choiceAnonSuppression = "1";}
-				if(main.anonContainer.switcher.currentFrame == 7){r_vars.choiceAnonSuppression = "2";}
+				mavin.redirectionAnon = true
+
+				if(main.anonContainer.switcher.currentFrame == 1){mavin.redirectionAnon.choice = "1";}
+				if(main.anonContainer.switcher.currentFrame == 7){mavin.redirectionAnon.choice = "2";}
 			}	
+
+			mavin.f2mEmail = main.timeContainer.selecter.fax2mailIcon.email.text;
+
+			//UI Management
+			main.saveBtn.removeEventListener(TouchEvent.TOUCH_TAP, saveRedir);
+			main.saveBtn.btn_txt.text = "Saving";
+			TweenMax.to(main.saveBtn, 0.5, {x:70, ease:Bounce.easeOut});
 		}
 		
 		private function mouseDownHandler(event:TouchEvent):void

@@ -80,7 +80,30 @@ package
 
 		private var queueSniffer:RegExp =  />([^<]{0,})<\/td><td>[^<]{0,},([^<]{0,})<\/td><td>[^<]{0,}<\/td><td>[^<]{0,}<br\/><\/td><td><spanstyle="color:[0-9a-zA-Z,]{0,};">([a-zA-Z]{0,})<\/span><\/td><td><ahref="javascript:[a-zA-Z]{0,}\(([0-9]{0,})\)"/g; 
 
-		private var accountsSniffer:RegExp = /tdwidth="100px">([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([^"]{0,})"\/><\/td><td>/g;
+		private var accountsSniffer:RegExp = /tdwidth=.100px">([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([^"]{0,})"\/><\/td><td>/g;
+
+		//matches connection date[1] and time[2]
+		private var timeSniffer:RegExp = /([0-9]{0,2}[.][0-9]{0,2}[.][0-9]{0,4})([0-9]{0,2}:[0-9]{0,2}:[0-9]{0,2})/g;
+		
+		//matches destination sniffer in cdr, number[1] and "ziel"[2]
+		private var destSniffer:RegExp = /([0-9]{1,15})<\/td><td>([^<]{0,})/g;
+		
+		//matches time of call in cdr, time[1]
+		private var durSniffer:RegExp = />([0-9]{1,2}:[0-9]{2}:[0-9]{2})/g;
+		
+		//matches price of call in cdr, price[1]
+		private var priceSniffer:RegExp = />([0-9]{1,3}[.][0-9]{1,2})</g;
+
+		/*variable assigning designation
+		j_session
+		members
+		redirection
+		fax2mail
+		voicemail
+		sms
+		queue
+
+		*///network stack variables////
 
 		//session
 		private var jSend:URLRequest = new URLRequest("https://" + realm + context +"/j_acegi_security_check");
