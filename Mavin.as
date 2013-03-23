@@ -332,6 +332,7 @@ package
 		//redirection
 		public function loadRedirection(method:String):void
 		{
+			debug("loading Redirection")
 			if(method == "GET")
 			{
 				redirectionURLRequest.method = URLRequestMethod.GET;
@@ -340,7 +341,6 @@ package
 			if(method == "POST")
 			{
 				//never trust user input
-
 
 				//build rvars
 				rVars = new URLVariables();
@@ -405,11 +405,6 @@ package
 					rVars.choiceAnonSuppression = redirectionAnon.choice;
 				}
 
-				if(redirectionTime.active == "1" && redirectionTime.choice == "3")
-				{
-					loadF2M("POST");
-				}
-
 				redirectionURLRequest.method =  URLRequestMethod.POST;
 				redirectionURLRequest.data = rVars;
 			}
@@ -440,7 +435,6 @@ package
 				//gets all choices with choiceSniffer
 				while (result != null)
 				{
-					trace(result)
 					if(result[1] == "1" && result[3].search("checked") != -1)
 					{
 						redirectionTime.active = 1;
@@ -567,6 +561,12 @@ package
 
 				calenderBusy.destination = dumpArray[0];
 				calenderOOF.destination = dumpArray[1];
+
+				//f2m posting is deffered to after redir loading to avoid connection timeouts
+				if(redirectionTime.active == "1" && redirectionTime.choice == "3" && method == "POST")
+				{
+					loadF2M("POST");
+				}
 				
 				dispatchEvent(new Event("redirectionLoadComplete"));
 			}
@@ -698,7 +698,7 @@ package
 		//
 		public function loadSMS(method:String):void
 		{
-			trace("loadingSMS");
+			debug("loading SMS");
 
 			if(method == "GET")
 			{

@@ -792,12 +792,23 @@ package
 				if(main.anonContainer.switcher.currentFrame == 7){mavin.redirectionAnon.choice = "2";}
 			}	
 
-			mavin.f2mEmail = main.timeContainer.selecter.fax2mailIcon.email.text;
+			mavin.f2mEmail[1] = main.timeContainer.selecter.fax2mailIcon.email.text;
+
+			//saveReidr
+			mavin.loadRedirection("POST");
 
 			//UI Management
 			main.saveBtn.removeEventListener(TouchEvent.TOUCH_TAP, saveRedir);
 			main.saveBtn.btn_txt.text = "Saving";
 			TweenMax.to(main.saveBtn, 0.5, {x:70, ease:Bounce.easeOut});
+
+			mavin.addEventListener("redirectionLoadComplete", complete);
+
+			function complete(event:Event):void
+			{
+				mavin.removeEventListener("redirectionLoadComplete", complete);
+				if(main.currentFrame == 1){flushRedirection();}
+			}
 		}
 		
 		private function mouseDownHandler(event:TouchEvent):void
