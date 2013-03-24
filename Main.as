@@ -128,6 +128,12 @@ package
 
 		public function Main()
 		{
+			//set bg
+			bg.gotoAndStop(1);
+
+			//set logo
+			header.gotoAndStop(1);
+
 			//set label tf
 			robotoLabel.color = 0xFFFFFF;
 			robotoLabel.font = "Roboto";
@@ -147,8 +153,7 @@ package
 			
 			bg.width = stage.stageWidth;
 			bg.height = stage.stageHeight;
-			
-			//mc placement and scaling
+
 			header.x = stage.stageWidth / 2;
 			header.y = stage.stageHeight * 0.19;
 			
@@ -326,19 +331,13 @@ package
 			if(event.target.name == "Queue")
 			{
 				flushQueue();
-				
+				addSwipe();
+
 				main.queueContainer.addEventListener(TouchEvent.TOUCH_TAP, queueHandler);
-				//main.refreshBtn.addEventListener(TouchEvent.TOUCH_TAP, refreshHandler);
 
 				function queueHandler(event:TouchEvent):void
 				{
 					if(event.target.name == "slider"){mavin.loadQueue(event.target.parent.name);}
-				}
-				addSwipe();
-
-				function refreshHandler(event:TouchEvent):void
-				{
-
 				}
 			}
 
@@ -353,9 +352,10 @@ package
 					navigateToURL(new URLRequest("tel:0435009990"))
 				}
 
-				function sendVoicemail(event:TouchEvent):void{//loadVoicemail("POST")
+				function sendVoicemail(event:TouchEvent):void
+				{
+					mavin.loadVoicemail("POST");
 				};
-
 				addSwipe();
 			}
 
@@ -806,6 +806,7 @@ package
 
 			function complete(event:Event):void
 			{
+				main.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, saveRedir);
 				mavin.removeEventListener("redirectionLoadComplete", complete);
 				if(main.currentFrame == 1){flushRedirection();}
 			}

@@ -83,14 +83,8 @@ package
 		private var accountsSniffer:RegExp = /tdwidth=.100px">([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([^"]{0,})"\/><\/td><td>/g;
 
 		//matches connection date[1] and time[2]
-		private var timeSniffer:RegExp = /([0-9]{0,2}[.][0-9]{0,2}[.][0-9]{0,4})([0-9]{0,2}:[0-9]{0,2}:[0-9]{0,2})/g;
-		
-		//matches destination sniffer in cdr, number[1] and "ziel"[2]
-		private var destSniffer:RegExp = /([0-9]{1,15})<\/td><td>([^<]{0,})/g;
-		
-		//matches time of call in cdr, time[1]
-		private var durSniffer:RegExp = />([0-9]{1,2}:[0-9]{2}:[0-9]{2})/g;
-		
+		private var cdrSniffer:RegExp = />([^<>]{0,})<\/td><td>([0-9]{2}\.[0-9]{2}\.[0-9]{4})([0-9]{2}:[0-9]{2}:[0-9]{2})[^>]{0,}>[^>]{0,}>([0-9]:[0-9]{2}:[0-9]{2})/gi;
+
 		//matches price of call in cdr, price[1]
 		private var priceSniffer:RegExp = />([0-9]{1,3}[.][0-9]{1,2})</g;
 
@@ -168,7 +162,7 @@ package
 
 		public var featureArray:Array;
 
-		public var f2mEmail:Array;            //email address
+		public var f2mEmail:Array;             //email address
 		public var voicemail:Object = {};      //email address, greeting, pin
 
 		public var smsMessage:Object = {};     //recipient, number, message
@@ -273,6 +267,7 @@ package
 			if(jData.search("optionvalue") > -1)
 			{
 				hasPhoneNumber = true;
+				loadCDR("GET");
 				loadF2M("GET");
 				loadRedirection("GET");
 			}
@@ -298,11 +293,15 @@ package
 				actAsLoader.removeEventListener(Event.COMPLETE, parse);
 
 				debug("acting as " + actAsMember);
+
+				loadData();
 			}
 		}
 
 		public function loadMembers(method:String):void
 		{
+			memberLoader = new URLLoader();
+
 			memberURLRequest.method = URLRequestMethod.GET;
 			memberLoader.addEventListener(Event.COMPLETE, parse);
 
@@ -625,6 +624,11 @@ package
 			f2mLoader.load(f2mURLRequest);
 		}
 
+		public function loadVoicemail(method:String):void
+		{
+			debug("Saving to /notifications.html is currently not fully supported");
+		}
+
 		//loadQueue
 		public function loadQueue(agentID:String):void
 		{
@@ -776,23 +780,48 @@ package
 			}
 		}
 
-		private function loadCDR(method:String):void
+		public function loadCDR(method:String):void
 		{
 			if(hasPhoneNumber == false){debug("hasPhoneNumber is false")}
 			if(hasPhoneNumber == true && method == "GET"){debug("posting to /cdrs.html is not supported by e-fon")}
 			if(hasPhoneNumber == true && method == "GET")
 			{
+				cdrVars = new URLVariables();
+
+				var date:Date = new Date();
+				
+				var dumpString:Number = date.month + 1;
+				var dateString:String = date.date + "." + dumpString + "." + date.fullYear;
+
+				trace(dateString)
+				
+				//build until date
+				cdrVars.periodUntilDate = dateString;
+
+				if(date.month == 0)
+				{
+					dateString = "12"
+					dumpString = date.fullYear - 1;
+
+					dateString = date.date + "." + dateString + "." + dumpString 
+				}
+				if(date.month != 0)
+				{
+					dumpString = date.month;
+					dateString = date.date + "." + dumpString + "." + date.fullYear;
+				}
+
+				trace(dateString)
+				//build from date
+				cdrVars.periodFromDate = dateString;
+
 				jData = jData.replace(rex,"");
 				
 				var result:Array = userNumberSniffer.exec(jData);
-
-				cdrVars = new URLVariables();
 				
 				cdrVars.selector = "missed";
 				cdrVars.accountCode = result[1];
-				cdrVars.periodFromDate = "01.02.2013";
 				cdrVars.periodFromTime = "00:00:00";
-				cdrVars.periodUntilDate = "03.02.2013";
 				cdrVars.periodUntilTime = "23:59:59";
 				cdrVars.orderBy = "cdr.startDate desc";
 				cdrVars.size = "50";
@@ -838,21 +867,14 @@ package
 						function returnIncoming():void
 						{
 							cdrData = cdrLoader.data.replace(rex,"");
+							debug(cdrData);
+
 
 							dispatchEvent(new Event("cdrLoadComplete"))
 						}
 					}
 				}
 			}
-		}
-
-		//just for testing;
-		public function doMath(value1:Number, value2:Number)
-		{
-			var dump:Number = value1 + value2;
-
-			trace(dump)
-			return dump;
 		}
 
 		public function setup(setupObject:Object)
