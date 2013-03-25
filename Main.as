@@ -635,9 +635,9 @@ package
 			if (mavin.redirectionAnon.choice == 2){main.anonContainer.switcher.gotoAndStop(7);main.anonContainer.switcher.destination.text = "Falls unterdrückt umleiten auf Abweisungsnachricht";}
 
 			//read savingBtn listeners
-			main.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, saveRedir);
-			main.saveBtn.btn_txt.text = "Saved!";
-			TweenMax.to(main.saveBtn, 0.5, {delay:0.4, x:117, ease:Bounce.easeOut});
+			main.topMenu.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, saveRedir);
+			main.topMenu.saveBtn.btn_txt.text = "Saved!";
+			TweenMax.to(main.topMenu.saveBtn, 0.5, {delay:0.4, x:120, ease:Bounce.easeOut});
 		}
 
 		private function flushF2M():void
@@ -748,6 +748,7 @@ package
 
 		private function saveRedir(event:TouchEvent):void
 		{
+			trace("savingRedir");
 			//reset mavin redir vars
 			mavin.redirectionTime.active = "0";
 			mavin.redirectionBusy.active = "0";
@@ -798,15 +799,15 @@ package
 			mavin.loadRedirection("POST");
 
 			//UI Management
-			main.saveBtn.removeEventListener(TouchEvent.TOUCH_TAP, saveRedir);
-			main.saveBtn.btn_txt.text = "Saving";
-			TweenMax.to(main.saveBtn, 0.5, {x:70, ease:Bounce.easeOut});
+			main.topMenu.saveBtn.removeEventListener(TouchEvent.TOUCH_TAP, saveRedir);
+			main.topMenu.saveBtn.btn_txt.text = "Saving";
+			TweenMax.to(main.topMenu.saveBtn, 0.5, {x:60, ease:Bounce.easeOut});
 
 			mavin.addEventListener("redirectionLoadComplete", complete);
 
 			function complete(event:Event):void
 			{
-				main.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, saveRedir);
+				main.topMenu.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, saveRedir);
 				mavin.removeEventListener("redirectionLoadComplete", complete);
 				if(main.currentFrame == 1){flushRedirection();}
 			}
