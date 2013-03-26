@@ -748,7 +748,7 @@ package
 
 		private function saveRedir(event:TouchEvent):void
 		{
-			trace("savingRedir");
+			trace("savingRedir");	
 			//reset mavin redir vars
 			mavin.redirectionTime.active = "0";
 			mavin.redirectionBusy.active = "0";

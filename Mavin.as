@@ -877,6 +877,41 @@ package
 			}
 		}
 
+		public function logoutAllQueue():void
+		{
+			var i:Number;
+
+			if(i == null){i = 0};
+
+			if(queueStatus[i] == "Online")
+			{
+				debug("queue is online");
+				addEventListener("queueLoadComplete", checkNext);
+				loadQueue(queueAgent[i]);
+			}else{
+				debug("queue is not online or invalid");
+				checkNext();
+			}
+
+			function checkNext():void
+			{
+				if(queueStatus[i + 1] == null)
+				{
+					debug("next queue is invalid, logoutAllComplete")
+					dispatchEvent(new Event("logoutAllComplete"))
+					removeEventListener("queueLoadComplete", checkNext);
+					i = 0;
+				}
+
+				if(queueStatus[i + 1] != null)
+				{
+					if("next queue is valid, setting i, rerunning function")
+					i = i + 1;
+					logoutAllQueue();
+				}
+			}
+		}
+
 		public function setup(setupObject:Object)
 		{
 			if(setupObject.debugLevel != null){debugLevel == setupObject.debugLevel}
