@@ -20,14 +20,15 @@ package
 		public var hasQueue:Boolean = false;
 		public var hasShortDial:Boolean = false;
 
+		//whitespace RegExp
 		private var rex:RegExp = /[\s\r\n]*/gim;
-		//
+		
 		public var invalidPW:Boolean;
 		public var isAdmin:Boolean;
 
 		public var mavinState:String;
 		
-		//check what web
+		//check web version
 		public var checkSend:URLRequest = new URLRequest("https://" + realm);
 		public var checkLoader:URLLoader = new URLLoader;
 		public var checkRex:RegExp = /;.>([^<]{0,})/;
@@ -160,7 +161,7 @@ package
 		public var calenderOOF:Object = {};    //active, choice, destination
 		public var calenderBusy:Object = {};   //active, chocie, destination
 
-		public var featureArray:Array;
+		private var featureArray:Array;         
 
 		public var f2mEmail:Array;             //email address
 		public var voicemail:Object = {};      //email address, greeting, pin
@@ -180,6 +181,7 @@ package
 
 		public function Mavin()
 		{
+			//check web version
 			checkLoader.load(checkSend);
 			checkLoader.addEventListener(Event.COMPLETE, parse);
 
@@ -187,11 +189,15 @@ package
 
 			function parse(event:Event):void
 			{
+				//parse and sent to debug();
 				result = checkRex.exec(checkLoader.data)
 				debug(result[1]  + ", Mavin is ready");
 			}
 		}
 
+		/*
+		START LEGACY E-FON FUNCTIONS
+		*/
 		public function authorize(user:String, password:String):void
 		{
 			debug("Mavin is authorizing"); 
@@ -199,18 +205,23 @@ package
 			userID_local = user;
 			password_local = password;
 
+			//reset session loaders and vars
 			jSession = new URLVariables();
 			jLoader = new URLLoader();
 
+			//flush passed vars to session vars
 			jSession.j_username = userID_local;
 			jSession.j_password = password_local;
 
+			//set method and data
 			jSend.method = URLRequestMethod.POST;
 			jSend.data = jSession
 
-			jLoader.load(jSend)
-
+			//listener
 			jLoader.addEventListener(Event.COMPLETE, parse);
+
+			//send
+			jLoader.load(jSend)
 
 			function parse(event:Event):void
 			{
@@ -219,10 +230,13 @@ package
 
 				jData = jLoader.data;
 
+				//check if auth sucessful
 				if(jData.search("password") > -1){invalidPW = true;debug("Password is invalid")}
 
+				//check if admin
 				if(jData.search("memberOverview") > -1){isAdmin = true;debug("User is admin, waiting for actAs();")}
 
+				//else loadData();
 				if(invalidPW == false && isAdmin == false)
 				{
 					debug("Password is correct, user is not admin");
@@ -266,12 +280,13 @@ package
 			//check if numbers are owned
 			if(jData.search("optionvalue") > -1)
 			{
+				//load associated variables
 				hasPhoneNumber = true;
 				loadCDR("GET");
 				loadF2M("GET");
 				loadRedirection("GET");
 			}
-		 
+		 	
 			loadAccounts("GET");
 			loadSMS("GET");
 		}
@@ -279,17 +294,16 @@ package
 		//actAs
 		public function actAs(actAsMember:String)
 		{
+			//reset loader and request url
 			actAsLoader = new URLLoader();
-			actAsURLRequest = new URLRequest("https://" + context + "/actAs.html?member=" + actAsMember);
+			actAsURLRequest = new URLRequest("https://" + realm + context + "/actAs.html?member=" + actAsMember);
 
-			actAsLoader.addEventListener(Event.COMPLETE, loadData);
 			actAsLoader.addEventListener(Event.COMPLETE, parse);
 
 			actAsLoader.load(actAsURLRequest);
 
 			function parse(event:Event):void
 			{
-				actAsLoader.removeEventListener(Event.COMPLETE, loadData);
 				actAsLoader.removeEventListener(Event.COMPLETE, parse);
 
 				debug("acting as " + actAsMember);
@@ -877,11 +891,19 @@ package
 			}
 		}
 
+		/*
+		END LEGACY E-FON FUNCTIONS
+		*/
+
+		/*
+		START NOVELTY MAVIN.AS <-> E-FON FUNCTIONS
+		*/
+
 		public function logoutAllQueue():void
 		{
 			var i:Number;
 
-			if(i == null){i = 0};
+			//if(i == null){i = 0};
 
 			if(queueStatus[i] == "Online")
 			{
@@ -912,6 +934,14 @@ package
 			}
 		}
 
+		/*
+		END NOVELTY MAVIN.AS <-> E-FON FUNCTIONS
+		*/
+
+		/*
+		START LOCAL MAVIN.AS FUNCTIONS
+		*/
+
 		public function setup(setupObject:Object)
 		{
 			if(setupObject.debugLevel != null){debugLevel == setupObject.debugLevel}
@@ -923,5 +953,10 @@ package
 		{
 			if(debugLevel == 1){trace(debugMessage);}
 		}
+
+		/*
+		START LOCAL MAVIN.AS FUNCTIONS
+		*/
+
 	}
 }

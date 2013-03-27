@@ -145,12 +145,7 @@ package
 
 			bounds = new Rectangle(stage.stageWidth*0.5, 7, 320, 480);
 
-			//bg setup
-			main.timeContainer.switcher.gotoAndStop(2);
-			main.busyContainer.switcher.gotoAndStop(4);
-			main.unregContainer.switcher.gotoAndStop(6);
-			main.anonContainer.switcher.gotoAndStop(4);
-			
+			//UI setup
 			bg.width = stage.stageWidth;
 			bg.height = stage.stageHeight;
 
@@ -166,10 +161,13 @@ package
 			dashboard.x = stage.stageWidth / 2;
 			dashboard.y = 0;
 			
+			topMenu.x = stage.stageWidth * 0.5
+			topMenu.y = 0;
+
 			main.x = stage.stageWidth / 2;
 			main.y = stage.stageHeight * 0.03;
 
-			var stageObjects:Array = [header,login,loginBtn,dashboard,main];
+			var stageObjects:Array = [header,login,loginBtn,dashboard,main,topMenu];
 
 			for each(var item in stageObjects)
 			{
@@ -181,6 +179,11 @@ package
 			main.stop();
 			main.visible = false;
 			main.alpha = 0;
+
+			//and topMenu
+			topMenu.stop();
+			topMenu.visible = false;
+			topMenu.alphe = 0;
 			
 			dashboard.visible = false;
 			dashboard.alpha = 0;
@@ -190,6 +193,7 @@ package
 			
 			dashboard.addEventListener(TouchEvent.TOUCH_TAP, dashboardHandler);
 			main.addEventListener(TouchEvent.TOUCH_TAP, dashboardHandler);
+			topMenu.addEventListener(TouchEvent.TOUCH_TAP, dashboardHandler);
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyHandler);
 
 			//listen for native actions
@@ -238,6 +242,7 @@ package
 
 			dashboard.addChild(DashboardItem);
 
+			//set position for next item
 			if(xP == 100)
 			{
 				yP = yP + 70;
@@ -247,11 +252,14 @@ package
 			}
 			i5 = i5 + 1;
 			
+			//check if loading done
 			if(i5 == functionCount){
 				TweenMax.to(dashboard.loading, 0.5, {x:"+100", autoAlpha:0, ease:Cubic.easeInOut});
 			}if(i5 < functionCount){
 				TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 			}
+
+			//push to array for checking
 			DashboardItems.push(type);
 		}
 		
@@ -260,12 +268,10 @@ package
 		{
 			if(event.keyCode == Keyboard.BACK && programState != "home" && programState != "members")
 			{
+				//if !home, prevent default and hideMain();
 				event.preventDefault();
 				event.stopImmediatePropagation();
-				TweenMax.to(dashboard, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
-				TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
-				programState = "home";
-				main.removeEventListener(TouchEvent.TOUCH_BEGIN, mouseDownHandler);
+				hideMain();
 			}
 		}
 		
@@ -344,18 +350,6 @@ package
 			if(event.target.name == "Voicemail")
 			{
 				flushVoicemail();
-				main.callButton.addEventListener(TouchEvent.TOUCH_TAP, callVoicemail);
-				//main.saveVM.addEventListener(TouchEvent.TOUCH_TAP, sendVoicemail);
-
-				function callVoicemail(event:TouchEvent)
-				{
-					navigateToURL(new URLRequest("tel:0435009990"))
-				}
-
-				function sendVoicemail(event:TouchEvent):void
-				{
-					mavin.loadVoicemail("POST");
-				};
 				addSwipe();
 			}
 
@@ -386,16 +380,12 @@ package
 			
 			if(event.target.name == "backBtn")
 			{
-				TweenMax.to(dashboard, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
-				TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
-				
-				programState = "home";
-				main.removeEventListener(TouchEvent.TOUCH_BEGIN, mouseDownHandler);
+				hideMain();
 			}
 
 			function addSwipe():void
 			{
-				//swiping
+				//only add swipe if main is larger than stage
 				if(main.height > stage.stageHeight)
 				{
 					main.addEventListener(TouchEvent.TOUCH_BEGIN, mouseDownHandler);
@@ -406,15 +396,27 @@ package
 		private function hideDashboard(selection:Number):void
 		{
 			main.gotoAndStop(6);
+			topMenu.gotoAndStop(selection);
 			main.gotoAndStop(selection);
 			main.y = 7;
 			TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 			TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+			TweenMax.to(topMenu, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+		}
+
+		private function hideMain(event:TouchEvent):void
+		{
+			TweenMax.to(dashboard, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+			TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+			TweenMax.to(topMenu, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
+				
+			programState = "home";
+			main.removeEventListener(TouchEvent.TOUCH_BEGIN, mouseDownHandler);
 		}
 		
 		private function getTarget(event:TouchEvent):void
 		{
-			//trace(event.target.name);
+			trace(event.target.name);
 		}
 		
 		//redirection UI management
@@ -536,7 +538,7 @@ package
 				if(mavin.isAdmin == true)
 				{
 					mavin.removeEventListener("authComplete", checkAuthStatus);
-					//admin not supported
+					//mavin.addEventListener("memberLoadComplete", flushMembers);
 				}
 
 				//check if !admin & !wrongpw
@@ -635,9 +637,9 @@ package
 			if (mavin.redirectionAnon.choice == 2){main.anonContainer.switcher.gotoAndStop(7);main.anonContainer.switcher.destination.text = "Falls unterdrückt umleiten auf Abweisungsnachricht";}
 
 			//read savingBtn listeners
-			main.topMenu.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, saveRedir);
-			main.topMenu.saveBtn.btn_txt.text = "Saved!";
-			TweenMax.to(main.topMenu.saveBtn, 0.5, {delay:0.4, x:120, ease:Bounce.easeOut});
+			topMenu.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, saveRedir);
+			topMenu.saveBtn.btn_txt.text = "Saved!";
+			TweenMax.to(topMenu.saveBtn, 0.5, {delay:0.4, x:120, ease:Bounce.easeOut});
 		}
 
 		private function flushF2M():void
@@ -648,6 +650,19 @@ package
 		private function flushVoicemail():void
 		{
 			hideDashboard(8);
+
+			main.callButton.addEventListener(TouchEvent.TOUCH_TAP, callVoicemail);
+			//main.saveVM.addEventListener(TouchEvent.TOUCH_TAP, sendVoicemail);
+
+			function callVoicemail(event:TouchEvent)
+			{
+				navigateToURL(new URLRequest("tel:0435009990"))
+			}
+
+			function sendVoicemail(event:TouchEvent):void
+			{
+				mavin.loadVoicemail("POST");
+			}
 
 			main.email.text = mavin.voicemail.email;
 			main.greeting.text = mavin.voicemail.greeting;
@@ -799,15 +814,15 @@ package
 			mavin.loadRedirection("POST");
 
 			//UI Management
-			main.topMenu.saveBtn.removeEventListener(TouchEvent.TOUCH_TAP, saveRedir);
-			main.topMenu.saveBtn.btn_txt.text = "Saving";
-			TweenMax.to(main.topMenu.saveBtn, 0.5, {x:60, ease:Bounce.easeOut});
+			topMenu.saveBtn.removeEventListener(TouchEvent.TOUCH_TAP, saveRedir);
+			topMenu.saveBtn.btn_txt.text = "Saving";
+			TweenMax.to(topMenu.saveBtn, 0.5, {x:60, ease:Bounce.easeOut});
 
 			mavin.addEventListener("redirectionLoadComplete", complete);
 
 			function complete(event:Event):void
 			{
-				main.topMenu.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, saveRedir);
+				topMenu.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, saveRedir);
 				mavin.removeEventListener("redirectionLoadComplete", complete);
 				if(main.currentFrame == 1){flushRedirection();}
 			}
