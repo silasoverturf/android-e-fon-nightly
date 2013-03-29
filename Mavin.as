@@ -26,6 +26,9 @@ package
 		public var hasQueue:Boolean = false;
 		public var hasShortDial:Boolean = false;
 
+		//counters
+		private var queueCounter:Number = 0;
+
 		//whitespace RegExp
 		private var rex:RegExp = /[\s\r\n]*/gim;
 		
@@ -381,6 +384,7 @@ package
 				rVars.featureId4 = featureArray[3];
 				rVars.featureIdBackuprouting = featureArray[4];
 				rVars.featureIdAnonSuppression = featureArray[5];
+
 				rVars.selectedPhoneNumberId = user;
 
 				if(redirectionTime.active == "1")
@@ -906,35 +910,36 @@ package
 		*/
 
 		public function logoutAllQueue():void
-		{
-			var i:Number;
+		{			
+			trace(queueStatus[queueCounter], queueAgent[queueCounter], queueCounter);
 
-			//if(i == null){i = 0};
-
-			if(queueStatus[i] == "Online")
+			if(queueStatus[queueCounter] == "Online")
 			{
 				debug("queue is online");
 				addEventListener("queueLoadComplete", checkNext);
-				loadQueue(queueAgent[i]);
-			}else{
+				loadQueue(queueAgent[queueCounter]);
+			}
+
+			if(queueStatus[queueCounter] != "Online")
+			{
 				debug("queue is not online or invalid");
 				checkNext();
 			}
 
 			function checkNext():void
 			{
-				if(queueStatus[i + 1] == null)
+				removeEventListener("queueLoadComplete", checkNext);
+
+				if(!queueStatus[queueCounter + 1])
 				{
 					debug("next queue is invalid, logoutAllComplete")
 					dispatchEvent(new Event("logoutAllComplete"))
-					removeEventListener("queueLoadComplete", checkNext);
-					i = 0;
-				}
-
-				if(queueStatus[i + 1] != null)
-				{
+					queueCounter = 0;
+				}else{
 					if("next queue is valid, setting i, rerunning function")
-					i = i + 1;
+					trace("before set", queueCounter);
+					queueCounter = queueCounter + 1;
+					trace("after set", queueCounter);
 					logoutAllQueue();
 				}
 			}
@@ -947,6 +952,22 @@ package
 		/*
 		START LOCAL MAVIN.AS FUNCTIONS
 		*/
+		public function checkAuthStatus():Boolean
+		{
+			var authOK:Boolean;
+			
+			if(jLoader.data != null && invalidPW != true)
+			{
+				authOK = true;
+				debug("authOK");
+			}else{
+				authOK = false;
+				debug("authFailed, check login data and run authorize();")
+			}
+
+			return authOK;
+		}
+
 
 		public function setup(setupObject:Object)
 		{

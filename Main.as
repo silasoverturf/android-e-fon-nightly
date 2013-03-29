@@ -336,6 +336,7 @@ package
 			
 			if(event.target.name == "Queue")
 			{
+				mavin.logoutAllQueue();
 				flushQueue();
 				addSwipe();
 
@@ -404,7 +405,7 @@ package
 			TweenMax.to(topMenu, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 		}
 
-		private function hideMain(event:TouchEvent):void
+		private function hideMain():void
 		{
 			TweenMax.to(dashboard, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 			TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
