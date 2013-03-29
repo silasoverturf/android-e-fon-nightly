@@ -299,26 +299,7 @@ package
 			
 			if(event.target.name == "SMS")
 			{
-				hideDashboard(2);
-				
-				main.sendBtn.btn_txt.text = "Send"
-				main.sendBtn.addEventListener(TouchEvent.TOUCH_TAP, SMS);
-				
-				i4 = 0;
-				
-				for each(var clip in mavin.smsNumber)
-				{
-					var SMSRadio:MovieClip = new smsRadio();
-					SMSRadio.y = i4 * 28;
-					SMSRadio.radio.label = mavin.smsNumber[i4];
-					SMSRadio.radio.value = mavin.smsNumberID[i4];
-					SMSRadio.radio.group = smsRadioGroup;
-					
-					SMSRadio.radio.setStyle("textFormat", robotoLabel);
-
-					main.smsContainer.addChild(SMSRadio);
-					i4 = i4 + 1;
-				}
+				flushSMS();
 				addSwipe();
 			}
 			
@@ -648,6 +629,33 @@ package
 			main.timeContainer.selecter.fax2mailIcon.email.text = mavin.f2mEmail[1];
 		}
 
+		private function flushSMS():void
+		{
+			hideDashboard(2);
+			
+			topMenu.sendBtn.btn_txt.text = "Send";
+			TweenMax.to(topMenu.sendBtn, 0.5, {x:120, ease:Bounce.easeOut});
+
+
+			topMenu.sendBtn.addEventListener(TouchEvent.TOUCH_TAP, SMS);
+			
+			i4 = 0;
+			
+			for each(var clip in mavin.smsNumber)
+			{
+				var SMSRadio:MovieClip = new smsRadio();
+				SMSRadio.y = i4 * 28;
+				SMSRadio.radio.label = mavin.smsNumber[i4];
+				SMSRadio.radio.value = mavin.smsNumberID[i4];
+				SMSRadio.radio.group = smsRadioGroup;
+				
+				SMSRadio.radio.setStyle("textFormat", robotoLabel);
+
+				main.smsContainer.addChild(SMSRadio);
+				i4 = i4 + 1;
+			}
+		}
+
 		private function flushVoicemail():void
 		{
 			hideDashboard(8);
@@ -674,8 +682,20 @@ package
 		
 		private function SMS(event:TouchEvent):void
 		{
+			topMenu.sendBtn.btn_txt.text = "Sending";
+			TweenMax.to(topMenu.sendBtn, 0.5, {x:60, ease:Bounce.easeOut});
+
 			mavin.smsMessage = {message:main.smsContainer2.SMSmessage.text, recipient:main.smsContainer2.recipient.text, number:smsRadioGroup.selectedData}
 			mavin.loadSMS("POST");
+
+			topMenu.sendBtn.removeEventListener(TouchEvent.TOUCH_TAP, SMS);
+			mavin.addEventListener("smsLoadComplete", confirm);
+
+			function confirm():void
+			{
+				mavin.removeEventListener("smsLoadComplete", confirm);
+				if(main.currentFrame == 2){flushSMS();}
+			}
 		}
 		
 		private function flushQueue():void

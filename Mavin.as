@@ -711,7 +711,14 @@ package
 					queueVars.statusId = "40";
 					queueStatus[queueAgent.indexOf(agentID)] = "Offline";
 				}
-				dispatchEvent(new Event("queueLoadComplete"));
+
+				queueLoader.addEventListener(Event.COMPLETE, complete);
+
+				function complete(event:Event):void
+				{
+					queueLoader.removeEventListener(Event.COMPLETE, complete);
+					dispatchEvent(new Event("queueLoadComplete"));
+				}
 			}
 
 			if(agentID == "POST")
@@ -751,23 +758,30 @@ package
 
 			function parse(event:Event = null):void
 			{
-				smsData = new String(smsLoader.data);
-				smsData = smsData.replace(rex,"");
+				smsLoader.removeEventListener(Event.COMPLETE, parse);
 				
-				var smsResult:Array = smsSniffer.exec(smsData);
-				
-				smsNumberID = [];
-				smsNumber = [];
-
-				while (smsResult != null)
+				if(method == "GET")
 				{
-					smsNumberID.push(smsResult[1]);
-					smsNumber.push(smsResult[2]);
-			
-					smsResult = smsSniffer.exec(smsData);
+					smsData = new String(smsLoader.data);
+					smsData = smsData.replace(rex,"");
+					
+					var smsResult:Array = smsSniffer.exec(smsData);
+					
+					smsNumberID = [];
+					smsNumber = [];
+
+					while (smsResult != null)
+					{
+						smsNumberID.push(smsResult[1]);
+						smsNumber.push(smsResult[2]);
+				
+						smsResult = smsSniffer.exec(smsData);
+					}
 				}
 				dispatchEvent(new Event("smsLoadComplete"));
 			}
+			smsLoader = new URLLoader();
+
 			smsLoader.addEventListener(Event.COMPLETE, parse);
 			smsLoader.load(smsSend);
 		}
@@ -911,8 +925,6 @@ package
 
 		public function logoutAllQueue():void
 		{			
-			trace(queueStatus[queueCounter], queueAgent[queueCounter], queueCounter);
-
 			if(queueStatus[queueCounter] == "Online")
 			{
 				debug("queue is online");
@@ -930,9 +942,9 @@ package
 			{
 				removeEventListener("queueLoadComplete", checkNext);
 
-				if(!queueStatus[queueCounter + 1])
+				if(queueCounter == queueStatus.length)
 				{
-					debug("next queue is invalid, logoutAllComplete")
+					debug("logoutAllComplete")
 					dispatchEvent(new Event("logoutAllComplete"))
 					queueCounter = 0;
 				}else{
