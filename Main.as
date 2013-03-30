@@ -31,6 +31,14 @@ package
 		////Global misc. variables////
 		//state holder
 		var programState:String = "home";
+
+		//configObject
+		public var configObject:Object 
+		/*realm, context, displayBG, displayHeader
+		e-fon Default = {realm:"web.e-fon.ch", context:"/portal", dispalyBG:1, diplsayHeader:1}
+		dev = {realm:"dev01.e-fon.ch", context:"/portal_[version]", dispalyBG:2, diplsayHeader:1}
+		cc = {realm:"web.e-fon.ch", context:"/cablecom", dispalyBG:3, diplsayHeader:2}
+		*/
 		
 		//local LSO
 		var SO:SharedObject = SharedObject.getLocal("e-fon");

@@ -10,12 +10,6 @@ package
 		public var userID_local:String;
 		public var password_local:String;
 
-		public var configObject:Object 
-		/*realm, context, displayBG, displayHeader
-		e-fon Default = {realm:"web.e-fon.ch", context:"/portal", dispalyBG:1, diplsayHeader:1}
-		dev = {realm:"dev01.e-fon.ch", context:"/portal_[version]", dispalyBG:2, diplsayHeader:1}
-		cc = {realm:"web.e-fon.ch", context:"/cablecom", dispalyBG:3, diplsayHeader:2}
-		*/
 		public var realm:String = "web.e-fon.ch";
 		public var context:String = "/portal"
 
@@ -32,8 +26,9 @@ package
 		//whitespace RegExp
 		private var rex:RegExp = /[\s\r\n]*/gim;
 		
-		public var invalidPW:Boolean;
-		public var isAdmin:Boolean;
+		public var invalidPW:Boolean = false;
+		public var isAdmin:Boolean = false;
+		public var authOK:Boolean = false;
 
 		public var mavinState:String;
 		
@@ -190,6 +185,12 @@ package
 
 		public function Mavin()
 		{
+			authOK = true;
+			trace("authOK", authOK);
+
+			checkAuthStatus();
+			trace("authOK", authOK);
+
 			//check web version
 			checkLoader.load(checkSend);
 			checkLoader.addEventListener(Event.COMPLETE, parse);
@@ -927,14 +928,12 @@ package
 		{			
 			if(queueStatus[queueCounter] == "Online")
 			{
-				debug("queue is online");
 				addEventListener("queueLoadComplete", checkNext);
 				loadQueue(queueAgent[queueCounter]);
 			}
 
 			if(queueStatus[queueCounter] != "Online")
 			{
-				debug("queue is not online or invalid");
 				checkNext();
 			}
 
@@ -944,14 +943,10 @@ package
 
 				if(queueCounter == queueStatus.length)
 				{
-					debug("logoutAllComplete")
 					dispatchEvent(new Event("logoutAllComplete"))
 					queueCounter = 0;
 				}else{
-					if("next queue is valid, setting i, rerunning function")
-					trace("before set", queueCounter);
 					queueCounter = queueCounter + 1;
-					trace("after set", queueCounter);
 					logoutAllQueue();
 				}
 			}
@@ -964,11 +959,12 @@ package
 		/*
 		START LOCAL MAVIN.AS FUNCTIONS
 		*/
-		public function checkAuthStatus():Boolean
+		public function checkAuthStatus():void
 		{
-			var authOK:Boolean;
-			
-			if(jLoader.data != null && invalidPW != true)
+			debug("checkAuthStatus fired");
+			trace("jLoader", jLoader.data, invalidPW);
+
+			if(!jLoader.data && invalidPW != true)
 			{
 				authOK = true;
 				debug("authOK");
@@ -976,8 +972,6 @@ package
 				authOK = false;
 				debug("authFailed, check login data and run authorize();")
 			}
-
-			return authOK;
 		}
 
 
