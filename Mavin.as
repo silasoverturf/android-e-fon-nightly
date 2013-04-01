@@ -55,7 +55,7 @@ package
 		private var destinationSniffer:RegExp = /(?:phone1|phone3|backupNumber)"value="([0-9]{3,15})/g;
 
 		//redirection checked, matches redir type to result[1], redir selection to result[2];
-		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(1|3|Backuprouting|AnonSuppression)"value="([0-9]{0,4})"(?:onclick="controlRedir(?:Normal|Busy|Backup)\(\)|)("checked="checked"|")/gi;
+		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(1|3|Backuprouting|AnonSuppression)"value="([0-9]{0,4})"(?:onclick="controlRedir(?:Normal|Busy|Backup|Anon)\(\)|)("checked="checked"|"|checked="checked|)/gi;
 
 		private var userNumberSniffer:RegExp = /optionvalue="([0-9]{1,15})/;
 
@@ -185,13 +185,6 @@ package
 
 		public function Mavin()
 		{
-			authOK = true;
-			trace("authOK", authOK);
-
-			checkAuthStatus();
-			trace("authOK", authOK);
-
-			//check web version
 			checkLoader.load(checkSend);
 			checkLoader.addEventListener(Event.COMPLETE, parse);
 
@@ -425,7 +418,7 @@ package
 
 				if(redirectionAnon.active == "1")
 				{
-					rVars.uml_busy = "true";
+					rVars.uml_anonSuppression = "true";
 					rVars.choiceAnonSuppression = redirectionAnon.choice;
 				}
 
@@ -435,6 +428,8 @@ package
 
 			function parse(event:Event):void
 			{	
+				debug("parsingRedir")
+				redirectionLoader.removeEventListener(Event.COMPLETE, parse);
 				redirectionData = redirectionLoader.data;
 
 				//reset all local vars
@@ -591,7 +586,6 @@ package
 				{
 					loadF2M("POST");
 				}
-				
 				dispatchEvent(new Event("redirectionLoadComplete"));
 			}
 			redirectionLoader = new URLLoader();
@@ -669,8 +663,6 @@ package
 
 				function parse(event:Event):void
 				{
-					debug("parsing Queue")
-
 					queueData = queueLoader.data;
 					queueData = queueData.replace(rex, "")
 					
@@ -822,7 +814,7 @@ package
 		public function loadCDR(method:String):void
 		{
 			if(hasPhoneNumber == false){debug("hasPhoneNumber is false")}
-			if(hasPhoneNumber == true && method == "GET"){debug("posting to /cdrs.html is not supported by e-fon")}
+			if(hasPhoneNumber == true && method == "POST"){debug("posting to /cdrs.html is not supported by e-fon")}
 			if(hasPhoneNumber == true && method == "GET")
 			{
 				cdrVars = new URLVariables();
@@ -831,8 +823,6 @@ package
 				
 				var dumpString:Number = date.month + 1;
 				var dateString:String = date.date + "." + dumpString + "." + date.fullYear;
-
-				trace(dateString)
 				
 				//build until date
 				cdrVars.periodUntilDate = dateString;
@@ -850,7 +840,6 @@ package
 					dateString = date.date + "." + dumpString + "." + date.fullYear;
 				}
 
-				trace(dateString)
 				//build from date
 				cdrVars.periodFromDate = dateString;
 
@@ -906,8 +895,6 @@ package
 						function returnIncoming():void
 						{
 							cdrData = cdrLoader.data.replace(rex,"");
-							debug(cdrData);
-
 
 							dispatchEvent(new Event("cdrLoadComplete"))
 						}
@@ -959,22 +946,6 @@ package
 		/*
 		START LOCAL MAVIN.AS FUNCTIONS
 		*/
-		public function checkAuthStatus():void
-		{
-			debug("checkAuthStatus fired");
-			trace("jLoader", jLoader.data, invalidPW);
-
-			if(!jLoader.data && invalidPW != true)
-			{
-				authOK = true;
-				debug("authOK");
-			}else{
-				authOK = false;
-				debug("authFailed, check login data and run authorize();")
-			}
-		}
-
-
 		public function setup(setupObject:Object)
 		{
 			if(setupObject.debugLevel != null){debugLevel == setupObject.debugLevel}

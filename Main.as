@@ -94,36 +94,6 @@ package
 		//matches date to result[1], time to result[2]
 		private var dateSniffer:RegExp = /([0-9]{0,2}\.[0-9]{0,2}\.[0-9]{0,4})([0-9]{0,2}:[0-9]{0,2})/i;
 		
-		////Local variable defenition////
-		//member local
-		private var memberIDs:Array = [];
-		private var memberNames:Array = [];
-
-		//f2m local
-		private var f2mEmail:Array;
-		private var f2mDelivery:String;
-
-		//voicemail local
-		private var voicemail:Array;//[VM email, VM greeting, VM Pin]
-		
-		//redirection vars
-		private var selectedNumber:String;
-		private var numberID:String;
-		
-		private var featureArray:Array;//[feature1, feature2, feature3, feature4, featureBackuprouting, featureAnonSuppression]
-		
-		private var timeRedir:Array;//[active, choice, destination, delay];
-		private var timeDelay:String;
-		
-		private var busyRedir:Array;// =[active, choice, destination];
-		private var unregRedir:Array;// =[active, choice, destination];
-		private var anonRedir:Array;// =[active, choice];
-		
-		private var redirChoice:Array;// [timeChoice, busyChoice, unregChoice, anonChoice]
-
-		private var calenderManual:Array;// [active, subject, private, dateFrom, timeFrom, dateUntil, timeUntil, choice, destination]
-		private var calenderStatus:Array;// []
-		
 		////Display stack////
 		private var smsRadioGroup:RadioButtonGroup = new RadioButtonGroup("SMSRadioGroup");
 
@@ -325,7 +295,6 @@ package
 			
 			if(event.target.name == "Queue")
 			{
-				mavin.logoutAllQueue();
 				flushQueue();
 				addSwipe();
 
@@ -608,12 +577,14 @@ package
 			if (mavin.redirectionAnon.active == 1){main.anonContainer.Check.gotoAndStop(1);}
 			if (mavin.redirectionAnon.active == 0){main.anonContainer.Check.gotoAndStop(2);}
 
+			trace("anon", mavin.redirectionAnon.active, main.anonContainer.Check.currentFrame);
+
 			//timeRedir flush
-			main.timeContainer.switcher.Delay.text = mavin.redirectionTime.delay;
 			if (mavin.redirectionTime.choice == 1){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = mavin.redirectionTime.destination;}
 			if (mavin.redirectionTime.choice == 2){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";}
 			if (mavin.redirectionTime.choice == 3){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Fax2Mail";}
 			
+			main.timeContainer.switcher.Delay.text = mavin.redirectionTime.delay;
 			//busyRedir flush
 			if (mavin.redirectionBusy.choice == 1){main.busyContainer.switcher.gotoAndStop(4);main.busyContainer.switcher.destination.text = mavin.redirectionBusy.destination;}
 			if (mavin.redirectionBusy.choice == 2){main.busyContainer.switcher.gotoAndStop(5);main.busyContainer.switcher.destination.text = "Falls besetzt umleiten auf Voicemail";}
@@ -710,24 +681,43 @@ package
 		{
 			hideDashboard(5);
 			
+			i3 = 0;
 			i4 = 0;
-			
+
+			/*
+			if(mavin.queueList.length > 2)
+			{
+				trace("quueueSNippet small")
+				var QueueSnippetSmall:MovieClip = new queueSnippetSmall();
+				QueueSnippetSmall.y = i4 * 57;
+
+				QueueSnippetSmall.text = "Logout alle";
+				trace(QueueSnippetSmall.text)
+
+				QueueSnippetSmall.name = "LogoutAll";
+
+				main.queueContainer.addChild(QueueSnippetSmall);
+				i4 = i4 + 1;
+			}
+			*/
+
 			for each(var queue in mavin.queueList)
 			{
 				var QueueSnippet:MovieClip = new queueSnippet();
 				QueueSnippet.y = i4 * 57;
-				QueueSnippet.Text.text = mavin.queueList[i4] + " als";
-				QueueSnippet.Text2.text = mavin.queueName[i4];
+				QueueSnippet.Text.text = mavin.queueList[i3] + " als";
+				QueueSnippet.Text2.text = mavin.queueName[i3];
 				
-				if(mavin.queueStatus[i4] == "Online")
+				if(mavin.queueStatus[i3] == "Online")
 				{
 					QueueSnippet.slider.gotoAndStop(2);
 				}
 				
-				QueueSnippet.name = mavin.queueAgent[i4];
+				QueueSnippet.name = mavin.queueAgent[i3];
 
 				main.queueContainer.addChild(QueueSnippet);
 				i4 = i4 + 1;
+				i3 = i3 + 1;
 			}
 		}
 
@@ -762,7 +752,7 @@ package
 
 		private function flushMembers():void
 		{
-			hideDashboard(10);
+			/*hideDashboard(10);
 			programState = "members";
 
 			i4 = 0;
@@ -788,53 +778,60 @@ package
 			TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
 			TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
 			TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
+			*/
 		}
 
 		private function saveRedir(event:TouchEvent):void
 		{
-			trace("savingRedir");	
 			//reset mavin redir vars
-			mavin.redirectionTime.active = "0";
-			mavin.redirectionBusy.active = "0";
-			mavin.redirectionUnre.active = "0";
-			mavin.redirectionAnon.active = "0";
+			mavin.redirectionTime.active = 0;
+			mavin.redirectionBusy.active = 0;
+			mavin.redirectionUnre.active = 0;
+			mavin.redirectionAnon.active = 0;
 
 			if (main.timeContainer.Check.currentFrame == 1)
 			{
 				//if(main)
-				mavin.redirectionTime.active = "1";
+				mavin.redirectionTime.active = 1;
 				mavin.redirectionTime.delay = main.timeContainer.switcher.Delay.text;
 				mavin.redirectionTime.designation = main.timeContainer.switcher.destination.text;
 
-				if(main.timeContainer.switcher.currentFrame == 2){mavin.redirectionTime.choice = "1"};
-				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Voicemail"){mavin.redirectionTime.choice = "2";}
-				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Fax2Mail"){mavin.redirectionTime.choice = "3";}
+				if(main.timeContainer.switcher.currentFrame == 2){mavin.redirectionTime.choice = 1};
+				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Voicemail"){mavin.redirectionTime.choice = 2;}
+				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Fax2Mail"){mavin.redirectionTime.choice = 3;}
 			}
 			
 			if (main.busyContainer.Check.currentFrame == 1)
 			{
-				mavin.redirectionBusy.active = "1";
+				mavin.redirectionBusy.active = 1;
 				mavin.redirectionBusy.destination = main.busyContainer.switcher.destination.text;
 
-				if(main.busyContainer.switcher.currentFrame == 4){mavin.redirectionBusy.choice = "1";}
-				if(main.busyContainer.switcher.currentFrame == 5){mavin.redirectionBusy.choice = "2";}
+				if(main.busyContainer.switcher.currentFrame == 4){mavin.redirectionBusy.choice = 1;}
+				if(main.busyContainer.switcher.currentFrame == 5){mavin.redirectionBusy.choice = 2;}
 			}
 			
 			if (main.unregContainer.Check.currentFrame == 1)
 			{
-				mavin.redirectionUnre = "1";
-				mavin.redirectionUnre = main.unregContainer.switcher.destination.text;
+				mavin.redirectionUnre.active = 1;
+				mavin.redirectionUnre.destination = main.unregContainer.switcher.destination.text;
 
-				if(main.unregContainer.switcher.currentFrame == 6){mavin.redirectionUnre.choice = "1";}
-				if(main.unregContainer.switcher.currentFrame == 7){mavin.redirectionUnre.choice = "2";}
+				if(main.unregContainer.switcher.currentFrame == 6)
+				{
+					mavin.redirectionUnre.choice = 1;
+				}
+				
+				if(main.unregContainer.switcher.currentFrame == 7)
+				{
+					mavin.redirectionUnre.choice = 2;
+				}
 			}
 			
 			if (main.anonContainer.Check.currentFrame == 1)
 			{
-				mavin.redirectionAnon = true
+				mavin.redirectionAnon.active = 1
 
-				if(main.anonContainer.switcher.currentFrame == 1){mavin.redirectionAnon.choice = "1";}
-				if(main.anonContainer.switcher.currentFrame == 7){mavin.redirectionAnon.choice = "2";}
+				if(main.anonContainer.switcher.currentFrame == 1){mavin.redirectionAnon.choice = 1;}
+				if(main.anonContainer.switcher.currentFrame == 7){mavin.redirectionAnon.choice = 2;}
 			}	
 
 			mavin.f2mEmail[1] = main.timeContainer.selecter.fax2mailIcon.email.text;
