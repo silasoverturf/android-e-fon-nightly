@@ -10,7 +10,7 @@ package
 		public var userID_local:String;
 		public var password_local:String;
 
-		public var realm:String = "web.e-fon.ch";
+		public var realm:String = "dev01.e-fon.ch";
 		public var context:String = "/portal"
 
 		public var debugLevel:Number = 1;
@@ -106,13 +106,13 @@ package
 
 		//session
 		private var jSend:URLRequest = new URLRequest("https://" + realm + context +"/j_acegi_security_check");
-		public var jLoader:URLLoader;
+		public var jLoader:URLLoader = new URLLoader;
 		private var jSession:URLVariables;
 		private var jData:String;
 
 		//act as
 		private var actAsURLRequest:URLRequest;
-		private var actAsLoader:URLLoader;
+		private var actAsLoader:URLLoader =  new URLLoader;
 
 		//members
 		private var memberURLRequest:URLRequest = new URLRequest("https://" + realm + context + "/memberOverview.html");
@@ -139,7 +139,7 @@ package
 
 		//queue
 		private var queueSend:URLRequest = new URLRequest("https://" + realm + context + "/callCenterQueueMemberStatus.html");
-		private var queueLoader:URLLoader;
+		private var queueLoader:URLLoader =  new URLLoader;
 		private var queueVars:URLVariables;
 		private var queueData:String;
 
@@ -185,8 +185,17 @@ package
 
 		public function Mavin()
 		{
+			var loaderArray:Array = [checkLoader, jLoader, actAsLoader, memberLoader, redirectionLoader, cdrLoader, f2mLoader, queueLoader, smsLoader, accountsLoader];
+			
+			var i:Number = 0;
+
 			checkLoader.load(checkSend);
 			checkLoader.addEventListener(Event.COMPLETE, parse);
+			
+			for each(var urlLoader in loaderArray)
+			{
+				urlLoader.addEventListener(IOErrorEvent.IO_ERROR, connectionError);
+			}
 
 			var result:Array;
 
@@ -958,8 +967,33 @@ package
 			if(debugLevel == 1){trace(debugMessage);}
 		}
 
+		private function connectionError(errorEvent:IOErrorEvent)
+		{
+			trace(errorEvent);
+			trace(errorEvent.errorID);
+			trace(errorEvent.currentTarget);
+			trace(errorEvent.text);
+
+			if(errorEvent.text.search("https://" + realm) > 0){debug("failed at checking web")}
+			if(errorEvent.text.search("j_acegi_security_check") > 0){debug("IOError at authing")}
+			if(errorEvent.text.search("memberOverview.html") > 0){debug("failed loading member")}
+			if(errorEvent.text.search("redirection.html") > 0){debug("failed loading redirection")}
+			if(errorEvent.text.search("cdrs.html") > 0){debug("failed loading cdrs")}
+			if(errorEvent.text.search("notifications.html") > 0){debug("failed loading notifications")}
+			if(errorEvent.text.search("callCenterQueueMemberStatus.html") > 0){debug("failed loading queue")}
+			if(errorEvent.text.search("SMSSender.html") > 0){debug("failed loading sms")}
+			if(errorEvent.text.search("accounts.html") > 0){debug("failed loading accounts")}
+
+			dispatchEvent(new Event("IOError"));
+
+			if(1 == 1)
+			{
+				dispatchEvent(new Event("retrying"))
+			}
+		}
+
 		/*
-		START LOCAL MAVIN.AS FUNCTIONS
+		END LOCAL MAVIN.AS FUNCTIONS
 		*/
 
 	}
