@@ -120,7 +120,7 @@ package
 		private var memberData:String;
 
 		//redirection
-		private var redirectionURLRequest:URLRequest = new URLRequest("https://" + realm + context + "/redirection.html");
+		private var redirectionURLRequest:URLRequest = new URLRequest("https://" + realm + context + "/without_nav/redirection.html");
 		private var redirectionLoader:URLLoader = new URLLoader;
 		private var rVars:URLVariables;
 		private var redirectionData:String;
