@@ -176,7 +176,7 @@ package
 
 			//listen for native actions
 			//after change to portal cookies don't expire after set time, jession.load no longer needed.
-			//NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
+			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
 			//NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, deactivate);
 			
 			stage.addEventListener(TouchEvent.TOUCH_TAP, getTarget);
@@ -197,7 +197,9 @@ package
 		
 		//reactivation
 		private function activate(event:Event):void
-		{}
+		{
+			mavin.loadQueue("GET");
+		}
 
 		//deactivation
 		private function deactivate(event:Event):void
@@ -295,6 +297,7 @@ package
 			
 			if(event.target.name == "Queue")
 			{
+				hideDashboard(5);
 				flushQueue();
 				addSwipe();
 
@@ -543,6 +546,8 @@ package
 		private function addQueue(event:Event):void
 		{
 			mavin.removeEventListener("queueLoadComplete", addQueue);
+			mavin.addEventListener("queueLoadComplete", flushQueue);
+
 			addDashboard("Queue", 2);
 		}
 
@@ -679,45 +684,46 @@ package
 		
 		private function flushQueue():void
 		{
-			hideDashboard(5);
-			
-			i3 = 0;
-			i4 = 0;
+			if(main.currentFrame == 5)
+			{	
+				i3 = 0;
+				i4 = 0;
 
-			/*
-			if(mavin.queueList.length > 2)
-			{
-				trace("quueueSNippet small")
-				var QueueSnippetSmall:MovieClip = new queueSnippetSmall();
-				QueueSnippetSmall.y = i4 * 57;
-
-				QueueSnippetSmall.text = "Logout alle";
-				trace(QueueSnippetSmall.text)
-
-				QueueSnippetSmall.name = "LogoutAll";
-
-				main.queueContainer.addChild(QueueSnippetSmall);
-				i4 = i4 + 1;
-			}
-			*/
-
-			for each(var queue in mavin.queueList)
-			{
-				var QueueSnippet:MovieClip = new queueSnippet();
-				QueueSnippet.y = i4 * 57;
-				QueueSnippet.Text.text = mavin.queueList[i3] + " als";
-				QueueSnippet.Text2.text = mavin.queueName[i3];
-				
-				if(mavin.queueStatus[i3] == "Online")
+				/*
+				if(mavin.queueList.length > 2)
 				{
-					QueueSnippet.slider.gotoAndStop(2);
-				}
-				
-				QueueSnippet.name = mavin.queueAgent[i3];
+					trace("quueueSNippet small")
+					var QueueSnippetSmall:MovieClip = new queueSnippetSmall();
+					QueueSnippetSmall.y = i4 * 57;
 
-				main.queueContainer.addChild(QueueSnippet);
-				i4 = i4 + 1;
-				i3 = i3 + 1;
+					QueueSnippetSmall.text = "Logout alle";
+					trace(QueueSnippetSmall.text)
+
+					QueueSnippetSmall.name = "LogoutAll";
+
+					main.queueContainer.addChild(QueueSnippetSmall);
+					i4 = i4 + 1;
+				}
+				*/
+
+				for each(var queue in mavin.queueList)
+				{
+					var QueueSnippet:MovieClip = new queueSnippet();
+					QueueSnippet.y = i4 * 57;
+					QueueSnippet.Text.text = mavin.queueList[i3] + " als";
+					QueueSnippet.Text2.text = mavin.queueName[i3];
+					
+					if(mavin.queueStatus[i3] == "Online")
+					{
+						QueueSnippet.slider.gotoAndStop(2);
+					}
+					
+					QueueSnippet.name = mavin.queueAgent[i3];
+
+					main.queueContainer.addChild(QueueSnippet);
+					i4 = i4 + 1;
+					i3 = i3 + 1;
+				}
 			}
 		}
 
