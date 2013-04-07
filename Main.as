@@ -198,7 +198,8 @@ package
 		//reactivation
 		private function activate(event:Event):void
 		{
-			mavin.loadQueue("GET");
+			trace("activate");
+			if(main.currentFrame == 5){mavin.loadQueue("GET")};
 		}
 
 		//deactivation
@@ -262,16 +263,6 @@ package
 			if(event.target.name == "Umleitung")
 			{
 				hideDashboard(1);
-				
-				main.timeContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler);
-				main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler2);
-				main.unregContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler3);
-				main.anonContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler4);
-			
-				main.timeContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest);
-				main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest2);
-				main.unregContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest3);
-				main.anonContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest4);
 				flushRedirection();
 				flushF2M();
 				addSwipe();
@@ -279,6 +270,7 @@ package
 			
 			if(event.target.name == "SMS")
 			{
+				hideDashboard(2);
 				flushSMS();
 				addSwipe();
 			}
@@ -291,6 +283,7 @@ package
 			
 			if(event.target.name == "Accounts")
 			{
+				hideDashboard(4);
 				flushAccount();
 				addSwipe();
 			}
@@ -300,18 +293,6 @@ package
 				hideDashboard(5);
 				flushQueue();
 				addSwipe();
-
-				main.queueContainer.addEventListener(TouchEvent.TOUCH_TAP, queueHandler);
-				
-				topMenu.refreshBtn.btn_txt.text = "Done";
-				TweenMax.to(topMenu.sendBtn, 0.5, {x:120, ease:Bounce.easeOut});
-
-				topMenu.refreshBtn.addEventListener(TouchEvent.TOUCH_TAP, refreshQueue);
-
-				function queueHandler(event:TouchEvent):void
-				{
-					if(event.target.name == "slider"){mavin.loadQueue(event.target.parent.name);}
-				}
 			}
 
 			if(event.target.name == "Voicemail")
@@ -551,9 +532,14 @@ package
 		private function addQueue(event:Event):void
 		{
 			mavin.removeEventListener("queueLoadComplete", addQueue);
-			mavin.addEventListener("queueLoadComplete", flushQueue);
+			mavin.addEventListener("queueLoadComplete", refreshQueue);
 
 			addDashboard("Queue", 2);
+		}
+
+		private function refreshQueue(event:Event):void
+		{
+			flushQueue();
 		}
 
 		private function addRedirection(event:Event):void
@@ -571,6 +557,17 @@ package
 		//UI flushing
 		private function flushRedirection():void
 		{
+			//listeners
+			main.timeContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler);
+			main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler2);
+			main.unregContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler3);
+			main.anonContainer.addEventListener(TouchEvent.TOUCH_TAP, tempHandler4);
+			
+			main.timeContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest);
+			main.busyContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest2);
+			main.unregContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest3);
+			main.anonContainer.addEventListener(TouchEvent.TOUCH_TAP, targetTest4);
+
 			//reset
 			main.timeContainer.switcher.gotoAndStop(2);
 			main.busyContainer.switcher.gotoAndStop(4);
@@ -620,8 +617,6 @@ package
 
 		private function flushSMS():void
 		{
-			hideDashboard(2);
-			
 			topMenu.sendBtn.btn_txt.text = "Send";
 			TweenMax.to(topMenu.sendBtn, 0.5, {x:120, ease:Bounce.easeOut});
 
@@ -686,36 +681,25 @@ package
 				if(main.currentFrame == 2){flushSMS();}
 			}
 		}
-
-		private function refreshQueue(event:TouchEvent):void
-		{
-			//topMenu.refreshBtn.btn_txt.text = "Refreshing";
-
-		}
 		
 		private function flushQueue():void
 		{
 			if(main.currentFrame == 5)
 			{	
+				main.gotoAndStop(6);
+				main.gotoAndStop(5);
+
+				main.queueContainer.addEventListener(TouchEvent.TOUCH_TAP, queueHandler);
+				topMenu.refreshBtn.addEventListener(TouchEvent.TOUCH_TAP, refreshQueue);
+				topMenu.stopBtn.addEventListener(TouchEvent.TOUCH_TAP, logoutAll);
+
+				function queueHandler(event:TouchEvent):void
+				{
+					if(event.target.name == "slider"){mavin.loadQueue(event.target.parent.name);}
+				}
+
 				i3 = 0;
 				i4 = 0;
-
-				/*
-				if(mavin.queueList.length > 2)
-				{
-					trace("quueueSNippet small")
-					var QueueSnippetSmall:MovieClip = new queueSnippetSmall();
-					QueueSnippetSmall.y = i4 * 57;
-
-					QueueSnippetSmall.text = "Logout alle";
-					trace(QueueSnippetSmall.text)
-
-					QueueSnippetSmall.name = "LogoutAll";
-
-					main.queueContainer.addChild(QueueSnippetSmall);
-					i4 = i4 + 1;
-				}
-				*/
 
 				for each(var queue in mavin.queueList)
 				{
@@ -735,13 +719,16 @@ package
 					i4 = i4 + 1;
 					i3 = i3 + 1;
 				}
+
+				function logoutAll(event:TouchEvent):void
+				{
+					mavin.logoutAllQueue();
+				}
 			}
 		}
 
 		private function flushAccount():void
 		{
-			hideDashboard(4);
-			
 			i4 = 0;
 			
 			for each(var Account in mavin.accountArray)
