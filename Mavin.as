@@ -10,7 +10,7 @@ package
 		public var userID_local:String;
 		public var password_local:String;
 
-		public var realm:String = "dev01.e-fon.ch";
+		public var realm:String = "web.e-fon.ch";
 		public var context:String = "/portal"
 
 		public var debugLevel:Number = 1;
@@ -120,7 +120,7 @@ package
 		private var memberData:String;
 
 		//redirection
-		private var redirectionURLRequest:URLRequest = new URLRequest("https://" + realm + context + "/without_nav/redirection.html");
+		private var redirectionURLRequest:URLRequest = new URLRequest("https://" + realm + context + "/redirection.html");
 		private var redirectionLoader:URLLoader = new URLLoader;
 		private var rVars:URLVariables;
 		private var redirectionData:String;

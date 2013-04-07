@@ -302,6 +302,11 @@ package
 				addSwipe();
 
 				main.queueContainer.addEventListener(TouchEvent.TOUCH_TAP, queueHandler);
+				
+				topMenu.refreshBtn.btn_txt.text = "Done";
+				TweenMax.to(topMenu.sendBtn, 0.5, {x:120, ease:Bounce.easeOut});
+
+				topMenu.refreshBtn.addEventListener(TouchEvent.TOUCH_TAP, refreshQueue);
 
 				function queueHandler(event:TouchEvent):void
 				{
@@ -667,7 +672,7 @@ package
 		private function SMS(event:TouchEvent):void
 		{
 			topMenu.sendBtn.btn_txt.text = "Sending";
-			TweenMax.to(topMenu.sendBtn, 0.5, {x:60, ease:Bounce.easeOut});
+			TweenMax.to(topMenu.sendBtn, 0.5, {x:65, ease:Bounce.easeOut});
 
 			mavin.smsMessage = {message:main.smsContainer2.SMSmessage.text, recipient:main.smsContainer2.recipient.text, number:smsRadioGroup.selectedData}
 			mavin.loadSMS("POST");
@@ -680,6 +685,12 @@ package
 				mavin.removeEventListener("smsLoadComplete", confirm);
 				if(main.currentFrame == 2){flushSMS();}
 			}
+		}
+
+		private function refreshQueue(event:TouchEvent):void
+		{
+			//topMenu.refreshBtn.btn_txt.text = "Refreshing";
+
 		}
 		
 		private function flushQueue():void
@@ -848,7 +859,7 @@ package
 			//UI Management
 			topMenu.saveBtn.removeEventListener(TouchEvent.TOUCH_TAP, saveRedir);
 			topMenu.saveBtn.btn_txt.text = "Saving";
-			TweenMax.to(topMenu.saveBtn, 0.5, {x:60, ease:Bounce.easeOut});
+			TweenMax.to(topMenu.saveBtn, 0.5, {x:65, ease:Bounce.easeOut});
 
 			mavin.addEventListener("redirectionLoadComplete", complete);
 
@@ -886,7 +897,7 @@ package
 		 	main.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
 		 	var time:Number = (getTimer() - t2) / 1000;
 		 	var yVelocity:Number = (main.y - y2) / time;
-		 	var grace:Number = stage.stageHeight / 480 * 9;
+		 	var grace:Number = stage.stageHeight / 480 * 12;
 		 	var yOverlap:Number = stage.stageHeight - main.height - grace;
 		 	if(yOverlap > 7){yOverlap = 7};
 		 	ThrowPropsPlugin.to(main, {ease:Strong.easeOut, throwProps:{y:{velocity:yVelocity, max:bounds.top, min:yOverlap, resistance:200}}}, 10, 0.25, 0);
