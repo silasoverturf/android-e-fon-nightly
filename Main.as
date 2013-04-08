@@ -70,7 +70,6 @@ package
 		
 		//functionality trackers
 		private var functionCount:Number = 2;//default is 2: sms and eg
-		private var DashboardItems:Array = [];
 
 		private var queueActive:Boolean;
 		private var shortDialsActive:Boolean;
@@ -102,6 +101,7 @@ package
 		public var mc:Sprite = new Sprite();
 		public var t1:uint, t2:uint, y1:Number, y2:Number;
 
+		//init mavin
 		var mavin:Mavin = new Mavin();
 
 		public function Main()
@@ -175,9 +175,7 @@ package
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyHandler);
 
 			//listen for native actions
-			//after change to portal cookies don't expire after set time, jession.load no longer needed.
 			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
-			//NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE, deactivate);
 			
 			stage.addEventListener(TouchEvent.TOUCH_TAP, getTarget);
 
@@ -198,18 +196,10 @@ package
 		//reactivation
 		private function activate(event:Event):void
 		{
-			trace("activate");
+			//refresh on reactive and active frame
 			if(main.currentFrame == 5){mavin.loadQueue("GET")};
 		}
 
-		//deactivation
-		private function deactivate(event:Event):void
-		{}
-		
-		//network change
-		private function networkChange(event:Event):void
-		{}
-		
 		//dashboard stack
 		private function addDashboard(type:String, typeFrame:Number):void
 		{
@@ -223,7 +213,7 @@ package
 
 			dashboard.addChild(DashboardItem);
 
-			//set position for next item
+			//set offset for next item
 			if(xP == 100)
 			{
 				yP = yP + 70;
@@ -239,9 +229,6 @@ package
 			}if(i5 < functionCount){
 				TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 			}
-
-			//push to array for checking
-			DashboardItems.push(type);
 		}
 		
 		//backBtn handler
@@ -333,7 +320,7 @@ package
 
 			function addSwipe():void
 			{
-				//only add swipe if main is larger than stage
+				//add swipe if main > stage
 				if(main.height > stage.stageHeight)
 				{
 					main.addEventListener(TouchEvent.TOUCH_BEGIN, mouseDownHandler);
@@ -350,6 +337,14 @@ package
 			TweenMax.to(dashboard, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 			TweenMax.to(main, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
 			TweenMax.to(topMenu, 0.5, {autoAlpha:1, delay:0.3, ease:Cubic.easeInOut});
+		}
+
+		private function reset(selection:Number):void
+		{
+			main.gotoAndStop(6);
+
+			main.gotoAndStop(selection);
+			topMenu.gotoAndStop(selection);
 		}
 
 		private function hideMain():void
@@ -472,7 +467,7 @@ package
 				//dump mavin data to local var
 				dumpContainer = mavin.jLoader.data;
 
-				//check pw
+				//check pw, if true, reset
 				if(mavin.invalidPW == true)
 				{
 					TweenMax.killTweensOf(loginBtn.loading);
@@ -482,14 +477,14 @@ package
 					loginBtn.addEventListener(TouchEvent.TOUCH_TAP, transmit);
 				}
 
-				//check if admin
+				//check admin, if true, listen for members
 				if(mavin.isAdmin == true)
 				{
 					mavin.removeEventListener("authComplete", checkAuthStatus);
-					//mavin.addEventListener("memberLoadComplete", flushMembers);
+					mavin.addEventListener("memberLoadComplete", flushMembers);
 				}
 
-				//check if !admin & !wrongpw
+				//else, listen for modules
 				if(mavin.isAdmin == false && mavin.invalidPW == false)
 				{
 					mavin.removeEventListener("authComplete", checkAuthStatus);
@@ -511,6 +506,7 @@ package
 
 					programState = "home";
 
+					//set function count
 					if(mavin.hasPhoneNumber == true){functionCount = functionCount + 2}
 					if(mavin.hasQueue == true){functionCount = functionCount + 1}
 				}
@@ -520,21 +516,23 @@ package
 		private function addSMS(event:Event):void
 		{
 			addDashboard("SMS", 5);
+			
 			mavin.removeEventListener("smsLoadComplete", addSMS);
 		}
 
 		private function addAccount(event:Event):void
 		{
 			addDashboard("Accounts", 3);
+			
 			mavin.removeEventListener("accountLoadComplete", addAccount);
 		}
 
 		private function addQueue(event:Event):void
 		{
+			addDashboard("Queue", 2);
+
 			mavin.removeEventListener("queueLoadComplete", addQueue);
 			mavin.addEventListener("queueLoadComplete", refreshQueue);
-
-			addDashboard("Queue", 2);
 		}
 
 		private function refreshQueue(event:Event):void
@@ -544,17 +542,19 @@ package
 
 		private function addRedirection(event:Event):void
 		{
-			mavin.removeEventListener("redirectionLoadComplete", addRedirection);
 			addDashboard("Umleitung", 1);
+
+			mavin.removeEventListener("redirectionLoadComplete", addRedirection);
 		}
 
 		private function addVoicemail(event:Event):void
 		{
-			mavin.removeEventListener("f2mLoadComplete", addVoicemail);
 			addDashboard("Voicemail", 6);
+
+			mavin.removeEventListener("f2mLoadComplete", addVoicemail);
 		}
 		
-		//UI flushing
+		//redirection flushing
 		private function flushRedirection():void
 		{
 			//listeners
@@ -584,8 +584,6 @@ package
 			if (mavin.redirectionAnon.active == 1){main.anonContainer.Check.gotoAndStop(1);}
 			if (mavin.redirectionAnon.active == 0){main.anonContainer.Check.gotoAndStop(2);}
 
-			trace("anon", mavin.redirectionAnon.active, main.anonContainer.Check.currentFrame);
-
 			//timeRedir flush
 			if (mavin.redirectionTime.choice == 1){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = mavin.redirectionTime.destination;}
 			if (mavin.redirectionTime.choice == 2){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";}
@@ -604,7 +602,7 @@ package
 			if (mavin.redirectionAnon.choice == 1){main.anonContainer.switcher.gotoAndStop(1);main.anonContainer.switcher.Text.text = "Falls unterdrückt umleiten auf Voicemail";}
 			if (mavin.redirectionAnon.choice == 2){main.anonContainer.switcher.gotoAndStop(7);main.anonContainer.switcher.destination.text = "Falls unterdrückt umleiten auf Abweisungsnachricht";}
 
-			//read savingBtn listeners
+			//set saveBtn
 			topMenu.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, saveRedir);
 			topMenu.saveBtn.btn_txt.text = "Saved!";
 			TweenMax.to(topMenu.saveBtn, 0.5, {delay:0.4, x:120, ease:Bounce.easeOut});
@@ -645,7 +643,6 @@ package
 			hideDashboard(8);
 
 			main.callButton.addEventListener(TouchEvent.TOUCH_TAP, callVoicemail);
-			//main.saveVM.addEventListener(TouchEvent.TOUCH_TAP, sendVoicemail);
 
 			function callVoicemail(event:TouchEvent)
 			{
@@ -654,7 +651,7 @@ package
 
 			function sendVoicemail(event:TouchEvent):void
 			{
-				mavin.loadVoicemail("POST");
+				mavin.loadVoicemail({method:"POST"});
 			}
 
 			main.email.text = mavin.voicemail.email;
@@ -686,21 +683,16 @@ package
 		{
 			if(main.currentFrame == 5)
 			{	
-				main.gotoAndStop(6);
-				main.gotoAndStop(5);
+				reset(5);
 
 				main.queueContainer.addEventListener(TouchEvent.TOUCH_TAP, queueHandler);
 				topMenu.refreshBtn.addEventListener(TouchEvent.TOUCH_TAP, refreshQueue);
 				topMenu.stopBtn.addEventListener(TouchEvent.TOUCH_TAP, logoutAll);
 
-				function queueHandler(event:TouchEvent):void
-				{
-					if(event.target.name == "slider"){mavin.loadQueue(event.target.parent.name);}
-				}
-
 				i3 = 0;
 				i4 = 0;
 
+				//for each queue, addChild
 				for each(var queue in mavin.queueList)
 				{
 					var QueueSnippet:MovieClip = new queueSnippet();
@@ -718,6 +710,11 @@ package
 					main.queueContainer.addChild(QueueSnippet);
 					i4 = i4 + 1;
 					i3 = i3 + 1;
+				}
+
+				function queueHandler(event:TouchEvent):void
+				{
+					if(event.target.name == "slider"){mavin.loadQueue(event.target.parent.name);}
 				}
 
 				function logoutAll(event:TouchEvent):void

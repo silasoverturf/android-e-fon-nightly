@@ -154,6 +154,7 @@ package
 		private var accountsLoader:URLLoader = new URLLoader;
 		private var accountsData:String;
 
+		////public properties
 		public var user:String;                //memberID
 
 		public var redirectionTime:Object = {};//active, choice, destination, delay
@@ -652,9 +653,38 @@ package
 			f2mLoader.load(f2mURLRequest);
 		}
 
-		public function loadVoicemail(method:String):void
+		public function loadVoicemail(saveOjbect:Object):void
 		{
-			debug("Saving to /notifications.html is currently not fully supported");
+			debug("loading Voicemail")
+
+			if(!saveObject.method){debug("method undefined")}
+			if(saveObject.method == "GET"){debug("use loadF2M();")}
+			if(saveObject.method == "POST")
+			{
+				f2mLoader = new URLLoader();
+				f2mVars = new URLVariables();
+
+				f2mURLRequest.method = URLRequestMethod.POST;
+				f2mURLRequest.addEventListener(Event.COMPLETE, parse);
+
+				debug("Saving to /notifications.html is currently not fully supported, use loadF2M")
+
+				if(saveObject.email != null)
+				{
+
+				}
+
+				if(saveObject.PIN != null)
+				{
+
+				}
+
+				if(saveObject.greeting != null)
+				{
+
+				}
+				f2mLoader.load(f2mURLRequest);
+			}
 		}
 
 		//loadQueue
