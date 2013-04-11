@@ -162,12 +162,22 @@ pip-log.txt
 # Mac crap
 .DS_Store
 
+#############
+## Adobe Air
+#############
+
 *.xml
 .xml
 xml
+
+*.swf
+.swf
+swf
 
 # Build and Release Folders
 bin/
 bin-debug/
 bin-release/
+
+#greensock
 com/

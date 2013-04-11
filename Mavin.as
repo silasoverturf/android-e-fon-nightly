@@ -653,7 +653,7 @@ package
 			f2mLoader.load(f2mURLRequest);
 		}
 
-		public function loadVoicemail(saveOjbect:Object):void
+		public function loadVoicemail(saveObject:Object):void
 		{
 			debug("loading Voicemail")
 
@@ -664,26 +664,55 @@ package
 				f2mLoader = new URLLoader();
 				f2mVars = new URLVariables();
 
-				f2mURLRequest.method = URLRequestMethod.POST;
-				f2mURLRequest.addEventListener(Event.COMPLETE, parse);
-
 				debug("Saving to /notifications.html is currently not fully supported, use loadF2M")
+
+				f2mVars.selectedPhoneNumberId = user;
 
 				if(saveObject.email != null)
 				{
-
+					f2mVars.voicemailEmail = saveObject.email;
 				}
 
 				if(saveObject.PIN != null)
 				{
-
+					f2mVars.voicemailPIN = saveObject.PIN;
 				}
 
 				if(saveObject.greeting != null)
 				{
-
+					f2mVars.voicemailAnrede = saveObject.greeting;
 				}
+				
+				f2mURLRequest.method = URLRequestMethod.POST;
+				f2mURLRequest.data = f2mVars;
+				f2mLoader.addEventListener(Event.COMPLETE, parse);
+
 				f2mLoader.load(f2mURLRequest);
+
+				function parse(event:Event):void
+				{
+					f2mLoader.removeEventListener(Event.COMPLETE, parse)
+					
+					//parse F2M
+					f2mData = new String(f2mLoader.data);
+					f2mData = f2mData.replace(rex,"");
+					f2mEmail = f2mSniffer.exec(f2mData);
+
+					//parse Voicemail
+					var result:Array;
+					voicemail = [];
+
+					result = voicemailEmailSniffer.exec(f2mData);
+					voicemail.email = result[1]
+					
+					result = voicemailGreetingSniffer.exec(f2mData);
+					voicemail.greeting = result[1];
+
+					result = voicemailPINSnifffer.exec(f2mData);
+					voicemail.PIN = result[1];
+
+					dispatchEvent(new Event("voicemailLoadComplete"));
+				}
 			}
 		}
 
@@ -1004,7 +1033,7 @@ package
 			trace(errorEvent.currentTarget);
 			trace(errorEvent.text);
 
-			if(errorEvent.text.search("https://" + realm) > 0){debug("failed at checking web")}
+			if(errorEvent.text.search("https://" + realm) > 0){/*error code*/}
 			if(errorEvent.text.search("j_acegi_security_check") > 0){debug("IOError at authing")}
 			if(errorEvent.text.search("memberOverview.html") > 0){debug("failed loading member")}
 			if(errorEvent.text.search("redirection.html") > 0){debug("failed loading redirection")}
