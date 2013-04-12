@@ -517,6 +517,12 @@ package
 			addDashboard("Accounts", 3);
 			
 			mavin.removeEventListener("accountLoadComplete", addAccount);
+			mavin.addEventListener("accountLoadComplete", refreshAccount);
+		}
+
+		private function refreshAccount(event:Event):void
+		{
+			flushAccount();
 		}
 
 		private function addQueue(event:Event):void
@@ -718,28 +724,33 @@ package
 
 		private function flushAccount():void
 		{
-			i4 = 0;
-			
-			for each(var Account in mavin.accountArray)
+			if(main.currentFrame == 4)
 			{
-				var EGSnippet:MovieClip = new egSnippet();
+				reset(4);
 
-				EGSnippet.y = i4 * 120;
-				EGSnippet.head.text = Account.uid;
-				EGSnippet.plz.text = Account.zip;
-				EGSnippet.clip.text = Account.clip;
-				if(Account.status.length > 30)
+				i4 = 0;
+				
+				for each(var Account in mavin.accountArray)
 				{
-					var result:Array = dateSniffer.exec(Account.status);
-					EGSnippet.regState.text = "Registriert von " + IPSniffer.exec(Account.status);
-					EGSnippet.regState2.text = "bis " + result[1] + " um " + result[2];
-				}else{
-					EGSnippet.regState.text = "Nicht registriert"
-					EGSnippet.regState2.text = "";
-				}
+					var EGSnippet:MovieClip = new egSnippet();
 
-				main.egContainer.addChild(EGSnippet);
-				i4 = i4 + 1;
+					EGSnippet.y = i4 * 120;
+					EGSnippet.head.text = Account.uid;
+					EGSnippet.plz.text = Account.zip;
+					EGSnippet.clip.text = Account.clip;
+					if(Account.status.length > 30)
+					{
+						var result:Array = dateSniffer.exec(Account.status);
+						EGSnippet.regState.text = "Registriert von " + IPSniffer.exec(Account.status);
+						EGSnippet.regState2.text = "bis " + result[1] + " um " + result[2];
+					}else{
+						EGSnippet.regState.text = "Nicht registriert"
+						EGSnippet.regState2.text = "";
+					}
+
+					main.egContainer.addChild(EGSnippet);
+					i4 = i4 + 1;
+				}
 			}
 		}
 
