@@ -71,21 +71,13 @@ package
 		//functionality trackers
 		private var functionCount:Number = 2;//default is 2: sms and eg
 
-		private var queueActive:Boolean;
-		private var shortDialsActive:Boolean;
-		private var isAdmin:Boolean;
-		private var wrongPW:Boolean;
-		
 		//intermediate dump vars
-		private var dumpRedir:Array = [];
 		private var dumpContainer:String;	
 		
 		//T
 		private var testingArray:Array = ["testing"];
 		private var testingString:String = "";
 		private var testingBoolean:Boolean;
-		
-		//user settings
 
 		//matches ip address to result[1]
 		private var IPSniffer:RegExp = /[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}/i;
@@ -177,13 +169,13 @@ package
 			//listen for native actions
 			NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE, activate);
 			
-			stage.addEventListener(TouchEvent.TOUCH_TAP, getTarget);
+			//stage.addEventListener(TouchEvent.TOUCH_TAP, getTarget);
 
 			//get language
 			trace(Capabilities.languages, Capabilities.os);
 
 			//if SO invalid, set default, else set SO
-			if (!SO.data.userid)
+			if(!SO.data.userid)
 			{
 				login.userid_txt.text = "user@example.com";
 				login.password_txt.text = "password";
@@ -196,8 +188,8 @@ package
 		//reactivation
 		private function activate(event:Event):void
 		{
-			//refresh on reactive and active frame
-			if(main.currentFrame == 5){mavin.loadQueue("GET")};
+			//reauth on reactivate
+			//mavin.authorize(SO.data.userid, SO.data.pass)
 		}
 
 		//dashboard stack
@@ -575,32 +567,32 @@ package
 			main.anonContainer.switcher.gotoAndStop(1);
 			
 			//checks
-			if (mavin.redirectionTime.active == 1){main.timeContainer.Check.gotoAndStop(1);}
-			if (mavin.redirectionTime.active == 0){main.timeContainer.Check.gotoAndStop(2);}
-			if (mavin.redirectionBusy.active == 1){main.busyContainer.Check.gotoAndStop(1);}
-			if (mavin.redirectionBusy.active == 0){main.busyContainer.Check.gotoAndStop(2);}
-			if (mavin.redirectionUnre.active == 1){main.unregContainer.Check.gotoAndStop(1);}
-			if (mavin.redirectionUnre.active == 0){main.unregContainer.Check.gotoAndStop(2);}
-			if (mavin.redirectionAnon.active == 1){main.anonContainer.Check.gotoAndStop(1);}
-			if (mavin.redirectionAnon.active == 0){main.anonContainer.Check.gotoAndStop(2);}
+			if(mavin.redirectionTime.active == 1){main.timeContainer.Check.gotoAndStop(2);}
+			if(mavin.redirectionTime.active == 0){main.timeContainer.Check.gotoAndStop(1);}
+			if(mavin.redirectionBusy.active == 1){main.busyContainer.Check.gotoAndStop(2);}
+			if(mavin.redirectionBusy.active == 0){main.busyContainer.Check.gotoAndStop(1);}
+			if(mavin.redirectionUnre.active == 1){main.unregContainer.Check.gotoAndStop(2);}
+			if(mavin.redirectionUnre.active == 0){main.unregContainer.Check.gotoAndStop(1);}
+			if(mavin.redirectionAnon.active == 1){main.anonContainer.Check.gotoAndStop(2);}
+			if(mavin.redirectionAnon.active == 0){main.anonContainer.Check.gotoAndStop(1);}
 
 			//timeRedir flush
-			if (mavin.redirectionTime.choice == 1){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = mavin.redirectionTime.destination;}
-			if (mavin.redirectionTime.choice == 2){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";}
-			if (mavin.redirectionTime.choice == 3){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Fax2Mail";}
+			if(mavin.redirectionTime.choice == 1){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = mavin.redirectionTime.destination;}
+			if(mavin.redirectionTime.choice == 2){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";}
+			if(mavin.redirectionTime.choice == 3){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Fax2Mail";}
 			
 			main.timeContainer.switcher.Delay.text = mavin.redirectionTime.delay;
 			//busyRedir flush
-			if (mavin.redirectionBusy.choice == 1){main.busyContainer.switcher.gotoAndStop(4);main.busyContainer.switcher.destination.text = mavin.redirectionBusy.destination;}
-			if (mavin.redirectionBusy.choice == 2){main.busyContainer.switcher.gotoAndStop(5);main.busyContainer.switcher.destination.text = "Falls besetzt umleiten auf Voicemail";}
+			if(mavin.redirectionBusy.choice == 1){main.busyContainer.switcher.gotoAndStop(4);main.busyContainer.switcher.destination.text = mavin.redirectionBusy.destination;}
+			if(mavin.redirectionBusy.choice == 2){main.busyContainer.switcher.gotoAndStop(5);main.busyContainer.switcher.destination.text = "Falls besetzt umleiten auf Voicemail";}
 			
 			//unregRedir flush
-			if (mavin.redirectionUnre.choice == 1){main.unregContainer.switcher.gotoAndStop(6);main.unregContainer.switcher.destination.text = mavin.redirectionUnre.destination;}
-			if (mavin.redirectionUnre.choice == 2){main.unregContainer.switcher.gotoAndStop(7);main.unregContainer.switcher.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
+			if(mavin.redirectionUnre.choice == 1){main.unregContainer.switcher.gotoAndStop(6);main.unregContainer.switcher.destination.text = mavin.redirectionUnre.destination;}
+			if(mavin.redirectionUnre.choice == 2){main.unregContainer.switcher.gotoAndStop(7);main.unregContainer.switcher.destination.text = "Falls Endgeräte nicht erreichbar umleiten auf Voicemail"}
 			
 			//anonRedir flush
-			if (mavin.redirectionAnon.choice == 1){main.anonContainer.switcher.gotoAndStop(1);main.anonContainer.switcher.Text.text = "Falls unterdrückt umleiten auf Voicemail";}
-			if (mavin.redirectionAnon.choice == 2){main.anonContainer.switcher.gotoAndStop(7);main.anonContainer.switcher.destination.text = "Falls unterdrückt umleiten auf Abweisungsnachricht";}
+			if(mavin.redirectionAnon.choice == 1){main.anonContainer.switcher.gotoAndStop(1);main.anonContainer.switcher.Text.text = "Falls unterdrückt umleiten auf Voicemail";}
+			if(mavin.redirectionAnon.choice == 2){main.anonContainer.switcher.gotoAndStop(7);main.anonContainer.switcher.destination.text = "Falls unterdrückt umleiten auf Abweisungsnachricht";}
 
 			//set saveBtn
 			topMenu.saveBtn.addEventListener(TouchEvent.TOUCH_TAP, saveRedir);
@@ -753,17 +745,18 @@ package
 
 		private function flushMembers():void
 		{
-			/*hideDashboard(10);
+			hideDashboard(10);
+			
 			programState = "members";
 
 			i4 = 0;
 
-			for each(var member in memberNames)
+			for each(var member in mavin.memberArray)
 			{
 				var MemberSnippet:MovieClip = new memberSnippet();
 				MemberSnippet.y = i4 * 57;
-				MemberSnippet.Text.text = member;
-				MemberSnippet.name = memberIDs[i4];
+				MemberSnippet.Text.text = member.name;
+				MemberSnippet.name = member.id;
 
 				main.memberContainer.addChild(MemberSnippet);
 				i4 = i4 + 1;
@@ -779,7 +772,6 @@ package
 			TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
 			TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
 			TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
-			*/
 		}
 
 		private function saveRedir(event:TouchEvent):void
@@ -790,7 +782,7 @@ package
 			mavin.redirectionUnre.active = 0;
 			mavin.redirectionAnon.active = 0;
 
-			if (main.timeContainer.Check.currentFrame == 1)
+			if(main.timeContainer.Check.currentFrame == 1)
 			{
 				//if(main)
 				mavin.redirectionTime.active = 1;
@@ -802,7 +794,7 @@ package
 				if(main.timeContainer.switcher.currentFrame == 3 && main.timeContainer.switcher.destination.text == "s umleiten auf Fax2Mail"){mavin.redirectionTime.choice = 3;}
 			}
 			
-			if (main.busyContainer.Check.currentFrame == 1)
+			if(main.busyContainer.Check.currentFrame == 1)
 			{
 				mavin.redirectionBusy.active = 1;
 				mavin.redirectionBusy.destination = main.busyContainer.switcher.destination.text;
@@ -811,7 +803,7 @@ package
 				if(main.busyContainer.switcher.currentFrame == 5){mavin.redirectionBusy.choice = 2;}
 			}
 			
-			if (main.unregContainer.Check.currentFrame == 1)
+			if(main.unregContainer.Check.currentFrame == 1)
 			{
 				mavin.redirectionUnre.active = 1;
 				mavin.redirectionUnre.destination = main.unregContainer.switcher.destination.text;
@@ -827,7 +819,7 @@ package
 				}
 			}
 			
-			if (main.anonContainer.Check.currentFrame == 1)
+			if(main.anonContainer.Check.currentFrame == 1)
 			{
 				mavin.redirectionAnon.active = 1
 

@@ -653,13 +653,13 @@ package
 			f2mLoader.load(f2mURLRequest);
 		}
 
-		public function loadVoicemail(saveObject:Object):void
+		public function loadVoicemail(loadObject:Object):void
 		{
 			debug("loading Voicemail")
 
-			if(!saveObject.method){debug("method undefined")}
-			if(saveObject.method == "GET"){debug("use loadF2M();")}
-			if(saveObject.method == "POST")
+			if(!loadObject.method){debug("method undefined")}
+			if(loadObject.method == "GET"){debug("use loadF2M();")}
+			if(loadObject.method == "POST")
 			{
 				f2mLoader = new URLLoader();
 				f2mVars = new URLVariables();
@@ -668,19 +668,19 @@ package
 
 				f2mVars.selectedPhoneNumberId = user;
 
-				if(saveObject.email != null)
+				if(loadObject.email != null)
 				{
-					f2mVars.voicemailEmail = saveObject.email;
+					f2mVars.voicemailEmail = loadObject.email;
 				}
 
-				if(saveObject.PIN != null)
+				if(loadObject.PIN != null)
 				{
-					f2mVars.voicemailPIN = saveObject.PIN;
+					f2mVars.voicemailPIN = loadObject.PIN;
 				}
 
-				if(saveObject.greeting != null)
+				if(loadObject.greeting != null)
 				{
-					f2mVars.voicemailAnrede = saveObject.greeting;
+					f2mVars.voicemailAnrede = loadObject.greeting;
 				}
 				
 				f2mURLRequest.method = URLRequestMethod.POST;
