@@ -203,7 +203,7 @@ package
 			function parse(event:Event):void
 			{
 				//parse and sent to debug();
-				result = checkRex.exec(checkLoader.data)
+				result = checkRex.exec(checkLoader.data);
 				debug(result[1]  + ", Mavin is ready");
 			}
 		}
@@ -859,6 +859,7 @@ package
 
 		public function loadAccounts(method:String):void
 		{
+			debug("loading Accounts")
 			if(method == "GET")
 			{
 				accountsLoader.addEventListener(Event.COMPLETE, parse);
@@ -892,7 +893,7 @@ package
 		public function loadCDR(method:String):void
 		{
 			if(hasPhoneNumber == false){debug("hasPhoneNumber is false")}
-			if(hasPhoneNumber == true && method == "POST"){debug("posting to /cdrs.html is not supported by e-fon")}
+			if(hasPhoneNumber == true && method == "POST"){debug("invalid choice")}
 			if(hasPhoneNumber == true && method == "GET")
 			{
 				cdrVars = new URLVariables();
@@ -907,10 +908,10 @@ package
 
 				if(date.month == 0)
 				{
-					dateString = "12"
+					dateString = "12";
 					dumpString = date.fullYear - 1;
 
-					dateString = date.date + "." + dateString + "." + dumpString 
+					dateString = date.date + "." + dateString + "." + dumpString;
 				}
 				if(date.month != 0)
 				{

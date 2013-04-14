@@ -34,11 +34,6 @@ package
 
 		//configObject
 		public var configObject:Object 
-		/*realm, context, displayBG, displayHeader
-		e-fon Default = {realm:"web.e-fon.ch", context:"/portal", dispalyBG:1, diplsayHeader:1}
-		dev = {realm:"dev01.e-fon.ch", context:"/portal_[version]", dispalyBG:2, diplsayHeader:1}
-		cc = {realm:"web.e-fon.ch", context:"/cablecom", dispalyBG:3, diplsayHeader:2}
-		*/
 		
 		//local LSO
 		var SO:SharedObject = SharedObject.getLocal("e-fon");
@@ -73,11 +68,6 @@ package
 
 		//intermediate dump vars
 		private var dumpContainer:String;	
-		
-		//T
-		private var testingArray:Array = ["testing"];
-		private var testingString:String = "";
-		private var testingBoolean:Boolean;
 
 		//matches ip address to result[1]
 		private var IPSniffer:RegExp = /[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}/i;
@@ -357,8 +347,8 @@ package
 		//redirection UI management
 		private function targetTest(event:TouchEvent):void
 		{
-			if(event.target.name == "phoneIcon"){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = "";main.timeContainer.switcher.Delay.text = "";};
-			if(event.target.name == "voicemailIcon"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";main.timeContainer.switcher.Delay.text = "";};
+			if(event.target.name == "phoneIcon"){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = "";main.timeContainer.switcher.Delay.text = "0";};
+			if(event.target.name == "voicemailIcon"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";main.timeContainer.switcher.Delay.text = "0";};
 			if(event.target.name == "fax2mailIcon"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text ="s umleiten auf Fax2Mail";main.timeContainer.switcher.Delay.text = "0";};
 			if(event.target.name == "Check"){main.timeContainer.Check.play();}
 		}
