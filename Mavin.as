@@ -247,7 +247,12 @@ package
 				if(jData.search("password") > -1){invalidPW = true;debug("Password is invalid")}
 
 				//check if admin
-				if(jData.search("memberOverview") > -1){isAdmin = true;debug("User is admin, waiting for actAs();")}
+				if(jData.search("memberOverview") > -1)
+				{
+					isAdmin = true;
+					debug("User is admin, waiting for actAs();");
+					loadMembers();
+				}
 
 				//else loadData();
 				if(invalidPW == false && isAdmin == false)
@@ -325,7 +330,7 @@ package
 			}
 		}
 
-		public function loadMembers(method:String):void
+		public function loadMembers():void
 		{
 			memberLoader = new URLLoader();
 
@@ -336,13 +341,18 @@ package
 
 			function parse(event:Event):void
 			{
+
 				memberData = memberLoader.data;
 				memberData = memberData.replace(rex, "");				
+
+				trace(memberData);
 
 				var result:Array = memberIDSniffer.exec(memberData);
 				var result2:Array = memberNameSniffer.exec(memberData);
 
 				memberArray = [];
+
+				trace(memberArray, result2, result)
 
 				while(result != null)
 				{
