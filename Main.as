@@ -8,7 +8,6 @@ package
 	import flash.events.TouchEvent;
 	import flash.net.URLLoader;
 	import flash.display.*;
-	import flash.net.*;
 	import flash.events.*;
 	import flash.ui.*;
 
@@ -65,9 +64,6 @@ package
 		
 		//functionality trackers
 		private var functionCount:Number = 2;//default is 2: sms and eg
-
-		//intermediate dump vars
-		private var dumpContainer:String;	
 
 		//matches ip address to result[1]
 		private var IPSniffer:RegExp = /[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}/i;
@@ -207,7 +203,7 @@ package
 			
 			//check if loading done
 			if(i5 == functionCount){
-				TweenMax.to(dashboard.loading, 0.5, {x:"+100", autoAlpha:0, ease:Cubic.easeInOut});
+				dashboard.removeChild(loading);
 			}if(i5 < functionCount){
 				TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 			}
@@ -446,9 +442,6 @@ package
 			//check if admin, pw
 			function checkAuthStatus(event:Event):void
 			{
-				//dump mavin data to local var
-				dumpContainer = mavin.jLoader.data;
-
 				//check pw, if true, reset
 				if(mavin.invalidPW == true)
 				{
@@ -495,6 +488,13 @@ package
 			}
 		}
 
+		private function addRedirection(event:Event):void
+		{
+			addDashboard("Umleitung", 1);
+
+			mavin.removeEventListener("redirectionLoadComplete", addRedirection);
+		}
+
 		private function addSMS(event:Event):void
 		{
 			addDashboard("SMS", 5);
@@ -526,13 +526,6 @@ package
 		private function refreshQueue(event:Event):void
 		{
 			flushQueue();
-		}
-
-		private function addRedirection(event:Event):void
-		{
-			addDashboard("Umleitung", 1);
-
-			mavin.removeEventListener("redirectionLoadComplete", addRedirection);
 		}
 
 		private function addVoicemail(event:Event):void
