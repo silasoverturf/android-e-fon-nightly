@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Graphic version="2.0" viewHeight="792" viewWidth="612" ai:appVersion="16.2.0.723" ATE:version="1.0.0" flm:version="1.0.0" d:using="" xmlns="http://ns.adobe.com/fxg/2008" xmlns:ATE="http://ns.adobe.com/ate/2009" xmlns:ai="http://ns.adobe.com/ai/2009" xmlns:d="http://ns.adobe.com/fxg/2008/dt" xmlns:flm="http://ns.adobe.com/flame/2008">
+  <Library/>
+  <Group blendMode="normal" d:layerType="page" d:pageHeight="792" d:pageWidth="612" d:type="layer" d:userLabel="Artboard 1">
+    <Group d:type="layer" d:userLabel="Layer 1">
+      <Group x="185.919" y="261.414" ai:seqID="1">
+        <Group ai:seqID="2">
+          <Rect width="242" height="40" ai:seqID="3">
+            <fill>
+              <SolidColor color="#CFCFCE"/>
+            </fill>
+          </Rect>
+          <Rect x="1" alpha="0.1" width="241" height="1" ai:seqID="4">
+            <fill>
+              <SolidColor color="#858585"/>
+            </fill>
+          </Rect>
+          <Rect x="1" y="39" alpha="0.1" width="241" height="1" ai:seqID="5">
+            <fill>
+              <SolidColor color="#343434"/>
+            </fill>
+          </Rect>
+          <Rect alpha="0.1" width="1" height="39" ai:seqID="6">
+            <fill>
+              <SolidColor color="#464646"/>
+            </fill>
+          </Rect>
+          <Rect x="241" y="1" alpha="0.1" width="1" height="38" ai:seqID="7">
+            <fill>
+              <SolidColor color="#434343"/>
+            </fill>
+          </Rect>
+        </Group>
+      </Group>
+      <Group x="185.919" y="319.164" ai:seqID="8">
+        <Group ai:seqID="9">
+          <Rect alpha="0.6" width="242" height="40" ai:seqID="10">
+            <fill>
+              <SolidColor color="#35B5E4"/>
+            </fill>
+          </Rect>
+          <Group alpha="0.6" ai:seqID="11" flm:isolated="false" flm:knockout="false">
+            <Path winding="nonZero" ai:seqID="12" data="M240 2 240 38 2 38 2 2 240 2M242 0 0 0 0 40 242 40 242 0 242 0Z">
+              <fill>
+                <SolidColor color="#35B5E4"/>
+              </fill>
+            </Path>
+          </Group>
+        </Group>
+      </Group>
+      <Group x="185.919" y="492.414" ai:seqID="13">
+        <Group alpha="0.3" ai:seqID="14" flm:isolated="false">
+          <Rect width="242" height="40" ai:seqID="15">
+            <fill>
+              <SolidColor color="#CFCFCE"/>
+            </fill>
+          </Rect>
+          <Rect x="1" width="241" height="1" ai:seqID="16">
+            <fill>
+              <SolidColor color="#858585"/>
+            </fill>
+          </Rect>
+          <Rect x="1" y="39" width="241" height="1" ai:seqID="17">
+            <fill>
+              <SolidColor color="#343434"/>
+            </fill>
+          </Rect>
+          <Rect width="1" height="39" ai:seqID="18">
+            <fill>
+              <SolidColor color="#464646"/>
+            </fill>
+          </Rect>
+          <Rect x="241" y="1" width="1" height="38" ai:seqID="19">
+            <fill>
+              <SolidColor color="#434343"/>
+            </fill>
+          </Rect>
+        </Group>
+      </Group>
+      <Group x="185.919" y="434.664" ai:seqID="20">
+        <Group ai:seqID="21">
+          <Rect alpha="0.3" width="242" height="40" ai:seqID="22">
+            <fill>
+              <SolidColor color="#35B5E4"/>
+            </fill>
+          </Rect>
+          <Group alpha="0.3" ai:seqID="23" flm:isolated="false" flm:knockout="false">
+            <Path winding="nonZero" ai:seqID="24" data="M240 2 240 38 2 38 2 2 240 2M242 0 0 0 0 40 242 40 242 0 242 0Z">
+              <fill>
+                <SolidColor color="#35B5E4"/>
+              </fill>
+            </Path>
+          </Group>
+        </Group>
+      </Group>
+      <Group x="181.919" y="372.914" ai:seqID="25">
+        <Group ai:seqID="26">
+          <Rect x="4" y="4" alpha="0.85" width="242" height="40" ai:seqID="27">
+            <fill>
+              <SolidColor color="#35B5E4"/>
+            </fill>
+          </Rect>
+          <Rect x="5" y="4" alpha="0.3" width="241" height="1" ai:seqID="28">
+            <fill>
+              <SolidColor color="#6AB2CC"/>
+            </fill>
+          </Rect>
+          <Rect x="4" y="4" alpha="0.3" width="1" height="39" ai:seqID="29">
+            <fill>
+              <SolidColor color="#348DB1"/>
+            </fill>
+          </Rect>
+          <Rect x="245" y="5" alpha="0.3" width="1" height="38" ai:seqID="30">
+            <fill>
+              <SolidColor color="#348DB1"/>
+            </fill>
+          </Rect>
+          <Rect x="4" y="43" alpha="0.4" width="242" height="1" ai:seqID="31">
+            <fill>
+              <SolidColor color="#2B7492"/>
+            </fill>
+          </Rect>
+          <Group alpha="0.4" ai:seqID="32" flm:isolated="false" flm:knockout="false">
+            <Path winding="nonZero" ai:seqID="33" data="M246 4 246 44 4 44 4 4 246 4M246 0 4 0C1.79102 0 0 1.79102 0 4L0 44C0 46.209 1.79102 48 4 48L246 48C248.209 48 250 46.209 250 44L250 4C250 1.79102 248.209 0 246 0L246 0Z">
+              <fill>
+                <SolidColor color="#35B5E4"/>
+              </fill>
+            </Path>
+          </Group>
+        </Group>
+      </Group>
+    </Group>
+  </Group>
+  <Private/>
+</Graphic>

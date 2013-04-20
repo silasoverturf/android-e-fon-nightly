@@ -16,7 +16,9 @@ package
 		public var debugLevel:Number = 1;
 		private var dumpArray:Array = [];
 
+		public var hasVpbx:Boolean = false
  		public var hasPhoneNumber:Boolean = false;
+ 		public var hasSMS:Boolean = false;
 		public var hasQueue:Boolean = false;
 		public var hasShortDial:Boolean = false;
 
@@ -30,16 +32,15 @@ package
 		public var isAdmin:Boolean = false;
 		public var authOK:Boolean = false;
 
-		public var mavinState:String;
+		public var state:String;
 		
 		//check web version
 		public var checkSend:URLRequest = new URLRequest("https://" + realm);
 		public var checkLoader:URLLoader = new URLLoader;
 		public var checkRex:RegExp = /;.>([^<]{0,})/;
 
-		//RegExp
-		
-		//matches memberIDs
+		////RegExp////
+		//matches memberIDs to resultp[1]
 		private var memberIDSniffer:RegExp = /edit&member=([0-9]{0,})/gi;
 
 		//matches memberNames to result[1]
@@ -57,6 +58,7 @@ package
 		//redirection checked, matches redir type to result[1], redir selection to result[2];
 		private var choiceSniffer:RegExp = /<inputtype="radio"name="choice(1|3|Backuprouting|AnonSuppression)"value="([0-9]{0,4})"(?:onclick="controlRedir(?:Normal|Busy|Backup|Anon)\(\)|)("checked="checked"|"|checked="checked|)/gi;
 
+		//matches selected number to result[1]
 		private var userNumberSniffer:RegExp = /optionvalue="([0-9]{1,15})/;
 
 		//matches calender choices
@@ -85,7 +87,7 @@ package
 
 		private var queueSniffer:RegExp =  />([^<]{0,})<\/td><td>[^<]{0,},([^<]{0,})<\/td><td>[^<]{0,}<\/td><td>[^<]{0,}<br\/><\/td><td><spanstyle="color:[0-9a-zA-Z,]{0,};">([a-zA-Z]{0,})<\/span><\/td><td><ahref="javascript:[a-zA-Z]{0,}\(([0-9]{0,})\)"/g; 
 
-		private var accountsSniffer:RegExp = /tdwidth=.100px">([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([^"]{0,})"\/><\/td><td>/g;
+		private var accountsSniffer:RegExp = /tdwidth=.100px.>([0-9a-zA-Z\-]{1,30})<\/td><td>([0-9a-zA-Z\-]{1,30})<\/td><td><[0-9a-zA-Z\-=":\/\/\+]{1,30}>([0-9]{1,20})<\/td><td>(<imgsrc="images\/check.gif"?>|-)<\/td><td>([0-9]{0,6})<\/td><td><imgsrc="images\/ampel_(?:rot|gruen).gif"title="([^"]{0,})"\/><\/td><td>/g;
 
 		//matches connection date[1] and time[2]
 		private var cdrSniffer:RegExp = />([^<>]{0,})<\/td><td>([0-9]{2}\.[0-9]{2}\.[0-9]{4})([0-9]{2}:[0-9]{2}:[0-9]{2})[^>]{0,}>[^>]{0,}>([0-9]:[0-9]{2}:[0-9]{2})/gi;
@@ -106,7 +108,7 @@ package
 
 		//session
 		private var jSend:URLRequest = new URLRequest("https://" + realm + context +"/j_acegi_security_check");
-		public var jLoader:URLLoader = new URLLoader;
+		private var jLoader:URLLoader = new URLLoader;
 		private var jSession:URLVariables;
 		private var jData:String;
 
@@ -190,20 +192,20 @@ package
 			
 			var i:Number = 0;
 
+			//check web
 			checkLoader.load(checkSend);
 			checkLoader.addEventListener(Event.COMPLETE, parse);
 			
+			//listen for errors
 			for each(var urlLoader in loaderArray)
 			{
 				urlLoader.addEventListener(IOErrorEvent.IO_ERROR, connectionError);
 			}
 
-			var result:Array;
-
 			function parse(event:Event):void
 			{
 				//parse and sent to debug();
-				result = checkRex.exec(checkLoader.data)
+				var result:Array = checkRex.exec(checkLoader.data);
 				debug(result[1]  + ", Mavin is ready");
 			}
 		}
@@ -247,7 +249,12 @@ package
 				if(jData.search("password") > -1){invalidPW = true;debug("Password is invalid")}
 
 				//check if admin
-				if(jData.search("memberOverview") > -1){isAdmin = true;debug("User is admin, waiting for actAs();")}
+				if(jData.search("memberOverview") > -1)
+				{
+					isAdmin = true;
+					debug("User is admin, waiting for actAs();");
+					loadMembers();
+				}
 
 				//else loadData();
 				if(invalidPW == false && isAdmin == false)
@@ -325,7 +332,7 @@ package
 			}
 		}
 
-		public function loadMembers(method:String):void
+		public function loadMembers():void
 		{
 			memberLoader = new URLLoader();
 
@@ -336,13 +343,18 @@ package
 
 			function parse(event:Event):void
 			{
+
 				memberData = memberLoader.data;
 				memberData = memberData.replace(rex, "");				
+
+				trace(memberData);
 
 				var result:Array = memberIDSniffer.exec(memberData);
 				var result2:Array = memberNameSniffer.exec(memberData);
 
 				memberArray = [];
+
+				trace(memberArray, result2, result)
 
 				while(result != null)
 				{
@@ -452,8 +464,6 @@ package
 
 				//reset counters
 				var i:Number = 0;
-				var i2:Number = 0;
-				var i3:Number = 0;
 				
 				//remove whitespace
 				redirectionData = redirectionData.replace(rex,"");
@@ -516,7 +526,7 @@ package
 				//calender manual status
 				result = manualStatusSelected.exec(redirectionData);
 			
-				//only push if avaliable
+				//only push if RegExp matches
 				if(result != null)
 				{
 					calenderManual.active = result[1];
@@ -607,7 +617,7 @@ package
 		//f2m
 		public function loadF2M(method:String):void
 		{
-			debug("loading F2M")
+			debug("loading F2M");
 			if(method == "GET")
 			{
 				f2mURLRequest.method = URLRequestMethod.GET;	
@@ -627,7 +637,7 @@ package
 			
 			function parse(event:Event):void
 			{
-				f2mLoader.removeEventListener(Event.COMPLETE, parse)
+				f2mLoader.removeEventListener(Event.COMPLETE, parse);
 				//parse F2M
 				f2mData = new String(f2mLoader.data);
 				f2mData = f2mData.replace(rex,"");
@@ -638,7 +648,7 @@ package
 				voicemail = [];
 
 				result = voicemailEmailSniffer.exec(f2mData);
-				voicemail.email = result[1]
+				voicemail.email = result[1];
 				
 				result = voicemailGreetingSniffer.exec(f2mData);
 				voicemail.greeting = result[1];
@@ -732,7 +742,7 @@ package
 				function parse(event:Event):void
 				{
 					queueData = queueLoader.data;
-					queueData = queueData.replace(rex, "")
+					queueData = queueData.replace(rex, "");
 					
 					//reset locals vars
 					queueAgent = [];
@@ -849,6 +859,7 @@ package
 
 		public function loadAccounts(method:String):void
 		{
+			debug("loading Accounts")
 			if(method == "GET")
 			{
 				accountsLoader.addEventListener(Event.COMPLETE, parse);
@@ -882,7 +893,7 @@ package
 		public function loadCDR(method:String):void
 		{
 			if(hasPhoneNumber == false){debug("hasPhoneNumber is false")}
-			if(hasPhoneNumber == true && method == "POST"){debug("posting to /cdrs.html is not supported by e-fon")}
+			if(hasPhoneNumber == true && method == "POST"){debug("invalid choice")}
 			if(hasPhoneNumber == true && method == "GET")
 			{
 				cdrVars = new URLVariables();
@@ -897,10 +908,10 @@ package
 
 				if(date.month == 0)
 				{
-					dateString = "12"
+					dateString = "12";
 					dumpString = date.fullYear - 1;
 
-					dateString = date.date + "." + dateString + "." + dumpString 
+					dateString = date.date + "." + dateString + "." + dumpString;
 				}
 				if(date.month != 0)
 				{
