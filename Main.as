@@ -8,7 +8,6 @@ package
 	import flash.events.TouchEvent;
 	import flash.net.URLLoader;
 	import flash.display.*;
-	import flash.net.*;
 	import flash.events.*;
 	import flash.ui.*;
 
@@ -34,11 +33,6 @@ package
 
 		//configObject
 		public var configObject:Object 
-		/*realm, context, displayBG, displayHeader
-		e-fon Default = {realm:"web.e-fon.ch", context:"/portal", dispalyBG:1, diplsayHeader:1}
-		dev = {realm:"dev01.e-fon.ch", context:"/portal_[version]", dispalyBG:2, diplsayHeader:1}
-		cc = {realm:"web.e-fon.ch", context:"/cablecom", dispalyBG:3, diplsayHeader:2}
-		*/
 		
 		//local LSO
 		var SO:SharedObject = SharedObject.getLocal("e-fon");
@@ -70,14 +64,6 @@ package
 		
 		//functionality trackers
 		private var functionCount:Number = 2;//default is 2: sms and eg
-
-		//intermediate dump vars
-		private var dumpContainer:String;	
-		
-		//T
-		private var testingArray:Array = ["testing"];
-		private var testingString:String = "";
-		private var testingBoolean:Boolean;
 
 		//matches ip address to result[1]
 		private var IPSniffer:RegExp = /[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}/i;
@@ -217,7 +203,7 @@ package
 			
 			//check if loading done
 			if(i5 == functionCount){
-				TweenMax.to(dashboard.loading, 0.5, {x:"+100", autoAlpha:0, ease:Cubic.easeInOut});
+				dashboard.removeChild(loading);
 			}if(i5 < functionCount){
 				TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 			}
@@ -357,8 +343,8 @@ package
 		//redirection UI management
 		private function targetTest(event:TouchEvent):void
 		{
-			if(event.target.name == "phoneIcon"){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = "";main.timeContainer.switcher.Delay.text = "";};
-			if(event.target.name == "voicemailIcon"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";main.timeContainer.switcher.Delay.text = "";};
+			if(event.target.name == "phoneIcon"){main.timeContainer.switcher.gotoAndStop(2);main.timeContainer.switcher.destination.text = "";main.timeContainer.switcher.Delay.text = "0";};
+			if(event.target.name == "voicemailIcon"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text = "s umleiten auf Voicemail";main.timeContainer.switcher.Delay.text = "0";};
 			if(event.target.name == "fax2mailIcon"){main.timeContainer.switcher.gotoAndStop(3);main.timeContainer.switcher.destination.text ="s umleiten auf Fax2Mail";main.timeContainer.switcher.Delay.text = "0";};
 			if(event.target.name == "Check"){main.timeContainer.Check.play();}
 		}
@@ -456,9 +442,6 @@ package
 			//check if admin, pw
 			function checkAuthStatus(event:Event):void
 			{
-				//dump mavin data to local var
-				dumpContainer = mavin.jLoader.data;
-
 				//check pw, if true, reset
 				if(mavin.invalidPW == true)
 				{
@@ -505,6 +488,13 @@ package
 			}
 		}
 
+		private function addRedirection(event:Event):void
+		{
+			addDashboard("Umleitung", 1);
+
+			mavin.removeEventListener("redirectionLoadComplete", addRedirection);
+		}
+
 		private function addSMS(event:Event):void
 		{
 			addDashboard("SMS", 5);
@@ -536,13 +526,6 @@ package
 		private function refreshQueue(event:Event):void
 		{
 			flushQueue();
-		}
-
-		private function addRedirection(event:Event):void
-		{
-			addDashboard("Umleitung", 1);
-
-			mavin.removeEventListener("redirectionLoadComplete", addRedirection);
 		}
 
 		private function addVoicemail(event:Event):void
