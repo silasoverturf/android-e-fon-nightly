@@ -432,6 +432,7 @@ package
 
 			//flush local j_session w/ text fields
 			mavin.addEventListener("authComplete", checkAuthStatus);
+			mavin.addEventListener("IOerror", networkError);
 			mavin.authorize(login.userid_txt.text,login.password_txt.text);
 
 			//flush lso
@@ -474,7 +475,6 @@ package
 					TweenMax.to(header, 0.5, {autoAlpha:1, y:-500, ease:Strong.easeInOut});
 					TweenMax.to(login, 0.5, {autoAlpha:1, delay:0.1, y:-500, ease:Cubic.easeInOut});
 					TweenMax.to(loginBtn, 0.5, {autoAlpha:1, delay:0.2, y:-500, ease:Cubic.easeInOut});
-					
 					TweenMax.to(dashboard, 0.5, {delay:0.3,autoAlpha:1, ease:Cubic.easeInOut});
 					TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 					TweenMax.to(main, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
@@ -486,6 +486,11 @@ package
 					if(mavin.hasQueue == true){functionCount = functionCount + 1}
 				}
 			}
+		}
+
+		private function networkError(event:Event):void
+		{
+			trace("mavin IO error");
 		}
 
 		private function addRedirection(event:Event):void
@@ -598,7 +603,6 @@ package
 		{
 			topMenu.sendBtn.btn_txt.text = "Send";
 			TweenMax.to(topMenu.sendBtn, 0.5, {x:120, ease:Bounce.easeOut});
-
 
 			topMenu.sendBtn.addEventListener(TouchEvent.TOUCH_TAP, SMS);
 			
@@ -841,6 +845,7 @@ package
 			}
 		}
 		
+		////swiping////
 		private function mouseDownHandler(event:TouchEvent):void
 		{
 			TweenLite.killTweensOf(main);

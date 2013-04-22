@@ -17,9 +17,11 @@ package
 		private var dumpArray:Array = [];
 
 		public var hasVpbx:Boolean = false
- 		public var hasPhoneNumber:Boolean = false;
+ 		public var hasPhonenumber:Boolean = false;
  		public var hasSMS:Boolean = false;
 		public var hasQueue:Boolean = false;
+		public var hasQueueManager:Boolean = false;
+		public var hasQueueReporter:Boolean = false;
 		public var hasShortDial:Boolean = false;
 
 		//counters
@@ -301,12 +303,11 @@ package
 			if(jData.search("optionvalue") > -1)
 			{
 				//load associated variables
-				hasPhoneNumber = true;
+				hasPhonenumber = true;
 				loadCDR("GET");
 				loadF2M("GET");
 				loadRedirection("GET");
 			}
-		 	
 			loadAccounts("GET");
 			loadSMS("GET");
 		}
@@ -383,6 +384,7 @@ package
 				//build rvars
 				rVars = new URLVariables();
 				
+				//statuc vars
 				rVars._uml_normal1 = "visible";
 				rVars._uml_busy = "visible";
 				rVars._uml_backuprouting = "visible";
@@ -401,6 +403,7 @@ package
 				rVars.featureIdBackuprouting = featureArray[4];
 				rVars.featureIdAnonSuppression = featureArray[5];
 
+				//set selcted numberID
 				rVars.selectedPhoneNumberId = user;
 
 				if(redirectionTime.active == "1")
@@ -450,7 +453,7 @@ package
 
 			function parse(event:Event):void
 			{	
-				debug("parsingRedir")
+				debug("parsingRedir");
 				redirectionLoader.removeEventListener(Event.COMPLETE, parse);
 				redirectionData = redirectionLoader.data;
 
@@ -509,7 +512,7 @@ package
 
 				redirectionTime.delay = result[1];
 
-				//get userId
+				//get numberId
 				result = optionSniffer.exec(redirectionData);
 
 				user = result[1];
@@ -529,14 +532,18 @@ package
 				//only push if RegExp matches
 				if(result != null)
 				{
+					//push active
 					calenderManual.active = result[1];
 
+					//push subject
 					result = manualStatusSubject.exec(redirectionData);
 					calenderManual.subject = result[1];
 
+					//push private
 					result = manualStatusPrivate.exec(redirectionData);
 					calenderManual.private = result[1];
 
+					//from - to
 					result = manualStatusTimeDate.exec(redirectionData);
 
 					dumpArray = [];
@@ -608,6 +615,8 @@ package
 				}
 				dispatchEvent(new Event("redirectionLoadComplete"));
 			}
+
+			//reset URL loader
 			redirectionLoader = new URLLoader();
 
 			redirectionLoader.addEventListener(Event.COMPLETE, parse);	
@@ -638,6 +647,7 @@ package
 			function parse(event:Event):void
 			{
 				f2mLoader.removeEventListener(Event.COMPLETE, parse);
+				
 				//parse F2M
 				f2mData = new String(f2mLoader.data);
 				f2mData = f2mData.replace(rex,"");
@@ -892,9 +902,9 @@ package
 
 		public function loadCDR(method:String):void
 		{
-			if(hasPhoneNumber == false){debug("hasPhoneNumber is false")}
-			if(hasPhoneNumber == true && method == "POST"){debug("invalid choice")}
-			if(hasPhoneNumber == true && method == "GET")
+			if(hasPhonenumber == false){debug("hasPhonenumber is false")}
+			if(hasPhonenumber == true && method == "POST"){debug("invalid choice")}
+			if(hasPhonenumber == true && method == "GET")
 			{
 				cdrVars = new URLVariables();
 
@@ -903,7 +913,7 @@ package
 				var dumpString:Number = date.month + 1;
 				var dateString:String = date.date + "." + dumpString + "." + date.fullYear;
 				
-				//build until date
+				//set until date
 				cdrVars.periodUntilDate = dateString;
 
 				if(date.month == 0)
@@ -919,7 +929,7 @@ package
 					dateString = date.date + "." + dumpString + "." + date.fullYear;
 				}
 
-				//build from date
+				//set from date
 				cdrVars.periodFromDate = dateString;
 
 				jData = jData.replace(rex,"");
@@ -1044,7 +1054,6 @@ package
 			trace(errorEvent.currentTarget);
 			trace(errorEvent.text);
 
-			if(errorEvent.text.search("https://" + realm) > 0){/*error code*/}
 			if(errorEvent.text.search("j_acegi_security_check") > 0){debug("IOError at authing")}
 			if(errorEvent.text.search("memberOverview.html") > 0){debug("failed loading member")}
 			if(errorEvent.text.search("redirection.html") > 0){debug("failed loading redirection")}
