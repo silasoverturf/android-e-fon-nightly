@@ -5,6 +5,7 @@ package
 	import flash.display.StageDisplayState;
 	import flash.display.*;
 	import flash.display.StageScaleMode;
+	import feathers.system.DeviceCapabilities;
 	import flash.events.Event;
 	import flash.geom.Rectangle;
 	import flash.system.Capabilities;
@@ -13,12 +14,12 @@ package
 
 	import starling.core.Starling;
 
-	[SWF(width="960",height="640",frameRate="60",backgroundColor="#333333")]
+	[SWF(width="320",height="480",frameRate="60",backgroundColor="#333333")]
 	public class HelloWorld extends Sprite
 	{
 		public function HelloWorld()
 		{
-			trace("init");
+			trace("android-e-fon-nightly");
 			if(this.stage)
 			{
 				this.stage.scaleMode = StageScaleMode.NO_SCALE;
@@ -26,6 +27,7 @@ package
 			}
 			this.mouseEnabled = this.mouseChildren = false;
 			this.loaderInfo.addEventListener(Event.COMPLETE, loaderInfo_completeHandler);
+			DeviceCapabilities.dpi = 265;
 		}
 
 		private var _starling:Starling;

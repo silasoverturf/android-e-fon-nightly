@@ -1,8 +1,6 @@
 package feathers.examples.helloWorld
 {
-	import feathers.controls.Button;
-	import feathers.controls.Callout;
-	import feathers.controls.Label;
+	import feathers.controls.*;
 	import feathers.themes.MetalWorksMobileTheme;
 
 	import starling.display.Sprite;
@@ -78,6 +76,10 @@ package feathers.examples.helloWorld
 			//center the button
 			this.button.x = (this.stage.stageWidth - this.button.width) / 2;
 			this.button.y = (this.stage.stageHeight - this.button.height) / 2;
+
+			var input:TextInput = new TextInput();
+			input.text = "Hello World";
+			this.addChild( input );
 		}
 
 		/**
