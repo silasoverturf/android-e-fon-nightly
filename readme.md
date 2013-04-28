@@ -47,6 +47,12 @@ calenderOOF = {active, choice, destination};
 calenderBusy = {active, chocie, destination};
 ```
 
+SMS({smsObject:Object})
+
+Object properties:
+method:String, "GET" or "POST"
+
+
 ##Screen scaling
 The .fla is designed for a 320x480, although not optimal the .as will attempt to scale all vectors appropriately. scaleX forcefully scales to the width and scaleY matches X:
 
