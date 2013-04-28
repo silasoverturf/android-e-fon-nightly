@@ -178,6 +178,3 @@ swf
 bin/
 bin-debug/
 bin-release/
-
-#greensock
-com/
