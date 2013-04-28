@@ -6,7 +6,7 @@ package
 	import com.greensock.plugins.*;
 
 	import flash.events.TouchEvent;
-	import flash.net.URLLoader;
+	import flash.net.*;
 	import flash.display.*;
 	import flash.events.*;
 	import flash.ui.*;
@@ -203,7 +203,7 @@ package
 			
 			//check if loading done
 			if(i5 == functionCount){
-				dashboard.removeChild(loading);
+				TweenMax.to(dashboard.loading, 0.5, {autoAlpha:0, ease:Cubic.easeInOut});
 			}if(i5 < functionCount){
 				TweenMax.to(dashboard.loading, 0.5, {y:yP, x:xP, ease:Cubic.easeInOut});
 			}
@@ -482,7 +482,7 @@ package
 					programState = "home";
 
 					//set function count
-					if(mavin.hasPhoneNumber == true){functionCount = functionCount + 2}
+					if(mavin.hasPhonenumber == true){functionCount = functionCount + 2}
 					if(mavin.hasQueue == true){functionCount = functionCount + 1}
 				}
 			}

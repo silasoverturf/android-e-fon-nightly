@@ -16,13 +16,16 @@ package
 		public var debugLevel:Number = 1;
 		private var dumpArray:Array = [];
 
-		public var hasVpbx:Boolean = false
+		public var isefonAdmin:Boolean = false;
+
+		public var hasVpbx:Boolean = false;
  		public var hasPhonenumber:Boolean = false;
  		public var hasSMS:Boolean = false;
 		public var hasQueue:Boolean = false;
 		public var hasQueueManager:Boolean = false;
 		public var hasQueueReporter:Boolean = false;
 		public var hasShortDial:Boolean = false;
+		public var hasRingback:Boolean = false;
 
 		//counters
 		private var queueCounter:Number = 0;
@@ -105,6 +108,7 @@ package
 		voicemail
 		sms
 		queue
+		ringbacks
 
 		*///network stack variables////
 
@@ -158,6 +162,11 @@ package
 		private var accountsLoader:URLLoader = new URLLoader;
 		private var accountsData:String;
 
+		//ringbacks
+		private var ringbackSend:URLRequest = new URLRequest("https://" + realm + context + "/ringrufOverview.html");
+		private var ringbackLoader:URLLoader = new URLLoader;
+		private var ringbackData:String;
+
 		////public properties
 		public var user:String;                //memberID
 
@@ -187,6 +196,7 @@ package
 		public var memberArray:Array;
 
 		public var accountArray:Array;
+		public var ringbackArray:Array;
 
 		public function Mavin()
 		{
@@ -258,8 +268,20 @@ package
 					loadMembers();
 				}
 
+				//check if e-fon admin
+				if(jData.search("customer") > -1)
+				{
+					isefonAdmin = true;
+				}
+
+				//check for ringbacks
+				if(jData.search("ringruf") > -1)
+				{
+					loadRingback("GET");
+				}
+
 				//else loadData();
-				if(invalidPW == false && isAdmin == false)
+				if(invalidPW == false && isAdmin == false && isefonAdmin == false)
 				{
 					debug("Password is correct, user is not admin");
 					loadData();
@@ -285,7 +307,7 @@ package
 
 			//whitespace
 			jData = jData.replace(rex, "");
-			
+
 			//check if queue avaliable
 			if(jData.search("Queue") > -1)
 			{
@@ -990,6 +1012,23 @@ package
 					}
 				}
 			}
+		}
+
+		public function loadRingback(method:String)
+		{
+			if(method == "GET")
+			{
+				ringbackSend.method = URLRequestMethod.GET;	
+			}
+			
+			function parse(event:Event):void
+			{
+				ringbackData = ringbackLoader.data.replace(rex,"");
+				debug(ringbackData);
+			}
+
+			ringbackLoader.addEventListener(Event.COMPLETE, parse);
+			ringbackLoader.load(ringbackSend);
 		}
 
 		/*
