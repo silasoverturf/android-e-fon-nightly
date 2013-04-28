@@ -1,4 +1,4 @@
-﻿/*
+/*
  Copyright (c) 2012 Josh Tynjala
 
  Permission is hereby granted, free of charge, to any person
@@ -30,6 +30,7 @@ package feathers.themes
 	import feathers.controls.Check;
 	import feathers.controls.GroupedList;
 	import feathers.controls.Header;
+	import feathers.controls.ImageLoader;
 	import feathers.controls.Label;
 	import feathers.controls.List;
 	import feathers.controls.PageIndicator;
@@ -50,6 +51,7 @@ package feathers.themes
 	import feathers.controls.renderers.DefaultGroupedListHeaderOrFooterRenderer;
 	import feathers.controls.renderers.DefaultGroupedListItemRenderer;
 	import feathers.controls.renderers.DefaultListItemRenderer;
+	import feathers.controls.text.StageTextTextEditor;
 	import feathers.controls.text.TextFieldTextRenderer;
 	import feathers.core.DisplayListWatcher;
 	import feathers.core.FeathersControl;
@@ -58,7 +60,6 @@ package feathers.themes
 	import feathers.display.Scale9Image;
 	import feathers.display.TiledImage;
 	import feathers.layout.VerticalLayout;
-	import feathers.skins.IFeathersTheme;
 	import feathers.skins.ImageStateValueSelector;
 	import feathers.skins.Scale9ImageStateValueSelector;
 	import feathers.skins.StandardIcons;
@@ -66,6 +67,7 @@ package feathers.themes
 	import feathers.textures.Scale3Textures;
 	import feathers.textures.Scale9Textures;
 
+	import flash.display.BitmapData;
 	import flash.geom.Rectangle;
 	import flash.text.TextFormat;
 
@@ -79,7 +81,7 @@ package feathers.themes
 	import starling.textures.Texture;
 	import starling.textures.TextureAtlas;
 
-	public class MetalWorksMobileTheme extends DisplayListWatcher implements IFeathersTheme
+	public class MetalWorksMobileTheme extends DisplayListWatcher
 	{
 		[Embed(source="/assets/images/metalworks.png")]
 		protected static const ATLAS_IMAGE:Class;
@@ -107,6 +109,16 @@ package feathers.themes
 		protected static const SCROLL_BAR_THUMB_REGION2:int = 14;
 
 		public static const COMPONENT_NAME_PICKER_LIST_ITEM_RENDERER:String = "feathers-mobile-picker-list-item-renderer";
+
+		protected static function textRendererFactory():TextFieldTextRenderer
+		{
+			return new TextFieldTextRenderer();
+		}
+
+		protected static function textEditorFactory():StageTextTextEditor
+		{
+			return new StageTextTextEditor();
+		}
 
 		protected static function popUpOverlayFactory():DisplayObject
 		{
@@ -161,6 +173,7 @@ package feathers.themes
 		protected var smallDisabledTextFormat:TextFormat;
 
 		protected var atlas:TextureAtlas;
+		protected var atlasBitmapData:BitmapData;
 		protected var primaryBackgroundTexture:Texture;
 		protected var backgroundSkinTextures:Scale9Textures;
 		protected var backgroundDisabledSkinTextures:Scale9Textures;
@@ -205,19 +218,46 @@ package feathers.themes
 		protected var verticalScrollBarThumbSkinTextures:Scale3Textures;
 		protected var horizontalScrollBarThumbSkinTextures:Scale3Textures;
 
+		override public function dispose():void
+		{
+			if(this.root)
+			{
+				this.root.removeEventListener(Event.ADDED_TO_STAGE, root_addedToStageHandler);
+				if(this.primaryBackground)
+				{
+					this.root.stage.removeEventListener(ResizeEvent.RESIZE, stage_resizeHandler);
+					this.root.removeEventListener(Event.REMOVED_FROM_STAGE, root_removedFromStageHandler);
+					this.root.removeChild(this.primaryBackground, true);
+					this.primaryBackground = null;
+				}
+			}
+			if(this.atlas)
+			{
+				this.atlas.dispose();
+				this.atlas = null;
+			}
+			if(this.atlasBitmapData)
+			{
+				this.atlasBitmapData.dispose();
+				this.atlasBitmapData = null;
+			}
+			super.dispose();
+		}
+
 		protected function initializeRoot():void
 		{
 			this.primaryBackground = new TiledImage(this.primaryBackgroundTexture);
 			this.primaryBackground.width = root.stage.stageWidth;
 			this.primaryBackground.height = root.stage.stageHeight;
 			this.root.addChildAt(this.primaryBackground, 0);
-			root.stage.addEventListener(ResizeEvent.RESIZE, stage_resizeHandler);
-			root.addEventListener(Event.REMOVED_FROM_STAGE, root_removedFromStageHandler);
+			this.root.stage.addEventListener(ResizeEvent.RESIZE, stage_resizeHandler);
+			this.root.addEventListener(Event.REMOVED_FROM_STAGE, root_removedFromStageHandler);
 		}
 
 		protected function initialize():void
 		{
-			this._originalDPI = DeviceCapabilities.dpi;
+			const scaledDPI:int = DeviceCapabilities.dpi / Starling.contentScaleFactor;
+			this._originalDPI = scaledDPI;
 			if(this._scaleToDPI)
 			{
 				if(DeviceCapabilities.isTablet(Starling.current.nativeStage))
@@ -230,9 +270,10 @@ package feathers.themes
 				}
 			}
 
-			this.scale = DeviceCapabilities.dpi / this._originalDPI;
+			this.scale = scaledDPI / this._originalDPI;
 
 			FeathersControl.defaultTextRendererFactory = textRendererFactory;
+			FeathersControl.defaultTextEditorFactory = textEditorFactory;
 
 			const fontNames:String = "Helvetica Neue,Helvetica,Roboto,Arial,_sans";
 
@@ -260,7 +301,16 @@ package feathers.themes
 			Callout.stagePaddingTop = Callout.stagePaddingRight = Callout.stagePaddingBottom =
 				Callout.stagePaddingLeft = 16 * this.scale;
 
-			this.atlas = new TextureAtlas(Texture.fromBitmap(new ATLAS_IMAGE(), false), XML(new ATLAS_XML()));
+			const atlasBitmapData:BitmapData = (new ATLAS_IMAGE()).bitmapData;
+			this.atlas = new TextureAtlas(Texture.fromBitmapData(atlasBitmapData, false), XML(new ATLAS_XML()));
+			if(Starling.handleLostContext)
+			{
+				this.atlasBitmapData = atlasBitmapData;
+			}
+			else
+			{
+				atlasBitmapData.dispose();
+			}
 
 			this.primaryBackgroundTexture = this.atlas.getTexture("primary-background");
 
@@ -323,13 +373,13 @@ package feathers.themes
 
 			StandardIcons.listDrillDownAccessoryTexture = this.atlas.getTexture("list-accessory-drill-down-icon");
 
-			if(root.stage)
+			if(this.root.stage)
 			{
 				this.initializeRoot();
 			}
 			else
 			{
-				root.addEventListener(Event.ADDED_TO_STAGE, root_addedToStageHandler);
+				this.root.addEventListener(Event.ADDED_TO_STAGE, root_addedToStageHandler);
 			}
 
 			this.setInitializerForClassAndSubclasses(Screen, screenInitializer);
@@ -342,8 +392,8 @@ package feathers.themes
 			this.setInitializerForClass(Button, simpleButtonInitializer, Slider.DEFAULT_CHILD_NAME_THUMB);
 			this.setInitializerForClass(Button, pickerListButtonInitializer, PickerList.DEFAULT_CHILD_NAME_BUTTON);
 			this.setInitializerForClass(Button, tabInitializer, TabBar.DEFAULT_CHILD_NAME_TAB);
-			this.setInitializerForClass(Button, sliderTrackInitializer, Slider.DEFAULT_CHILD_NAME_MINIMUM_TRACK);
-			this.setInitializerForClass(Button, sliderTrackInitializer, Slider.DEFAULT_CHILD_NAME_MAXIMUM_TRACK);
+			this.setInitializerForClass(Button, nothingInitializer, Slider.DEFAULT_CHILD_NAME_MINIMUM_TRACK);
+			this.setInitializerForClass(Button, nothingInitializer, Slider.DEFAULT_CHILD_NAME_MAXIMUM_TRACK);
 			this.setInitializerForClass(Button, toggleSwitchTrackInitializer, ToggleSwitch.DEFAULT_CHILD_NAME_ON_TRACK);
 			this.setInitializerForClass(Button, nothingInitializer, SimpleScrollBar.DEFAULT_CHILD_NAME_THUMB);
 			this.setInitializerForClass(ButtonGroup, buttonGroupInitializer);
@@ -373,25 +423,26 @@ package feathers.themes
 			this.setInitializerForClass(GroupedList, insetGroupedListInitializer, GroupedList.ALTERNATE_NAME_INSET_GROUPED_LIST);
 		}
 
-		protected function pageIndicatorNormalSymbolFactory():Image
+		protected function pageIndicatorNormalSymbolFactory():DisplayObject
 		{
-			return new Image(this.pageIndicatorNormalSkinTexture);
+			const symbol:ImageLoader = new ImageLoader();
+			symbol.source = this.pageIndicatorNormalSkinTexture;
+			symbol.textureScale = this.scale;
+			return symbol;
 		}
 
-		protected function pageIndicatorSelectedSymbolFactory():Image
+		protected function pageIndicatorSelectedSymbolFactory():DisplayObject
 		{
-			return new Image(this.pageIndicatorSelectedSkinTexture);
+			const symbol:ImageLoader = new ImageLoader();
+			symbol.source = this.pageIndicatorSelectedSkinTexture;
+			symbol.textureScale = this.scale;
+			return symbol;
 		}
 
-		protected function textRendererFactory():TextFieldTextRenderer
+		protected function imageLoaderFactory():ImageLoader
 		{
-			return new TextFieldTextRenderer();
-		}
-
-		protected function imageFactory(texture:Texture):Image
-		{
-			const image:Image = new Image(texture);
-			image.scaleX = image.scaleY = this.scale;
+			const image:ImageLoader = new ImageLoader();
+			image.textureScale = this.scale;
 			return image;
 		}
 
@@ -539,19 +590,6 @@ package feathers.themes
 			track.stateToSkinFunction = skinSelector.updateValue;
 		}
 
-		protected function sliderTrackInitializer(track:Button):void
-		{
-			const skinSelector:Scale9ImageStateValueSelector = new Scale9ImageStateValueSelector();
-			skinSelector.defaultValue = this.backgroundSkinTextures;
-			skinSelector.setValueForState(this.buttonDownSkinTextures, Button.STATE_DOWN, false);
-			skinSelector.setValueForState(this.backgroundDisabledSkinTextures, Button.STATE_DISABLED, false);
-			skinSelector.imageProperties =
-			{
-				textureScale: this.scale
-			};
-			track.stateToSkinFunction = skinSelector.updateValue;
-		}
-
 		protected function tabInitializer(tab:Button):void
 		{
 			const defaultSkin:Quad = new Quad(88 * this.scale, 88 * this.scale, 0x1a1a1a);
@@ -604,11 +642,14 @@ package feathers.themes
 			renderer.paddingLeft = 32 * this.scale;
 			renderer.paddingRight = 24 * this.scale;
 			renderer.gap = 20 * this.scale;
+			renderer.iconPosition = Button.ICON_POSITION_LEFT;
+			renderer.accessoryGap = Number.POSITIVE_INFINITY;
+			renderer.accessoryPosition = BaseDefaultItemRenderer.ACCESSORY_POSITION_RIGHT;
 			renderer.minWidth = renderer.minHeight = 88 * this.scale;
 			renderer.minTouchWidth = renderer.minTouchHeight = 88 * this.scale;
 
-			renderer.accessoryImageFactory = this.imageFactory;
-			renderer.iconImageFactory = this.imageFactory;
+			renderer.accessoryLoaderFactory = this.imageLoaderFactory;
+			renderer.iconLoaderFactory = this.imageLoaderFactory;
 		}
 
 		protected function pickerListItemRendererInitializer(renderer:BaseDefaultItemRenderer):void
@@ -641,6 +682,9 @@ package feathers.themes
 			renderer.paddingLeft = 32 * this.scale;
 			renderer.paddingRight = 24 * this.scale;
 			renderer.gap = 12 * this.scale;
+			renderer.iconPosition = Button.ICON_POSITION_LEFT;
+			renderer.accessoryGap = Number.POSITIVE_INFINITY;
+			renderer.accessoryPosition = BaseDefaultItemRenderer.ACCESSORY_POSITION_RIGHT;
 			renderer.minWidth = renderer.minHeight = 88 * this.scale;
 			renderer.minTouchWidth = renderer.minTouchHeight = 88 * this.scale;
 		}
@@ -668,6 +712,9 @@ package feathers.themes
 			renderer.paddingLeft = 32 * this.scale;
 			renderer.paddingRight = 24 * this.scale;
 			renderer.gap = 20 * this.scale;
+			renderer.iconPosition = Button.ICON_POSITION_LEFT;
+			renderer.accessoryGap = Number.POSITIVE_INFINITY;
+			renderer.accessoryPosition = BaseDefaultItemRenderer.ACCESSORY_POSITION_RIGHT;
 			renderer.minWidth = renderer.minHeight = 88 * this.scale;
 			renderer.minTouchWidth = renderer.minTouchHeight = 88 * this.scale;
 		}
@@ -703,6 +750,8 @@ package feathers.themes
 			renderer.paddingLeft = renderer.paddingRight = 16 * this.scale;
 			renderer.minWidth = renderer.minHeight = 44 * this.scale;
 			renderer.minTouchWidth = renderer.minTouchHeight = 44 * this.scale;
+
+			renderer.contentLoaderFactory = this.imageLoaderFactory;
 		}
 
 		protected function footerRendererInitializer(renderer:DefaultGroupedListHeaderOrFooterRenderer):void
@@ -716,6 +765,8 @@ package feathers.themes
 			renderer.paddingLeft = renderer.paddingRight = 16 * this.scale;
 			renderer.minWidth = renderer.minHeight = 44 * this.scale;
 			renderer.minTouchWidth = renderer.minTouchHeight = 44 * this.scale;
+
+			renderer.contentLoaderFactory = this.imageLoaderFactory;
 		}
 
 		protected function insetHeaderRendererInitializer(renderer:DefaultGroupedListHeaderOrFooterRenderer):void
@@ -730,6 +781,8 @@ package feathers.themes
 			renderer.paddingLeft = renderer.paddingRight = 32 * this.scale;
 			renderer.minWidth = renderer.minHeight = 66 * this.scale;
 			renderer.minTouchWidth = renderer.minTouchHeight = 44 * this.scale;
+
+			renderer.contentLoaderFactory = this.imageLoaderFactory;
 		}
 
 		protected function insetFooterRendererInitializer(renderer:DefaultGroupedListHeaderOrFooterRenderer):void
@@ -744,6 +797,8 @@ package feathers.themes
 			renderer.paddingLeft = renderer.paddingRight = 32 * this.scale;
 			renderer.minWidth = renderer.minHeight = 66 * this.scale;
 			renderer.minTouchWidth = renderer.minTouchHeight = 44 * this.scale;
+
+			renderer.contentLoaderFactory = this.imageLoaderFactory;
 		}
 
 		protected function radioInitializer(radio:Radio):void
@@ -796,18 +851,28 @@ package feathers.themes
 
 		protected function sliderInitializer(slider:Slider):void
 		{
-			slider.trackLayoutMode = Slider.TRACK_LAYOUT_MODE_STRETCH;
+			slider.trackLayoutMode = Slider.TRACK_LAYOUT_MODE_MIN_MAX;
 
+			const skinSelector:Scale9ImageStateValueSelector = new Scale9ImageStateValueSelector();
+			skinSelector.defaultValue = this.backgroundSkinTextures;
+			skinSelector.setValueForState(this.buttonDownSkinTextures, Button.STATE_DOWN, false);
+			skinSelector.setValueForState(this.backgroundDisabledSkinTextures, Button.STATE_DISABLED, false);
+			skinSelector.imageProperties =
+			{
+				textureScale: this.scale
+			};
 			if(slider.direction == Slider.DIRECTION_VERTICAL)
 			{
-				slider.width = 60 * this.scale;
-				slider.height = 210 * this.scale;
+				skinSelector.imageProperties.width = 60 * this.scale;
+				skinSelector.imageProperties.height = 210 * this.scale;
 			}
 			else
 			{
-				slider.width = 210 * this.scale;
-				slider.height = 60 * this.scale;
+				skinSelector.imageProperties.width = 210 * this.scale;
+				skinSelector.imageProperties.height = 60 * this.scale;
 			}
+			slider.minimumTrackProperties.stateToSkinFunction = skinSelector.updateValue;
+			slider.maximumTrackProperties.stateToSkinFunction = skinSelector.updateValue;
 		}
 
 		protected function toggleSwitchInitializer(toggle:ToggleSwitch):void
@@ -839,9 +904,9 @@ package feathers.themes
 			input.minTouchWidth = input.minTouchHeight = 88 * this.scale;
 			input.paddingTop = input.paddingBottom = 12 * this.scale;
 			input.paddingLeft = input.paddingRight = 16 * this.scale;
-			input.stageTextProperties.fontFamily = "Helvetica";
-			input.stageTextProperties.fontSize = 30 * this.scale;
-			input.stageTextProperties.color = LIGHT_TEXT_COLOR;
+			input.textEditorProperties.fontFamily = "Helvetica";
+			input.textEditorProperties.fontSize = 30 * this.scale;
+			input.textEditorProperties.color = LIGHT_TEXT_COLOR;
 		}
 
 		protected function pageIndicatorInitializer(pageIndicator:PageIndicator):void
@@ -989,14 +1054,14 @@ package feathers.themes
 
 		protected function root_addedToStageHandler(event:Event):void
 		{
-			root.removeEventListener(Event.ADDED_TO_STAGE, root_addedToStageHandler);
+			this.root.removeEventListener(Event.ADDED_TO_STAGE, root_addedToStageHandler);
 			this.initializeRoot();
 		}
 
 		protected function root_removedFromStageHandler(event:Event):void
 		{
-			root.removeEventListener(Event.REMOVED_FROM_STAGE, root_removedFromStageHandler);
-			root.stage.removeEventListener(ResizeEvent.RESIZE, stage_resizeHandler);
+			this.root.removeEventListener(Event.REMOVED_FROM_STAGE, root_removedFromStageHandler);
+			this.root.stage.removeEventListener(ResizeEvent.RESIZE, stage_resizeHandler);
 			this.root.removeChild(this.primaryBackground, true);
 			this.primaryBackground = null;
 		}
