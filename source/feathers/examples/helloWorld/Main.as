@@ -1,7 +1,7 @@
 package feathers.examples.helloWorld
 {
 	import feathers.controls.*;
-	import feathers.themes.MinimalMobileTheme;
+	import feathers.themes.MetalWorksMobileTheme;
 
 	import starling.display.Sprite;
 	import starling.events.Event;
@@ -10,7 +10,7 @@ package feathers.examples.helloWorld
 	 * An example to help you get started with Feathers. Creates a "theme" and
 	 * displays a Button component that you can trigger.
 	 *
-	 * <p>Note: This example requires the MinimalMobileTheme, which is one of
+	 * <p>Note: This example requires the MetalWorksMobileTheme, which is one of
 	 * the themes included with Feathers.</p>
 	 *
 	 * @see http://wiki.starling-framework.org/feathers/getting-started
@@ -34,7 +34,7 @@ package feathers.examples.helloWorld
 		 *
 		 * @see http://wiki.starling-framework.org/feathers/themes
 		 */
-		protected var theme:MinimalMobileTheme;
+		protected var theme:MetalWorksMobileTheme;
 
 		/**
 		 * The Feathers Button control that we'll be creating.
@@ -53,7 +53,7 @@ package feathers.examples.helloWorld
 			//Feathers component that is added to the stage. you should always
 			//create a theme immediately when your app starts up to ensure that
 			//all components are properly skinned.
-			this.theme = new MinimalMobileTheme(this.stage);
+			this.theme = new MetalWorksMobileTheme(this.stage);
 
 			//create a button and give it some text to display.
 			this.button = new Button();
@@ -77,13 +77,9 @@ package feathers.examples.helloWorld
 			this.button.x = (this.stage.stageWidth - this.button.width) / 2;
 			this.button.y = (this.stage.stageHeight - this.button.height) / 2;
 
-			var userTxt:TextInput = new TextInput();
-			userTxt.text = "username";
-			this.addChild(userTxt);
-
-			var passTxt:TextInput = new TextInput();
-			passTxt.text = "username";
-			this.addChild(passTxt);
+			var input:TextInput = new TextInput();
+			input.text = "Hello World";
+			this.addChild( input );
 		}
 
 		/**
