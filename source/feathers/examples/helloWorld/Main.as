@@ -4,6 +4,7 @@ package feathers.examples.helloWorld
 	import feathers.themes.MetalWorksMobileTheme;
 
 	import starling.display.Sprite;
+	import starling.display.MovieClip;
 	import starling.events.Event;
 
 	/**
@@ -80,6 +81,8 @@ package feathers.examples.helloWorld
 			var input:TextInput = new TextInput();
 			input.text = "Hello World";
 			this.addChild( input );
+
+			//background.stop();
 		}
 
 		/**

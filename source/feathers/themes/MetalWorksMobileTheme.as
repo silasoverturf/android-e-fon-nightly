@@ -249,7 +249,7 @@ package feathers.themes
 			this.primaryBackground = new TiledImage(this.primaryBackgroundTexture);
 			this.primaryBackground.width = root.stage.stageWidth;
 			this.primaryBackground.height = root.stage.stageHeight;
-			this.root.addChildAt(this.primaryBackground, 0);
+			//this.root.addChildAt(this.primaryBackground, 0);
 			this.root.stage.addEventListener(ResizeEvent.RESIZE, stage_resizeHandler);
 			this.root.addEventListener(Event.REMOVED_FROM_STAGE, root_removedFromStageHandler);
 		}

@@ -17,6 +17,9 @@ package
 	[SWF(width="320",height="480",frameRate="60",backgroundColor="#333333")]
 	public class HelloWorld extends Sprite
 	{
+		public static var STAGE:Stage;
+		public static var ROOT:MovieClip;
+
 		public function HelloWorld()
 		{
 			trace("android-e-fon-nightly");
@@ -28,6 +31,9 @@ package
 			this.mouseEnabled = this.mouseChildren = false;
 			this.loaderInfo.addEventListener(Event.COMPLETE, loaderInfo_completeHandler);
 			DeviceCapabilities.dpi = 265;
+
+			STAGE = this.stage;
+			//ROOT = this.root;
 		}
 
 		private var _starling:Starling;
@@ -69,6 +75,11 @@ package
 		{
 			this.stage.removeEventListener(Event.ACTIVATE, stage_activateHandler);
 			this._starling.start();
+		}
+
+		public function setMenu():void
+		{
+			trace("menuSet");
 		}
 
 	}
